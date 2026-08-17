@@ -8,15 +8,11 @@ import com.productivity.habits.data.local.dao.HabitLogDao
 import com.productivity.habits.data.local.entity.HabitCategoryEntity
 import com.productivity.habits.data.local.entity.HabitEntity
 import com.productivity.habits.data.local.entity.HabitFrequencyType
-import com.productivity.habits.data.local.entity.HabitLogEntity
 import com.productivity.habits.data.local.entity.HabitTargetType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.Instant
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.UUID
 import javax.inject.Provider
 
 class PrepopulateDataCallback(
@@ -40,15 +36,12 @@ class PrepopulateDataCallback(
             try {
                 val categoryDao = categoryDaoProvider.get()
                 val habitDao = habitDaoProvider.get()
-                val habitLogDao = habitLogDaoProvider.get()
 
                 categoryDao.insertDefaultCategories(DEFAULT_CATEGORIES)
 
                 val existingHabits = habitDao.getActiveHabitsOnce()
                 if (existingHabits.isEmpty()) {
                     val now = Instant.now()
-                    val today = LocalDate.now()
-                    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
                     val habits = listOf(
                         HabitEntity(
@@ -63,7 +56,7 @@ class PrepopulateDataCallback(
                             targetValue = 45.0,
                             unit = "mins",
                             pinned = true,
-                            createdAt = now.minusSeconds(14 * 86400L),
+                            createdAt = now,
                             updatedAt = now
                         ),
                         HabitEntity(
@@ -76,7 +69,7 @@ class PrepopulateDataCallback(
                             frequencyType = HabitFrequencyType.DAILY,
                             targetType = HabitTargetType.BOOLEAN,
                             pinned = true,
-                            createdAt = now.minusSeconds(10 * 86400L),
+                            createdAt = now,
                             updatedAt = now
                         ),
                         HabitEntity(
@@ -90,7 +83,7 @@ class PrepopulateDataCallback(
                             targetType = HabitTargetType.NUMERIC,
                             targetValue = 20.0,
                             unit = "pages",
-                            createdAt = now.minusSeconds(8 * 86400L),
+                            createdAt = now,
                             updatedAt = now
                         ),
                         HabitEntity(
@@ -103,7 +96,7 @@ class PrepopulateDataCallback(
                             frequencyType = HabitFrequencyType.TIMES_PER_DAY,
                             timesPerDay = 4,
                             targetType = HabitTargetType.BOOLEAN,
-                            createdAt = now.minusSeconds(6 * 86400L),
+                            createdAt = now,
                             updatedAt = now
                         ),
                         HabitEntity(
@@ -115,82 +108,11 @@ class PrepopulateDataCallback(
                             categoryId = "cat_personal",
                             frequencyType = HabitFrequencyType.DAILY,
                             targetType = HabitTargetType.BOOLEAN,
-                            createdAt = now.minusSeconds(7 * 86400L),
+                            createdAt = now,
                             updatedAt = now
                         )
                     )
                     habitDao.insertHabits(habits)
-
-                    val logs = mutableListOf<HabitLogEntity>()
-
-                    // 1. Deep work: 14 days consecutive streak (45 mins per day) -> unlocks Fortitude & 1.5x multiplier
-                    for (i in 0 until 14) {
-                        val d = today.minusDays(i.toLong()).format(formatter)
-                        logs.add(
-                            HabitLogEntity(
-                                id = UUID.randomUUID().toString(),
-                                habitId = "seed_habit_deep_work",
-                                date = d,
-                                timestamp = now.minusSeconds(i * 86400L),
-                                completed = true,
-                                value = 45.0,
-                                durationSeconds = 2700L,
-                                createdAt = now,
-                                updatedAt = now
-                            )
-                        )
-                    }
-
-                    // 2. Meditation: 8 days consecutive streak
-                    for (i in 0 until 8) {
-                        val d = today.minusDays(i.toLong()).format(formatter)
-                        logs.add(
-                            HabitLogEntity(
-                                id = UUID.randomUUID().toString(),
-                                habitId = "seed_habit_meditation",
-                                date = d,
-                                timestamp = now.minusSeconds(i * 86400L),
-                                completed = true,
-                                createdAt = now,
-                                updatedAt = now
-                            )
-                        )
-                    }
-
-                    // 3. Reading: 5 days streak
-                    for (i in 1..5) {
-                        val d = today.minusDays(i.toLong()).format(formatter)
-                        logs.add(
-                            HabitLogEntity(
-                                id = UUID.randomUUID().toString(),
-                                habitId = "seed_habit_read",
-                                date = d,
-                                timestamp = now.minusSeconds(i * 86400L),
-                                completed = true,
-                                value = 20.0,
-                                createdAt = now,
-                                updatedAt = now
-                            )
-                        )
-                    }
-
-                    // 4. Hydration: 3 slots completed today
-                    for (slot in 0 until 3) {
-                        logs.add(
-                            HabitLogEntity(
-                                id = UUID.randomUUID().toString(),
-                                habitId = "seed_habit_water",
-                                date = today.format(formatter),
-                                timestamp = now,
-                                intervalIndex = slot,
-                                completed = true,
-                                createdAt = now,
-                                updatedAt = now
-                            )
-                        )
-                    }
-
-                    habitLogDao.insertLogs(logs)
                 }
             } catch (e: Exception) {
                 // Log or ignore on pre-existing data
