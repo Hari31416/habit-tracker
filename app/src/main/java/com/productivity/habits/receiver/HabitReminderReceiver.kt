@@ -96,7 +96,7 @@ class HabitReminderReceiver : BroadcastReceiver() {
             )
 
             val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setSmallIcon(com.productivity.habits.R.mipmap.ic_launcher)
                 .setContentTitle(habit.title)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(contentPendingIntent)

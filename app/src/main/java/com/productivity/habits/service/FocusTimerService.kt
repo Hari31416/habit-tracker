@@ -184,7 +184,7 @@ class FocusTimerService : Service() {
         TimerStateHolder.complete()
 
         val completionNotification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setSmallIcon(com.productivity.habits.R.mipmap.ic_launcher)
             .setContentTitle("Focus Session Complete!")
             .setContentText("${state.habitTitle} session completed.")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -276,7 +276,7 @@ class FocusTimerService : Service() {
         val progressPercent = (state.progress * 100).toInt()
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_media_play)
+            .setSmallIcon(com.productivity.habits.R.mipmap.ic_launcher)
             .setContentTitle(state.habitTitle.ifEmpty { "Focus Timer" })
             .setContentText("$timeString remaining")
             .setProgress(100, progressPercent, false)
