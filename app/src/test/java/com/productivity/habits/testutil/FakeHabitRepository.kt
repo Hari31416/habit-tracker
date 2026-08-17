@@ -3,6 +3,7 @@ package com.productivity.habits.testutil
 import com.productivity.habits.data.local.entity.HabitCategoryEntity
 import com.productivity.habits.data.local.entity.HabitEntity
 import com.productivity.habits.data.local.entity.HabitLogEntity
+import com.productivity.habits.data.local.entity.HabitTargetType
 import com.productivity.habits.domain.repository.HabitRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -186,6 +187,8 @@ class FakeHabitRepository : HabitRepository {
         val current = logsFlow.value.toMutableList()
         val existingIndex = current.indexOfFirst { it.habitId == habitId && it.date == dateStr }
         val now = Instant.now()
+        val durationSec = if (habit?.targetType == HabitTargetType.TIMER) (value * 60).toLong() else null
+
         val log = HabitLogEntity(
             id = if (existingIndex >= 0) current[existingIndex].id else UUID.randomUUID().toString(),
             habitId = habitId,
@@ -193,6 +196,7 @@ class FakeHabitRepository : HabitRepository {
             timestamp = now,
             completed = isComplete,
             value = value,
+            durationSeconds = durationSec,
             createdAt = if (existingIndex >= 0) current[existingIndex].createdAt else now,
             updatedAt = now
         )
@@ -209,7 +213,13 @@ class FakeHabitRepository : HabitRepository {
         val habit = getHabitByIdOnce(habitId)
         val target = habit?.targetValue ?: 1.0
         val existing = logsFlow.value.filter { it.habitId == habitId && it.date == dateStr }
-        val currentValue = existing.sumOf { it.value ?: if (it.completed) target else 0.0 }
+        val currentValue = existing.sumOf {
+            if (it.durationSeconds != null && it.durationSeconds > 0) {
+                it.durationSeconds / 60.0
+            } else {
+                it.value ?: if (it.completed) target else 0.0
+            }
+        }
         val newValue = maxOf(0.0, currentValue + delta)
         updateNumericValue(habitId, date, newValue)
     }

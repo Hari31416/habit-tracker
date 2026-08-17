@@ -110,4 +110,15 @@ object TimerStateHolder {
             current.copy(remainingSeconds = 0, status = TimerStatus.COMPLETED)
         }
     }
+
+    fun setDuration(habitId: String, habitTitle: String, durationMinutes: Double) {
+        val sec = (durationMinutes * 60).toLong().coerceAtLeast(60L)
+        _timerState.value = TimerState(
+            habitId = habitId,
+            habitTitle = habitTitle,
+            totalSeconds = sec,
+            remainingSeconds = sec,
+            status = TimerStatus.IDLE
+        )
+    }
 }

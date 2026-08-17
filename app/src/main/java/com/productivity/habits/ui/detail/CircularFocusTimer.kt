@@ -62,6 +62,7 @@ fun CircularFocusTimer(
     habitId: String,
     habitTitle: String,
     defaultDurationMinutes: Double,
+    remainingUnloggedMinutes: Double = defaultDurationMinutes,
     accentColor: Color,
     modifier: Modifier = Modifier
 ) {
@@ -71,10 +72,31 @@ fun CircularFocusTimer(
 
     var showEditMinutesDialog by remember { mutableStateOf(false) }
 
-    val isThisHabitActive = timerState.habitId == habitId
-    val remainingSec = if (isThisHabitActive) timerState.remainingSeconds else (defaultDurationMinutes * 60).toLong()
-    val totalSec = if (isThisHabitActive) timerState.totalSeconds else (defaultDurationMinutes * 60).toLong()
-    val status = if (isThisHabitActive) timerState.status else TimerStatus.IDLE
+    val isRunningOrPausedForThisHabit = timerState.habitId == habitId && (timerState.status == TimerStatus.RUNNING || timerState.status == TimerStatus.PAUSED)
+    val isCompletedForThisHabit = timerState.habitId == habitId && timerState.status == TimerStatus.COMPLETED
+
+    // Default duration in seconds based on current remaining unlogged time
+    val defaultDurationSec = (defaultDurationMinutes * 60).toLong().coerceAtLeast(60L)
+
+    val remainingSec = when {
+        isRunningOrPausedForThisHabit -> timerState.remainingSeconds
+        isCompletedForThisHabit -> 0L
+        timerState.habitId == habitId && timerState.status == TimerStatus.IDLE -> timerState.remainingSeconds
+        else -> defaultDurationSec
+    }
+
+    val totalSec = when {
+        isRunningOrPausedForThisHabit -> timerState.totalSeconds
+        isCompletedForThisHabit -> timerState.totalSeconds
+        timerState.habitId == habitId && timerState.status == TimerStatus.IDLE -> timerState.totalSeconds
+        else -> defaultDurationSec
+    }
+
+    val status = when {
+        isRunningOrPausedForThisHabit -> timerState.status
+        isCompletedForThisHabit -> TimerStatus.COMPLETED
+        else -> TimerStatus.IDLE
+    }
 
     val progress = if (totalSec > 0) {
         ((totalSec - remainingSec).toFloat() / totalSec.toFloat()).coerceIn(0f, 1f)
@@ -102,11 +124,10 @@ fun CircularFocusTimer(
                 TextButton(
                     onClick = {
                         val parsed = inputMins.toLongOrNull() ?: 25L
-                        if (isThisHabitActive) {
+                        if (isRunningOrPausedForThisHabit) {
                             TimerStateHolder.setRemainingMinutes(parsed)
                         } else {
-                            TimerStateHolder.start(habitId, habitTitle, parsed.toDouble())
-                            TimerStateHolder.pause()
+                            TimerStateHolder.setDuration(habitId, habitTitle, parsed.toDouble())
                         }
                         showEditMinutesDialog = false
                     }
@@ -225,11 +246,8 @@ fun CircularFocusTimer(
                     .clip(CircleShape)
                     .clickable {
                         HapticsHelper.performLightHaptic(haptic)
-                        if (isThisHabitActive) {
-                            FocusTimerService.stopTimer(context)
-                        } else {
-                            TimerStateHolder.reset()
-                        }
+                        FocusTimerService.stopTimer(context)
+                        TimerStateHolder.stop()
                     },
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
@@ -249,16 +267,16 @@ fun CircularFocusTimer(
             Button(
                 onClick = {
                     HapticsHelper.performLightHaptic(haptic)
-                    if (status == TimerStatus.RUNNING && isThisHabitActive) {
+                    if (status == TimerStatus.RUNNING && isRunningOrPausedForThisHabit) {
                         FocusTimerService.pauseTimer(context)
-                    } else if (status == TimerStatus.PAUSED && isThisHabitActive) {
+                    } else if (status == TimerStatus.PAUSED && isRunningOrPausedForThisHabit) {
                         FocusTimerService.resumeTimer(context)
                     } else {
                         FocusTimerService.startTimer(
                             context = context,
                             habitId = habitId,
                             habitTitle = habitTitle,
-                            durationMinutes = (totalSec / 60.0)
+                            durationMinutes = (remainingSec / 60.0)
                         )
                     }
                 },
@@ -269,14 +287,14 @@ fun CircularFocusTimer(
                 colors = ButtonDefaults.buttonColors(containerColor = accentColor)
             ) {
                 Icon(
-                    imageVector = if (status == TimerStatus.RUNNING && isThisHabitActive) Icons.Default.Pause else Icons.Default.PlayArrow,
+                    imageVector = if (status == TimerStatus.RUNNING && isRunningOrPausedForThisHabit) Icons.Default.Pause else Icons.Default.PlayArrow,
                     contentDescription = null,
                     tint = Color.White,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = if (status == TimerStatus.RUNNING && isThisHabitActive) "Pause" else "Start",
+                    text = if (status == TimerStatus.RUNNING && isRunningOrPausedForThisHabit) "Pause" else "Start",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -286,7 +304,7 @@ fun CircularFocusTimer(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Quick Adjustment Chips (-10m, -5m, +5m, +10m)
+        // Quick Adjustment Chips (-10m, -5m, +5m, +10m, and Remaining)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -294,6 +312,33 @@ fun CircularFocusTimer(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            val remMinInt = remainingUnloggedMinutes.toInt()
+            if (remMinInt > 0) {
+                Surface(
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .clickable {
+                            HapticsHelper.performLightHaptic(haptic)
+                            if (isRunningOrPausedForThisHabit) {
+                                FocusTimerService.stopTimer(context)
+                            }
+                            TimerStateHolder.setDuration(habitId, habitTitle, remMinInt.toDouble())
+                        },
+                    shape = RoundedCornerShape(14.dp),
+                    color = accentColor.copy(alpha = 0.15f),
+                    border = BorderStroke(1.dp, accentColor.copy(alpha = 0.4f))
+                ) {
+                    Text(
+                        text = "Remaining (${remMinInt}m)",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = accentColor,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                    )
+                }
+            }
+
             listOf(-600L to "-10m", -300L to "-5m", 300L to "+5m", 600L to "+10m").forEach { (deltaSec, label) ->
                 Surface(
                     modifier = Modifier
@@ -301,12 +346,11 @@ fun CircularFocusTimer(
                         .clip(RoundedCornerShape(14.dp))
                         .clickable {
                             HapticsHelper.performLightHaptic(haptic)
-                            if (isThisHabitActive) {
+                            if (isRunningOrPausedForThisHabit) {
                                 FocusTimerService.adjustTimer(context, deltaSec)
                             } else {
                                 val currentMins = (totalSec / 60) + (deltaSec / 60)
-                                TimerStateHolder.start(habitId, habitTitle, currentMins.toDouble().coerceAtLeast(1.0))
-                                TimerStateHolder.pause()
+                                TimerStateHolder.setDuration(habitId, habitTitle, currentMins.toDouble().coerceAtLeast(1.0))
                             }
                         },
                     shape = RoundedCornerShape(14.dp),

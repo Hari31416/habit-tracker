@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Habits</string>
+    <string name="quick_log_widget_name">Quick-Log Habits</string>
+    <string name="quick_log_widget_description">Check in your active habits directly from your home screen.</string>
+    <string name="daily_focus_widget_name">Daily Focus</string>
+    <string name="daily_focus_widget_description">Track your daily adherence and top habit streaks.</string>
+</resources>

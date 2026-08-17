@@ -403,6 +403,10 @@ fun HabitDetailScreen(
 
             // 4. Circular Focus Timer (for TIMER habits)
             if (habit.targetType == HabitTargetType.TIMER) {
+                val targetMinutes = habit.targetValue ?: 25.0
+                val remainingMinutes = maxOf(0.0, targetMinutes - uiState.currentValueOnSelectedDate)
+                val timerDuration = if (remainingMinutes > 0.0) remainingMinutes else targetMinutes
+
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(18.dp),
@@ -413,7 +417,8 @@ fun HabitDetailScreen(
                     CircularFocusTimer(
                         habitId = habit.id,
                         habitTitle = habit.title,
-                        defaultDurationMinutes = habit.targetValue ?: 25.0,
+                        defaultDurationMinutes = timerDuration,
+                        remainingUnloggedMinutes = remainingMinutes,
                         accentColor = accentColor
                     )
                 }

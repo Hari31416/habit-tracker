@@ -71,4 +71,26 @@ class TimerStateHolderTest {
         assertThat(state.remainingSeconds).isEqualTo(25 * 60L)
         assertThat(state.status).isEqualTo(TimerStatus.IDLE)
     }
+
+    @Test
+    fun `setDuration sets total and remaining seconds with IDLE status`() {
+        TimerStateHolder.setDuration("habit_1", "Focus Work", 5.0)
+
+        val state = TimerStateHolder.timerState.value
+        assertThat(state.habitId).isEqualTo("habit_1")
+        assertThat(state.totalSeconds).isEqualTo(5 * 60L)
+        assertThat(state.remainingSeconds).isEqualTo(5 * 60L)
+        assertThat(state.status).isEqualTo(TimerStatus.IDLE)
+    }
+
+    @Test
+    fun `setRemainingMinutes updates duration and preserves IDLE status when not running`() {
+        TimerStateHolder.setDuration("habit_1", "Focus Work", 10.0)
+        TimerStateHolder.setRemainingMinutes(15L)
+
+        val state = TimerStateHolder.timerState.value
+        assertThat(state.totalSeconds).isEqualTo(15 * 60L)
+        assertThat(state.remainingSeconds).isEqualTo(15 * 60L)
+        assertThat(state.status).isEqualTo(TimerStatus.IDLE)
+    }
 }

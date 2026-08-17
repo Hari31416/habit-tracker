@@ -19,6 +19,9 @@ interface HabitDao {
     @Query("SELECT * FROM habits WHERE archived = 0 ORDER BY pinned DESC, createdAt ASC")
     fun getActiveHabits(): Flow<List<HabitEntity>>
 
+    @Query("SELECT * FROM habits WHERE archived = 0 ORDER BY pinned DESC, createdAt ASC")
+    suspend fun getActiveHabitsOnce(): List<HabitEntity>
+
     @Query("SELECT * FROM habits WHERE archived = 1 ORDER BY updatedAt DESC")
     fun getArchivedHabits(): Flow<List<HabitEntity>>
 

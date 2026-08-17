@@ -145,6 +145,18 @@ class HabitDetailViewModel @Inject constructor(
         }
     }
 
+    fun addNumericDelta(delta: Double) {
+        viewModelScope.launch {
+            repository.addNumericDelta(habitId, _selectedDate.value, delta)
+        }
+    }
+
+    fun updateNumericValue(value: Double) {
+        viewModelScope.launch {
+            repository.updateNumericValue(habitId, _selectedDate.value, value)
+        }
+    }
+
     fun toggleCheckInForDate(date: LocalDate) {
         viewModelScope.launch {
             repository.toggleBooleanCheckIn(habitId, date)

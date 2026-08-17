@@ -1,7 +1,7 @@
 package com.productivity.habits.di
 
-import com.productivity.habits.data.scheduler.NoOpHabitReminderScheduler
 import com.productivity.habits.domain.scheduler.HabitReminderScheduler
+import com.productivity.habits.scheduler.AlarmHabitReminderScheduler
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -15,6 +15,6 @@ abstract class SchedulerModule {
     @Binds
     @Singleton
     abstract fun bindHabitReminderScheduler(
-        impl: NoOpHabitReminderScheduler
+        impl: AlarmHabitReminderScheduler
     ): HabitReminderScheduler
 }

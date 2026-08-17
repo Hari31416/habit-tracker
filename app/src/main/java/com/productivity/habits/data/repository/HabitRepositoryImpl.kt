@@ -6,6 +6,7 @@ import com.productivity.habits.data.local.dao.HabitLogDao
 import com.productivity.habits.data.local.entity.HabitCategoryEntity
 import com.productivity.habits.data.local.entity.HabitEntity
 import com.productivity.habits.data.local.entity.HabitLogEntity
+import com.productivity.habits.data.local.entity.HabitTargetType
 import com.productivity.habits.domain.engine.StreakCalculator
 import com.productivity.habits.domain.repository.HabitRepository
 import com.productivity.habits.domain.scheduler.HabitReminderScheduler
@@ -151,14 +152,20 @@ class HabitRepositoryImpl @Inject constructor(
         val isComplete = value >= target
         val existingLogs = habitLogDao.getLogsForHabitAndDateOnce(habitId, dateStr)
         val now = Instant.now()
+        val durationSec = if (habit?.targetType == HabitTargetType.TIMER) (value * 60).toLong() else null
+
+        if (existingLogs.size > 1) {
+            habitLogDao.deleteLogsForHabitAndDate(habitId, dateStr)
+        }
 
         val log = HabitLogEntity(
-            id = existingLogs.firstOrNull()?.id ?: UUID.randomUUID().toString(),
+            id = if (existingLogs.size == 1) existingLogs.first().id else UUID.randomUUID().toString(),
             habitId = habitId,
             date = dateStr,
             timestamp = now,
             completed = isComplete,
             value = value,
+            durationSeconds = durationSec,
             createdAt = existingLogs.firstOrNull()?.createdAt ?: now,
             updatedAt = now
         )
@@ -170,7 +177,13 @@ class HabitRepositoryImpl @Inject constructor(
         val habit = habitDao.getHabitByIdOnce(habitId)
         val target = habit?.targetValue ?: 1.0
         val existingLogs = habitLogDao.getLogsForHabitAndDateOnce(habitId, dateStr)
-        val currentValue = existingLogs.sumOf { it.value ?: if (it.completed) target else 0.0 }
+        val currentValue = existingLogs.sumOf {
+            if (it.durationSeconds != null && it.durationSeconds > 0) {
+                it.durationSeconds / 60.0
+            } else {
+                it.value ?: if (it.completed) target else 0.0
+            }
+        }
         val newValue = maxOf(0.0, currentValue + delta)
         updateNumericValue(habitId, date, newValue)
     }
