@@ -64,10 +64,8 @@ fun HabitNavGraph(
             route = Screen.Detail.route,
             arguments = Screen.Detail.arguments,
             deepLinks = Screen.Detail.deepLinks
-        ) { backStackEntry ->
-            val habitId = backStackEntry.arguments?.getString(Screen.Detail.HABIT_ID_ARG) ?: ""
-            PlaceholderScreen(
-                title = "Habit Detail ($habitId)",
+        ) {
+            com.productivity.habits.ui.detail.HabitDetailScreen(
                 onBack = { navController.popBackStack() }
             )
         }
