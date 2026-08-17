@@ -79,17 +79,17 @@ fun WeekMatrixGrid(
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(14.dp)
         ) {
-            // Header Row: Habit Column + 7 Day Columns (Mon..Sun)
+            // Header Row: Habit Column + 7 Day Columns (Mo 17, Tu 18, etc.)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -144,7 +144,7 @@ fun WeekMatrixGrid(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Left Habit Info
+                        // Left Habit Info: Icon + Title
                         Row(
                             modifier = Modifier
                                 .weight(1.3f)
@@ -179,14 +179,14 @@ fun WeekMatrixGrid(
 
                                 val freqBadge = when (habit.frequencyType) {
                                     HabitFrequencyType.DAILY -> "Daily"
-                                    HabitFrequencyType.WEEKLY -> "${habit.targetCountPerWeek ?: 1}×/wk"
+                                    HabitFrequencyType.WEEKLY -> "${habit.targetCountPerWeek ?: 1}x/wk"
                                     HabitFrequencyType.CUSTOM_DAYS -> "Specific"
                                     HabitFrequencyType.SUBDAY_INTERVAL -> "Interval"
                                     HabitFrequencyType.TIMES_PER_DAY -> "Subday"
                                 }
 
                                 Text(
-                                    text = "${row.completedCountThisWeek}/${row.targetCountThisWeek} • $freqBadge",
+                                    text = "${row.completedCountThisWeek}/${row.targetCountThisWeek} - $freqBadge",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 1
@@ -194,7 +194,7 @@ fun WeekMatrixGrid(
                             }
                         }
 
-                        // 7 Day Cells
+                        // 7 Day Cells (Tappable circles)
                         Row(
                             modifier = Modifier.weight(2.4f),
                             horizontalArrangement = Arrangement.SpaceBetween,

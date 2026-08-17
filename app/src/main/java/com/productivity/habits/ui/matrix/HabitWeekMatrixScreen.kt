@@ -21,7 +21,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -30,19 +29,18 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -50,7 +48,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.productivity.habits.data.local.preferences.ThemeMode
 import com.productivity.habits.ui.common.HapticsHelper
 import com.productivity.habits.ui.common.ThemeToggleButton
-import com.productivity.habits.ui.daily.DashboardTab
+import com.productivity.habits.ui.form.HabitFormBottomSheet
+import com.productivity.habits.ui.form.HabitFormViewModel
+import com.productivity.habits.ui.navigation.HabitBottomNavigation
+import com.productivity.habits.ui.navigation.Screen
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,14 +62,35 @@ fun HabitWeekMatrixScreen(
     onNavigateToDaily: () -> Unit,
     onNavigateToAnalytics: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
+    onNavigateToBadges: () -> Unit = {},
     viewModel: WeekMatrixViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
     val haptic = LocalHapticFeedback.current
     val uiState by viewModel.uiState.collectAsState()
 
+    var showAddForm by remember { mutableStateOf(false) }
+    val formViewModel: HabitFormViewModel = hiltViewModel()
+
     Scaffold(
-        modifier = modifier.fillMaxSize()
+        modifier = modifier.fillMaxSize(),
+        bottomBar = {
+            HabitBottomNavigation(
+                currentRoute = Screen.WeekMatrix.route,
+                onNavigate = { route ->
+                    when (route) {
+                        Screen.Daily.route -> onNavigateToDaily()
+                        Screen.WeekMatrix.route -> Unit
+                        Screen.Analytics.route -> onNavigateToAnalytics()
+                        Screen.Badges.route -> onNavigateToBadges()
+                    }
+                },
+                onAddHabitClick = {
+                    formViewModel.resetForm()
+                    showAddForm = true
+                }
+            )
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -76,57 +98,30 @@ fun HabitWeekMatrixScreen(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Top App Bar & Segmented Navigation
+            // Top App Bar
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.surface,
                 tonalElevation = 1.dp
             ) {
-                Column(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "Week Matrix",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                    Text(
+                        text = "Week Matrix",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
 
-                        ThemeToggleButton(
-                            currentTheme = themeMode,
-                            onThemeSelected = onThemeModeSelected
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                        DashboardTab.entries.forEachIndexed { index, tab ->
-                            SegmentedButton(
-                                selected = tab == DashboardTab.MATRIX,
-                                onClick = {
-                                    HapticsHelper.performLightHaptic(haptic)
-                                    when (tab) {
-                                        DashboardTab.DAILY -> onNavigateToDaily()
-                                        DashboardTab.MATRIX -> Unit
-                                        DashboardTab.ANALYTICS -> onNavigateToAnalytics()
-                                    }
-                                },
-                                shape = SegmentedButtonDefaults.itemShape(index = index, count = DashboardTab.entries.size)
-                            ) {
-                                Text(tab.label)
-                            }
-                        }
-                    }
+                    ThemeToggleButton(
+                        currentTheme = themeMode,
+                        onThemeSelected = onThemeModeSelected
+                    )
                 }
             }
 
@@ -134,19 +129,19 @@ fun HabitWeekMatrixScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 // Week Date Range Stepper Bar
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 6.dp),
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
@@ -197,13 +192,13 @@ fun HabitWeekMatrixScreen(
                     }
                 }
 
-                // Weekly Adherence Summary Strip
+                // Weekly Adherence Summary Strip (3 Columns)
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
                 ) {
                     Row(
                         modifier = Modifier
@@ -220,7 +215,7 @@ fun HabitWeekMatrixScreen(
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                text = "Weekly Adherence",
+                                text = "Adherence",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -234,7 +229,7 @@ fun HabitWeekMatrixScreen(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = "Check-ins Met",
+                                text = "Check-ins",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -256,83 +251,123 @@ fun HabitWeekMatrixScreen(
                     }
                 }
 
-                // 7-Day Matrix Grid
+                // Interactive Week Matrix Grid
                 if (uiState.isLoading) {
-                    Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
                         CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     }
                 } else {
                     WeekMatrixGrid(
                         rows = uiState.rows,
-                        onToggleCell = viewModel::toggleCell,
+                        onToggleCell = { habitId, date ->
+                            viewModel.toggleCell(habitId, date)
+                        },
                         onHabitClick = onNavigateToDetail
                     )
                 }
 
-                // Daily Completions Bar Chart
-                if (uiState.dailyStats.isNotEmpty()) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                // Daily Completions Breakdown Bar Chart
+                DailyCompletionsBreakdownChart(
+                    dailyStats = uiState.dailyStats
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    }
+
+    if (showAddForm) {
+        HabitFormBottomSheet(
+            viewModel = formViewModel,
+            onDismiss = { showAddForm = false }
+        )
+    }
+}
+
+@Composable
+private fun DailyCompletionsBreakdownChart(
+    dailyStats: List<DailyCompletionStat>,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Daily Completions",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            val maxCount = (dailyStats.maxOfOrNull { it.completedCount } ?: 1).coerceAtLeast(1)
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Bottom
+            ) {
+                dailyStats.forEach { dayStat ->
+                    val barFraction = (dayStat.completedCount.toFloat() / maxCount.toFloat()).coerceIn(0.06f, 1f)
+                    val animatedHeight by animateFloatAsState(
+                        targetValue = barFraction,
+                        label = "bar_anim"
+                    )
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.width(36.dp)
                     ) {
-                        Column(
+                        Text(
+                            text = "${dayStat.completedCount}",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = if (dayStat.completedCount > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
+                                .width(18.dp)
+                                .height(56.dp),
+                            contentAlignment = Alignment.BottomCenter
                         ) {
-                            Text(
-                                text = "Daily Completions Breakdown",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            val maxDaily = uiState.dailyStats.maxOfOrNull { it.scheduledCount }?.coerceAtLeast(1) ?: 1
-
-                            Row(
+                            Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(120.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.Bottom
-                            ) {
-                                uiState.dailyStats.forEach { stat ->
-                                    val heightFraction = (stat.completedCount.toFloat() / maxDaily.toFloat()).coerceIn(0.05f, 1f)
-                                    val animatedHeight by animateFloatAsState(targetValue = heightFraction, label = "BarHeight")
-
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.Bottom,
-                                        modifier = Modifier.weight(1f)
-                                    ) {
-                                        Text(
-                                            text = "${stat.completedCount}",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.primary
-                                        )
-                                        Spacer(modifier = Modifier.height(4.dp))
-
-                                        Box(
-                                            modifier = Modifier
-                                                .width(22.dp)
-                                                .fillMaxHeight(animatedHeight)
-                                                .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
-                                                .background(MaterialTheme.colorScheme.primary)
-                                        )
-
-                                        Spacer(modifier = Modifier.height(6.dp))
-                                        Text(
-                                            text = stat.dayLabel,
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                }
-                            }
+                                    .fillMaxHeight(animatedHeight)
+                                    .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                                    .background(
+                                        if (dayStat.completedCount > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+                                    )
+                            )
                         }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        Text(
+                            text = dayStat.dayLabel,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
