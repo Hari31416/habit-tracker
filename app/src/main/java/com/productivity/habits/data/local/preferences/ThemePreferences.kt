@@ -18,6 +18,9 @@ class ThemePreferences @Inject constructor(
     private val _themeMode = MutableStateFlow(loadThemeMode())
     val themeMode: StateFlow<ThemeMode> = _themeMode.asStateFlow()
 
+    private val _userName = MutableStateFlow(loadUserName())
+    val userName: StateFlow<String> = _userName.asStateFlow()
+
     private fun loadThemeMode(): ThemeMode {
         val savedName = prefs.getString(KEY_THEME_MODE, ThemeMode.SYSTEM.name)
         return try {
@@ -27,13 +30,23 @@ class ThemePreferences @Inject constructor(
         }
     }
 
+    private fun loadUserName(): String {
+        return prefs.getString(KEY_USER_NAME, "") ?: ""
+    }
+
     fun setThemeMode(mode: ThemeMode) {
         prefs.edit().putString(KEY_THEME_MODE, mode.name).apply()
         _themeMode.value = mode
     }
 
+    fun setUserName(name: String) {
+        prefs.edit().putString(KEY_USER_NAME, name.trim()).apply()
+        _userName.value = name.trim()
+    }
+
     companion object {
         private const val PREFS_NAME = "habit_tracker_theme_prefs"
         private const val KEY_THEME_MODE = "key_theme_mode"
+        private const val KEY_USER_NAME = "key_user_name"
     }
 }

@@ -1,7 +1,14 @@
 package com.productivity.habits.ui.daily
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,19 +25,20 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -66,10 +74,21 @@ fun HabitCard(
 
     val habitColor = ColorUtils.parseHexColor(habit.color)
     val iconVector = HabitIconRegistry.getIcon(habit.icon)
+    val outlineVariant = MaterialTheme.colorScheme.outlineVariant
 
-    // Format streak label: "X wks" for weekly frequency, "X d" for others
     val streakUnit = if (habit.frequencyType == HabitFrequencyType.WEEKLY) "wks" else "d"
-    val streakLabel = "${streak.currentStreak} $streakUnit"
+    val streakLabel = "${streak.currentStreak} $streakUnit streak"
+
+    val checkButtonScale by animateFloatAsState(
+        targetValue = if (isCompleted) 1.05f else 1.0f,
+        animationSpec = spring(dampingRatio = 0.6f),
+        label = "check_scale"
+    )
+
+    val checkBgColor by animateColorAsState(
+        targetValue = if (isCompleted) habitColor else Color.Transparent,
+        label = "check_bg_color"
+    )
 
     Card(
         modifier = modifier
@@ -77,24 +96,36 @@ fun HabitCard(
             .clip(RoundedCornerShape(16.dp))
             .clickable { onHabitClick(habit.id) },
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (isCompleted) 1.dp else 1.5.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f))
+        colors = CardDefaults.cardColors(
+            containerColor = if (isCompleted) {
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+            } else {
+                MaterialTheme.colorScheme.surface
+            }
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isCompleted) 0.5.dp else 1.5.dp),
+        border = BorderStroke(
+            1.dp,
+            if (habit.pinned) {
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+            } else {
+                outlineVariant.copy(alpha = 0.35f)
+            }
+        )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(14.dp)
+                .padding(horizontal = 14.dp, vertical = 12.dp)
         ) {
-            // Header Row: Icon, Title & Category, Streak Badge, Pin
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Color-tinted icon badge
+                // Left Icon Badge
                 Surface(
-                    modifier = Modifier.size(40.dp),
-                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.size(44.dp),
+                    shape = RoundedCornerShape(12.dp),
                     color = habitColor.copy(alpha = 0.15f)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
@@ -109,46 +140,56 @@ fun HabitCard(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                // Title and category badge
+                // Middle: Title, Category, Streak / Metadata
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text(
-                        text = habit.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-
-                    if (category != null || habit.description != null) {
-                        val subtitle = category?.name ?: habit.description ?: ""
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
                         Text(
-                            text = subtitle,
+                            text = habit.title,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false)
+                        )
+
+                        if (habit.pinned) {
+                            Icon(
+                                imageVector = Icons.Filled.PushPin,
+                                contentDescription = "Pinned",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(2.dp))
+
+                    val categoryText = category?.name ?: habit.description
+                    if (!categoryText.isNullOrBlank()) {
+                        Text(
+                            text = categoryText,
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                }
 
-                // Streak Badge
-                if (streak.currentStreak > 0) {
-                    Surface(
-                        modifier = Modifier.clip(RoundedCornerShape(12.dp)),
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
-                        ) {
+                    Spacer(modifier = Modifier.height(2.dp))
+
+                    // Streak or target status
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (streak.currentStreak > 0) {
                             Icon(
                                 imageVector = Icons.Default.LocalFireDepartment,
-                                contentDescription = null,
+                                contentDescription = "Streak",
                                 tint = MaterialTheme.colorScheme.tertiary,
                                 modifier = Modifier.size(13.dp)
                             )
@@ -157,116 +198,124 @@ fun HabitCard(
                                 text = streakLabel,
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onTertiaryContainer
+                                color = MaterialTheme.colorScheme.tertiary
+                            )
+                        } else {
+                            val targetDesc = when {
+                                habit.targetType == HabitTargetType.NUMERIC -> {
+                                    val current = habitWithProgress.currentValueOnDate.toInt()
+                                    val target = (habit.targetValue ?: 0.0).toInt()
+                                    "$current / $target ${habit.unit ?: ""}".trim()
+                                }
+                                habit.targetType == HabitTargetType.TIMER -> {
+                                    val mins = (habitWithProgress.currentDurationSecondsOnDate / 60.0).toInt()
+                                    val targetMins = (habit.targetValue ?: 0.0).toInt()
+                                    "$mins / $targetMins min"
+                                }
+                                else -> "Not started"
+                            }
+                            Text(
+                                text = targetDesc,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.outline
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.width(6.dp))
                 }
 
-                // Pin toggle button
-                IconButton(
-                    onClick = {
-                        HapticsHelper.performLightHaptic(haptic)
-                        onTogglePin()
-                    },
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        imageVector = if (habit.pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
-                        contentDescription = if (habit.pinned) "Unpin" else "Pin",
-                        tint = if (habit.pinned) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            }
+                Spacer(modifier = Modifier.width(8.dp))
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Body Control Variation based on Target and Frequency Types
-            when {
-                // Subday Interval / Times Per Day Slots
-                habit.frequencyType == HabitFrequencyType.SUBDAY_INTERVAL ||
-                    habit.frequencyType == HabitFrequencyType.TIMES_PER_DAY -> {
-                    SlotHabitControls(
-                        habit = habit,
-                        logsForDate = habitWithProgress.logsForDate,
-                        accentColor = habitColor,
-                        onToggleSlot = onToggleSlot
-                    )
-                }
-
-                // Numeric Target
-                habit.targetType == HabitTargetType.NUMERIC -> {
-                    NumericHabitControls(
-                        habit = habit,
-                        currentValue = habitWithProgress.currentValueOnDate,
-                        isCompleted = isCompleted,
-                        accentColor = habitColor,
-                        onValueChange = onValueChange,
-                        onDeltaAdd = onDeltaAdd
-                    )
-                }
-
-                // Timer Target
-                habit.targetType == HabitTargetType.TIMER -> {
-                    val currentMinutes = habitWithProgress.currentDurationSecondsOnDate / 60.0
-                    TimerHabitControls(
-                        habit = habit,
-                        currentMinutes = currentMinutes,
-                        isCompleted = isCompleted,
-                        accentColor = habitColor,
-                        onDeltaAddMinutes = onDeltaAdd,
-                        onStartFocus = onStartFocus
-                    )
-                }
-
-                // Standard Boolean Target
-                else -> {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                // Right Completion Control / Focus Action (Touch target >= 48dp)
+                if (habit.targetType == HabitTargetType.TIMER && !isCompleted) {
+                    Surface(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .clickable {
+                                HapticsHelper.performLightHaptic(haptic)
+                                onStartFocus()
+                            },
+                        shape = RoundedCornerShape(20.dp),
+                        color = habitColor.copy(alpha = 0.15f)
                     ) {
-                        Text(
-                            text = if (isCompleted) "Completed today" else "Tap circle to complete",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (isCompleted) habitColor else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-
-                        // Large Circular Boolean Check Button
-                        Surface(
-                            modifier = Modifier
-                                .size(42.dp)
-                                .clip(CircleShape)
-                                .clickable {
-                                    if (!isCompleted) {
-                                        HapticsHelper.performHeavyConfirmationHaptic(context, haptic)
-                                    } else {
-                                        HapticsHelper.performLightHaptic(haptic)
-                                    }
-                                    onToggleCheckIn()
-                                },
-                            shape = CircleShape,
-                            color = if (isCompleted) habitColor else Color.Transparent,
-                            border = BorderStroke(
-                                2.dp,
-                                if (isCompleted) habitColor else MaterialTheme.colorScheme.outlineVariant
-                            )
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                if (isCompleted) {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = "Completed",
-                                        tint = Color.White,
-                                        modifier = Modifier.size(24.dp)
-                                    )
+                            Icon(
+                                imageVector = Icons.Default.PlayArrow,
+                                contentDescription = "Start Focus",
+                                tint = habitColor,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = "Focus",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = habitColor
+                            )
+                        }
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .clickable {
+                                if (!isCompleted) {
+                                    HapticsHelper.performHeavyConfirmationHaptic(context, haptic)
+                                } else {
+                                    HapticsHelper.performLightHaptic(haptic)
                                 }
+                                onToggleCheckIn()
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(34.dp)
+                                .scale(checkButtonScale)
+                                .clip(CircleShape)
+                                .background(checkBgColor)
+                                .then(
+                                    if (!isCompleted) {
+                                        Modifier.border(2.dp, outlineVariant, CircleShape)
+                                    } else Modifier
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (isCompleted) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Completed",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
                             }
                         }
                     }
                 }
+            }
+
+            // Compact auxiliary controls for numeric / slot targets
+            if (habit.targetType == HabitTargetType.NUMERIC && !isCompleted) {
+                Spacer(modifier = Modifier.height(8.dp))
+                NumericHabitControls(
+                    habit = habit,
+                    currentValue = habitWithProgress.currentValueOnDate,
+                    isCompleted = isCompleted,
+                    accentColor = habitColor,
+                    onValueChange = onValueChange,
+                    onDeltaAdd = onDeltaAdd
+                )
+            } else if ((habit.frequencyType == HabitFrequencyType.SUBDAY_INTERVAL || habit.frequencyType == HabitFrequencyType.TIMES_PER_DAY) && !isCompleted) {
+                Spacer(modifier = Modifier.height(8.dp))
+                SlotHabitControls(
+                    habit = habit,
+                    logsForDate = habitWithProgress.logsForDate,
+                    accentColor = habitColor,
+                    onToggleSlot = onToggleSlot
+                )
             }
         }
     }
