@@ -57,7 +57,8 @@ class MainActivity : ComponentActivity() {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     HabitNavGraph(
                         themeMode = themeMode,
-                        onThemeModeSelected = { themePreferences.setThemeMode(it) }
+                        onThemeModeSelected = { themePreferences.setThemeMode(it) },
+                        themePreferences = themePreferences
                     )
                 }
             }

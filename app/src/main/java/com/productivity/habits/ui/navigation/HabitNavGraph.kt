@@ -1,36 +1,39 @@
 package com.productivity.habits.ui.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.productivity.habits.ui.daily.DailyTrackerScreen
-
 import com.productivity.habits.data.local.preferences.ThemeMode
+import com.productivity.habits.data.local.preferences.ThemePreferences
+import com.productivity.habits.ui.analytics.HabitAnalyticsScreen
+import com.productivity.habits.ui.daily.DailyTrackerScreen
+import com.productivity.habits.ui.detail.HabitDetailScreen
+import com.productivity.habits.ui.gamification.BadgesShowcaseScreen
+import com.productivity.habits.ui.matrix.HabitWeekMatrixScreen
 
 @Composable
 fun HabitNavGraph(
     modifier: Modifier = Modifier,
     themeMode: ThemeMode = ThemeMode.SYSTEM,
     onThemeModeSelected: (ThemeMode) -> Unit = {},
+    themePreferences: ThemePreferences? = null,
     navController: NavHostController = rememberNavController(),
     startDestination: String = Screen.Daily.route
 ) {
+    fun navigateToTab(route: String) {
+        navController.navigate(route) {
+            popUpTo(navController.graph.findStartDestination().id) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -40,68 +43,72 @@ fun HabitNavGraph(
             DailyTrackerScreen(
                 themeMode = themeMode,
                 onThemeModeSelected = onThemeModeSelected,
+                themePreferences = themePreferences,
                 onNavigateToDetail = { habitId ->
                     navController.navigate(Screen.Detail.createRoute(habitId))
                 },
                 onNavigateToMatrix = {
-                    navController.navigate(Screen.WeekMatrix.route)
+                    navigateToTab(Screen.WeekMatrix.route)
                 },
                 onNavigateToAnalytics = {
-                    navController.navigate(Screen.Analytics.route)
+                    navigateToTab(Screen.Analytics.route)
                 },
                 onNavigateToBadges = {
-                    navController.navigate(Screen.Badges.route)
+                    navigateToTab(Screen.Badges.route)
                 }
             )
         }
 
-        composable(route = Screen.Badges.route) {
-            com.productivity.habits.ui.gamification.BadgesShowcaseScreen(
-                onBack = { navController.popBackStack() },
-                themeMode = themeMode,
-                onThemeModeSelected = onThemeModeSelected
-            )
-        }
-
         composable(route = Screen.WeekMatrix.route) {
-            com.productivity.habits.ui.matrix.HabitWeekMatrixScreen(
+            HabitWeekMatrixScreen(
                 themeMode = themeMode,
                 onThemeModeSelected = onThemeModeSelected,
                 onNavigateToDaily = {
-                    navController.navigate(Screen.Daily.route) {
-                        popUpTo(Screen.Daily.route) { inclusive = true }
-                    }
+                    navigateToTab(Screen.Daily.route)
                 },
                 onNavigateToAnalytics = {
-                    navController.navigate(Screen.Analytics.route) {
-                        popUpTo(Screen.Daily.route)
-                    }
+                    navigateToTab(Screen.Analytics.route)
                 },
                 onNavigateToDetail = { habitId ->
                     navController.navigate(Screen.Detail.createRoute(habitId))
+                },
+                onNavigateToBadges = {
+                    navigateToTab(Screen.Badges.route)
                 }
             )
         }
 
         composable(route = Screen.Analytics.route) {
-            com.productivity.habits.ui.analytics.HabitAnalyticsScreen(
+            HabitAnalyticsScreen(
                 themeMode = themeMode,
                 onThemeModeSelected = onThemeModeSelected,
                 onNavigateToDaily = {
-                    navController.navigate(Screen.Daily.route) {
-                        popUpTo(Screen.Daily.route) { inclusive = true }
-                    }
+                    navigateToTab(Screen.Daily.route)
                 },
                 onNavigateToMatrix = {
-                    navController.navigate(Screen.WeekMatrix.route) {
-                        popUpTo(Screen.Daily.route)
-                    }
+                    navigateToTab(Screen.WeekMatrix.route)
                 },
                 onNavigateToDetail = { habitId ->
                     navController.navigate(Screen.Detail.createRoute(habitId))
                 },
                 onNavigateToBadges = {
-                    navController.navigate(Screen.Badges.route)
+                    navigateToTab(Screen.Badges.route)
+                }
+            )
+        }
+
+        composable(route = Screen.Badges.route) {
+            BadgesShowcaseScreen(
+                themeMode = themeMode,
+                onThemeModeSelected = onThemeModeSelected,
+                onNavigateToDaily = {
+                    navigateToTab(Screen.Daily.route)
+                },
+                onNavigateToMatrix = {
+                    navigateToTab(Screen.WeekMatrix.route)
+                },
+                onNavigateToAnalytics = {
+                    navigateToTab(Screen.Analytics.route)
                 }
             )
         }
@@ -111,46 +118,8 @@ fun HabitNavGraph(
             arguments = Screen.Detail.arguments,
             deepLinks = Screen.Detail.deepLinks
         ) {
-            com.productivity.habits.ui.detail.HabitDetailScreen(
+            HabitDetailScreen(
                 onBack = { navController.popBackStack() }
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun PlaceholderScreen(
-    title: String,
-    onBack: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        topBar = {
-            TopAppBar(
-                title = { Text(title) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                }
-            )
-        }
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "$title Screen (Phase 3/4)",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
