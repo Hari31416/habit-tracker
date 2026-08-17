@@ -23,6 +23,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -69,10 +70,8 @@ class AlarmHabitReminderScheduler @Inject constructor(
                     alarmManager?.cancel(pendingIntent)
                     pendingIntent.cancel()
                 }
+                WorkManager.getInstance(context).cancelUniqueWork("reminder_${habitId}_$index")
             }
-
-            // Cancel any WorkManager fallback work
-            WorkManager.getInstance(context).cancelUniqueWork("reminder_${habitId}")
         }
     }
 
@@ -91,9 +90,10 @@ class AlarmHabitReminderScheduler @Inject constructor(
         referenceDateTime: LocalDateTime = LocalDateTime.now()
     ): LocalDateTime {
         var candidateDate = referenceDateTime.toLocalDate()
+        val refTimeMinute = referenceDateTime.toLocalTime().truncatedTo(ChronoUnit.MINUTES)
 
-        // If today's reminder time has already passed, start checking from tomorrow
-        if (referenceDateTime.toLocalTime().isAfter(reminderTime) || referenceDateTime.toLocalTime() == reminderTime) {
+        // If today's reminder minute has already passed (strictly greater than reminderTime), start checking from tomorrow
+        if (refTimeMinute.isAfter(reminderTime)) {
             candidateDate = candidateDate.plusDays(1)
         }
 
@@ -109,7 +109,9 @@ class AlarmHabitReminderScheduler @Inject constructor(
     }
 
     private fun scheduleAlarmForTime(habit: HabitEntity, triggerDateTime: LocalDateTime, reminderIndex: Int) {
-        val triggerMillis = triggerDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val calculatedMillis = triggerDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        // If scheduled for today's current minute, ensure trigger is at least 1s in the future
+        val triggerMillis = maxOf(System.currentTimeMillis() + 1000L, calculatedMillis)
         val requestCode = generateRequestCode(habit.id, reminderIndex)
 
         val intent = Intent(context, HabitReminderReceiver::class.java).apply {
@@ -152,7 +154,7 @@ class AlarmHabitReminderScheduler @Inject constructor(
                 .putInt(HabitReminderReceiver.EXTRA_REMINDER_INDEX, reminderIndex)
                 .build()
 
-            val workRequest = OneTimeWorkRequestBuilder<DayRolloverWorker>()
+            val workRequest = OneTimeWorkRequestBuilder<ReminderNotificationWorker>()
                 .setInitialDelay(delayMillis, TimeUnit.MILLISECONDS)
                 .setInputData(workData)
                 .build()

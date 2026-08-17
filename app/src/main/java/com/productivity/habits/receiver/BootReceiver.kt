@@ -4,17 +4,21 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.productivity.habits.domain.scheduler.HabitReminderScheduler
-import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@AndroidEntryPoint
 class BootReceiver : BroadcastReceiver() {
 
-    @Inject
-    lateinit var scheduler: HabitReminderScheduler
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface BootReceiverEntryPoint {
+        fun scheduler(): HabitReminderScheduler
+    }
 
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action
@@ -26,7 +30,11 @@ class BootReceiver : BroadcastReceiver() {
             val pendingResult = goAsync()
             CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    scheduler.rescheduleAll()
+                    val entryPoint = EntryPointAccessors.fromApplication(
+                        context.applicationContext,
+                        BootReceiverEntryPoint::class.java
+                    )
+                    entryPoint.scheduler().rescheduleAll()
                 } finally {
                     pendingResult.finish()
                 }

@@ -47,7 +47,7 @@
         <!-- Broadcast Receivers -->
         <receiver
             android:name=".receiver.HabitReminderReceiver"
-            android:exported="false" />
+            android:exported="true" />
 
         <receiver
             android:name=".receiver.HabitActionReceiver"

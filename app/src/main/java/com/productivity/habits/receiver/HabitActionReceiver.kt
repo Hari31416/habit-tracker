@@ -8,18 +8,22 @@ import androidx.glance.appwidget.updateAll
 import com.productivity.habits.domain.repository.HabitRepository
 import com.productivity.habits.widget.DailyFocusWidget
 import com.productivity.habits.widget.QuickLogHabitWidget
-import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import javax.inject.Inject
 
-@AndroidEntryPoint
 class HabitActionReceiver : BroadcastReceiver() {
 
-    @Inject
-    lateinit var repository: HabitRepository
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface HabitActionEntryPoint {
+        fun repository(): HabitRepository
+    }
 
     companion object {
         const val ACTION_CHECK_IN = "com.productivity.habits.ACTION_CHECK_IN"
@@ -40,7 +44,11 @@ class HabitActionReceiver : BroadcastReceiver() {
             val pendingResult = goAsync()
             CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    repository.toggleBooleanCheckIn(habitId, LocalDate.now())
+                    val entryPoint = EntryPointAccessors.fromApplication(
+                        context.applicationContext,
+                        HabitActionEntryPoint::class.java
+                    )
+                    entryPoint.repository().toggleBooleanCheckIn(habitId, LocalDate.now())
                     try {
                         QuickLogHabitWidget().updateAll(context)
                         DailyFocusWidget().updateAll(context)
