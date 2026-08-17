@@ -87,7 +87,7 @@ fun WeekMatrixGrid(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(14.dp)
+                .padding(12.dp)
         ) {
             // Header Row: Habit Column + 7 Day Columns (Mo 17, Tu 18, etc.)
             Row(
@@ -99,11 +99,11 @@ fun WeekMatrixGrid(
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1.3f)
+                    modifier = Modifier.weight(1.7f)
                 )
 
                 Row(
-                    modifier = Modifier.weight(2.4f),
+                    modifier = Modifier.weight(2.3f),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     firstRowCells.forEach { cell ->
@@ -112,17 +112,19 @@ fun WeekMatrixGrid(
 
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.width(28.dp)
+                            modifier = Modifier.width(24.dp)
                         ) {
                             Text(
                                 text = dayName,
                                 style = MaterialTheme.typography.labelSmall,
+                                fontSize = 11.sp,
                                 fontWeight = if (cell.isToday) FontWeight.Bold else FontWeight.Medium,
                                 color = if (cell.isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
                                 text = dayNum,
                                 style = MaterialTheme.typography.labelSmall,
+                                fontSize = 11.sp,
                                 fontWeight = if (cell.isToday) FontWeight.Bold else FontWeight.Normal,
                                 color = if (cell.isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                             )
@@ -144,16 +146,17 @@ fun WeekMatrixGrid(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Left Habit Info: Icon + Title
+                        // Left Habit Info: Compact Icon + Title
                         Row(
                             modifier = Modifier
-                                .weight(1.3f)
-                                .clickable { onHabitClick(habit.id) },
+                                .weight(1.7f)
+                                .clickable { onHabitClick(habit.id) }
+                                .padding(end = 4.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Surface(
-                                modifier = Modifier.size(28.dp),
-                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.size(26.dp),
+                                shape = RoundedCornerShape(7.dp),
                                 color = accentColor.copy(alpha = 0.15f)
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
@@ -161,17 +164,18 @@ fun WeekMatrixGrid(
                                         imageVector = iconVector,
                                         contentDescription = null,
                                         tint = accentColor,
-                                        modifier = Modifier.size(16.dp)
+                                        modifier = Modifier.size(15.dp)
                                     )
                                 }
                             }
 
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
 
-                            Column {
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = habit.title,
                                     style = MaterialTheme.typography.bodyMedium,
+                                    fontSize = 13.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
@@ -180,23 +184,24 @@ fun WeekMatrixGrid(
                                 val freqBadge = when (habit.frequencyType) {
                                     HabitFrequencyType.DAILY -> "Daily"
                                     HabitFrequencyType.WEEKLY -> "${habit.targetCountPerWeek ?: 1}x/wk"
-                                    HabitFrequencyType.CUSTOM_DAYS -> "Specific"
+                                    HabitFrequencyType.CUSTOM_DAYS -> "Custom"
                                     HabitFrequencyType.SUBDAY_INTERVAL -> "Interval"
                                     HabitFrequencyType.TIMES_PER_DAY -> "Subday"
                                 }
 
                                 Text(
-                                    text = "${row.completedCountThisWeek}/${row.targetCountThisWeek} - $freqBadge",
+                                    text = "${row.completedCountThisWeek}/${row.targetCountThisWeek} • $freqBadge",
                                     style = MaterialTheme.typography.labelSmall,
+                                    fontSize = 10.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 1
                                 )
                             }
                         }
 
-                        // 7 Day Cells (Tappable circles)
+                        // 7 Day Cells (Compact tappable circles)
                         Row(
-                            modifier = Modifier.weight(2.4f),
+                            modifier = Modifier.weight(2.3f),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -218,7 +223,7 @@ fun WeekMatrixGrid(
 
                                 Box(
                                     modifier = Modifier
-                                        .size(28.dp)
+                                        .size(24.dp)
                                         .clip(CircleShape)
                                         .background(cellColor)
                                         .then(if (border != null) Modifier.border(border, CircleShape) else Modifier)
@@ -237,12 +242,12 @@ fun WeekMatrixGrid(
                                             imageVector = Icons.Default.Check,
                                             contentDescription = "Completed",
                                             tint = Color.White,
-                                            modifier = Modifier.size(16.dp)
+                                            modifier = Modifier.size(14.dp)
                                         )
                                     } else if (!isScheduled && cell.status == MatrixCellStatus.NOT_SCHEDULED) {
                                         Box(
                                             modifier = Modifier
-                                                .size(4.dp)
+                                                .size(3.dp)
                                                 .clip(CircleShape)
                                                 .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
                                         )

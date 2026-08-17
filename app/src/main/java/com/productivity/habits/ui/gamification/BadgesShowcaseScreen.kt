@@ -7,7 +7,6 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,10 +15,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Check
@@ -113,8 +111,9 @@ fun BadgesShowcaseScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
         ) {
-            // Top App Bar
+            // Top App Bar (Scrolls with page like Analytics and Week Matrix)
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.surface,
@@ -143,81 +142,74 @@ fun BadgesShowcaseScreen(
 
             if (uiState.isLoading) {
                 Box(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     // 1. Hero Progression Card
-                    item {
-                        HeroProgressionCard(progression = uiState.progression)
-                    }
+                    HeroProgressionCard(progression = uiState.progression)
 
                     // 2. Streak Multipliers Card
-                    item {
-                        StreakMultiplierInfoCard(progression = uiState.progression)
-                    }
+                    StreakMultiplierInfoCard(progression = uiState.progression)
 
                     // 3. Category Filter Chips
-                    item {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .horizontalScroll(rememberScrollState()),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            AchievementCategory.entries.forEach { category ->
-                                FilterChip(
-                                    selected = uiState.selectedCategory == category,
-                                    onClick = {
-                                        HapticsHelper.performLightHaptic(haptic)
-                                        viewModel.selectCategory(category)
-                                    },
-                                    label = { Text(category.displayName) }
-                                )
-                            }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        AchievementCategory.entries.forEach { category ->
+                            FilterChip(
+                                selected = uiState.selectedCategory == category,
+                                onClick = {
+                                    HapticsHelper.performLightHaptic(haptic)
+                                    viewModel.selectCategory(category)
+                                },
+                                label = { Text(category.displayName) }
+                            )
                         }
                     }
 
                     // 4. Badges Section Header
-                    item {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "All Achievements",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "${uiState.filteredAchievements.count { it.isUnlocked }} / ${uiState.filteredAchievements.size} Unlocked",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "All Achievements",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "${uiState.filteredAchievements.count { it.isUnlocked }} / ${uiState.filteredAchievements.size} Unlocked",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
 
                     // 5. Achievement Items
-                    items(
-                        items = uiState.filteredAchievements,
-                        key = { it.definition.id }
-                    ) { achievement ->
-                        AchievementBadgeCard(achievement = achievement)
+                    uiState.filteredAchievements.forEach { achievement ->
+                        AchievementBadgeCard(
+                            achievement = achievement,
+                            key = achievement.definition.id
+                        )
                     }
 
-                    item {
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         }
@@ -429,7 +421,8 @@ private fun StreakMultiplierInfoCard(
 @Composable
 private fun AchievementBadgeCard(
     achievement: AchievementStatus,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    key: String? = null
 ) {
     val def = achievement.definition
     val isUnlocked = achievement.isUnlocked
