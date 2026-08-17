@@ -115,7 +115,7 @@ fun DailyFocusWidgetContent(
     Box(
         modifier = GlanceModifier
             .fillMaxSize()
-            .background(Color(0xFF1E2925))
+            .background(Color(0xFF111C1A))
             .cornerRadius(16.dp)
             .padding(14.dp)
     ) {
@@ -126,7 +126,7 @@ fun DailyFocusWidgetContent(
             Text(
                 text = "Daily Focus",
                 style = TextStyle(
-                    color = ColorProvider(Color.White),
+                    color = ColorProvider(Color(0xFFF1F5F4)),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -141,7 +141,7 @@ fun DailyFocusWidgetContent(
                 Text(
                     text = "$completed / $total",
                     style = TextStyle(
-                        color = ColorProvider(Color(0xFF66DBBF)),
+                        color = ColorProvider(Color(0xFF14B8A6)),
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -151,7 +151,7 @@ fun DailyFocusWidgetContent(
             Text(
                 text = "$ratePercent% Completed",
                 style = TextStyle(
-                    color = ColorProvider(Color(0xFF94A3B8)),
+                    color = ColorProvider(Color(0xFF96ABA6)),
                     fontSize = 11.sp
                 )
             )
@@ -161,13 +161,13 @@ fun DailyFocusWidgetContent(
             Row(
                 modifier = GlanceModifier
                     .fillMaxWidth()
-                    .background(Color(0xFF263530))
+                    .background(Color(0xFF172522))
                     .cornerRadius(8.dp)
                     .padding(horizontal = 8.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "🔥 Top Streak: $bestStreak days",
+                    text = "Top Streak: $bestStreak days",
                     style = TextStyle(
                         color = ColorProvider(Color(0xFFF59E0B)),
                         fontSize = 11.sp,

@@ -132,7 +132,7 @@ fun QuickLogWidgetContent(habits: List<WidgetHabitItem>) {
     Box(
         modifier = GlanceModifier
             .fillMaxSize()
-            .background(Color(0xFF1E2925))
+            .background(Color(0xFF111C1A))
             .cornerRadius(16.dp)
             .padding(12.dp)
     ) {
@@ -144,7 +144,7 @@ fun QuickLogWidgetContent(habits: List<WidgetHabitItem>) {
                 Text(
                     text = "Today's Habits",
                     style = TextStyle(
-                        color = ColorProvider(Color.White),
+                        color = ColorProvider(Color(0xFFF1F5F4)),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -160,7 +160,7 @@ fun QuickLogWidgetContent(habits: List<WidgetHabitItem>) {
                 ) {
                     Text(
                         text = "All caught up today!",
-                        style = TextStyle(color = ColorProvider(Color(0xFF94A3B8)), fontSize = 12.sp)
+                        style = TextStyle(color = ColorProvider(Color(0xFF96ABA6)), fontSize = 12.sp)
                     )
                 }
             } else {
@@ -183,7 +183,7 @@ fun WidgetHabitRow(item: WidgetHabitItem) {
     Row(
         modifier = GlanceModifier
             .fillMaxWidth()
-            .background(Color(0xFF263530))
+            .background(Color(0xFF172522))
             .cornerRadius(10.dp)
             .padding(horizontal = 10.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -192,14 +192,14 @@ fun WidgetHabitRow(item: WidgetHabitItem) {
             text = item.title,
             maxLines = 1,
             style = TextStyle(
-                color = ColorProvider(if (item.isCompleted) Color(0xFF66DBBF) else Color.White),
+                color = ColorProvider(if (item.isCompleted) Color(0xFF14B8A6) else Color(0xFFF1F5F4)),
                 fontSize = 13.sp,
                 fontWeight = if (item.isCompleted) FontWeight.Bold else FontWeight.Normal
             ),
             modifier = GlanceModifier.defaultWeight()
         )
 
-        val checkColor = if (item.isCompleted) Color(0xFF10B981) else Color(0xFF475569)
+        val checkColor = if (item.isCompleted) Color(0xFF10B981) else Color(0xFF263936)
         val checkText = if (item.isCompleted) "✓" else "○"
 
         Box(
