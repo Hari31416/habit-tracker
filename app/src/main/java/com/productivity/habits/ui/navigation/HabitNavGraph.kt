@@ -39,7 +39,10 @@ fun HabitNavGraph(
         startDestination = startDestination,
         modifier = modifier
     ) {
-        composable(route = Screen.Daily.route) {
+        composable(
+            route = Screen.Daily.route,
+            deepLinks = Screen.Daily.deepLinks
+        ) {
             DailyTrackerScreen(
                 themeMode = themeMode,
                 onThemeModeSelected = onThemeModeSelected,
@@ -59,7 +62,10 @@ fun HabitNavGraph(
             )
         }
 
-        composable(route = Screen.WeekMatrix.route) {
+        composable(
+            route = Screen.WeekMatrix.route,
+            deepLinks = Screen.WeekMatrix.deepLinks
+        ) {
             HabitWeekMatrixScreen(
                 themeMode = themeMode,
                 onThemeModeSelected = onThemeModeSelected,
@@ -78,7 +84,10 @@ fun HabitNavGraph(
             )
         }
 
-        composable(route = Screen.Analytics.route) {
+        composable(
+            route = Screen.Analytics.route,
+            deepLinks = Screen.Analytics.deepLinks
+        ) {
             HabitAnalyticsScreen(
                 themeMode = themeMode,
                 onThemeModeSelected = onThemeModeSelected,
@@ -97,7 +106,10 @@ fun HabitNavGraph(
             )
         }
 
-        composable(route = Screen.Badges.route) {
+        composable(
+            route = Screen.Badges.route,
+            deepLinks = Screen.Badges.deepLinks
+        ) {
             BadgesShowcaseScreen(
                 themeMode = themeMode,
                 onThemeModeSelected = onThemeModeSelected,

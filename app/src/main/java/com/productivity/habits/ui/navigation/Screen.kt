@@ -7,9 +7,24 @@ import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 
 sealed class Screen(val route: String) {
-    data object Daily : Screen("daily")
-    data object WeekMatrix : Screen("matrix")
-    data object Analytics : Screen("analytics")
+    data object Daily : Screen("daily") {
+        val deepLinks: List<NavDeepLink> = listOf(
+            navDeepLink { uriPattern = "app://habits/daily" }
+        )
+    }
+
+    data object WeekMatrix : Screen("matrix") {
+        val deepLinks: List<NavDeepLink> = listOf(
+            navDeepLink { uriPattern = "app://habits/matrix" }
+        )
+    }
+
+    data object Analytics : Screen("analytics") {
+        val deepLinks: List<NavDeepLink> = listOf(
+            navDeepLink { uriPattern = "app://habits/analytics" }
+        )
+    }
+
     data object Detail : Screen("detail/{habitId}") {
         const val HABIT_ID_ARG = "habitId"
         val routeWithArgs = "detail/{$HABIT_ID_ARG}"
@@ -23,8 +38,15 @@ sealed class Screen(val route: String) {
             navDeepLink { uriPattern = "app://habits/detail/{$HABIT_ID_ARG}" }
         )
     }
-    data object Badges : Screen("badges")
+
+    data object Badges : Screen("badges") {
+        val deepLinks: List<NavDeepLink> = listOf(
+            navDeepLink { uriPattern = "app://habits/badges" }
+        )
+    }
+
     data object AddHabit : Screen("add_habit")
+
     data object EditHabit : Screen("edit_habit/{habitId}") {
         const val HABIT_ID_ARG = "habitId"
         fun createRoute(habitId: String) = "edit_habit/$habitId"

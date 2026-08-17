@@ -1,14 +1,12 @@
 package com.productivity.habits.scheduler
 
 import android.content.Context
-import androidx.glance.appwidget.updateAll
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.productivity.habits.widget.DailyFocusWidget
-import com.productivity.habits.widget.QuickLogHabitWidget
+import com.productivity.habits.widget.WidgetUpdater
 
 class WidgetUpdateWorker(
     context: Context,
@@ -30,10 +28,9 @@ class WidgetUpdateWorker(
 
     override suspend fun doWork(): Result {
         return try {
-            QuickLogHabitWidget().updateAll(applicationContext)
-            DailyFocusWidget().updateAll(applicationContext)
+            WidgetUpdater.updateAllWidgets(applicationContext)
             Result.success()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             Result.success()
         }
     }

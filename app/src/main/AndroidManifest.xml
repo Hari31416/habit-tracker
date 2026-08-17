@@ -65,21 +65,25 @@
         </receiver>
 
         <!-- Glance App Widgets -->
+        <!-- 1. Today's Habits -->
         <receiver
-            android:name=".widget.QuickLogHabitWidgetReceiver"
+            android:name=".widget.TodaysHabitsWidgetReceiver"
             android:exported="true"
-            android:label="@string/quick_log_widget_name">
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/todays_habits_widget_name">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/quick_log_widget_info" />
+                android:resource="@xml/todays_habits_widget_info" />
         </receiver>
 
+        <!-- 2. Daily Focus -->
         <receiver
             android:name=".widget.DailyFocusWidgetReceiver"
             android:exported="true"
+            android:icon="@mipmap/ic_launcher"
             android:label="@string/daily_focus_widget_name">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -87,6 +91,48 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/daily_focus_widget_info" />
+        </receiver>
+
+        <!-- 3. Focus Timer -->
+        <receiver
+            android:name=".widget.FocusTimerWidgetReceiver"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/focus_timer_widget_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/focus_timer_widget_info" />
+        </receiver>
+
+        <!-- 4. Streaks -->
+        <receiver
+            android:name=".widget.StreaksWidgetReceiver"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/streaks_widget_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/streaks_widget_info" />
+        </receiver>
+
+        <!-- 5. XP / Mastery -->
+        <receiver
+            android:name=".widget.XpMasteryWidgetReceiver"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/xp_mastery_widget_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/xp_mastery_widget_info" />
         </receiver>
 
     </application>

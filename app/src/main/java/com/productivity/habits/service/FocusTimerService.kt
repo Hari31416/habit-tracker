@@ -114,26 +114,31 @@ class FocusTimerService : Service() {
                 TimerStateHolder.start(habitId, title, duration)
                 startForegroundWithNotification(buildNotification())
                 startCountdown()
+                serviceScope.launch { com.productivity.habits.widget.WidgetUpdater.updateAllWidgets(applicationContext) }
             }
             ACTION_PAUSE -> {
                 TimerStateHolder.pause()
                 timerJob?.cancel()
                 updateNotification()
+                serviceScope.launch { com.productivity.habits.widget.WidgetUpdater.updateAllWidgets(applicationContext) }
             }
             ACTION_RESUME -> {
                 TimerStateHolder.resume()
                 startCountdown()
+                serviceScope.launch { com.productivity.habits.widget.WidgetUpdater.updateAllWidgets(applicationContext) }
             }
             ACTION_STOP -> {
                 timerJob?.cancel()
                 TimerStateHolder.stop()
                 stopForeground(STOP_FOREGROUND_REMOVE)
+                serviceScope.launch { com.productivity.habits.widget.WidgetUpdater.updateAllWidgets(applicationContext) }
                 stopSelf()
             }
             ACTION_ADJUST -> {
                 val delta = intent.getLongExtra(EXTRA_DELTA_SECONDS, 0L)
                 TimerStateHolder.adjustRemaining(delta)
                 updateNotification()
+                serviceScope.launch { com.productivity.habits.widget.WidgetUpdater.updateAllWidgets(applicationContext) }
             }
         }
         return START_NOT_STICKY
@@ -182,6 +187,7 @@ class FocusTimerService : Service() {
 
         playCompletionFeedback()
         TimerStateHolder.complete()
+        serviceScope.launch { com.productivity.habits.widget.WidgetUpdater.updateAllWidgets(applicationContext) }
 
         val completionNotification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(com.productivity.habits.R.mipmap.ic_launcher)

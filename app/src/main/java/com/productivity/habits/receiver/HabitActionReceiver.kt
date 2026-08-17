@@ -4,11 +4,9 @@ import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import androidx.glance.appwidget.updateAll
 import com.productivity.habits.data.local.entity.HabitTargetType
 import com.productivity.habits.domain.repository.HabitRepository
-import com.productivity.habits.widget.DailyFocusWidget
-import com.productivity.habits.widget.QuickLogHabitWidget
+import com.productivity.habits.widget.WidgetUpdater
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -77,12 +75,7 @@ class HabitActionReceiver : BroadcastReceiver() {
                     }
                 }
 
-                try {
-                    QuickLogHabitWidget().updateAll(context)
-                    DailyFocusWidget().updateAll(context)
-                } catch (e: Exception) {
-                    // Ignore widget update errors if widgets are not placed
-                }
+                WidgetUpdater.updateAllWidgets(context)
             } finally {
                 pendingResult.finish()
             }
