@@ -11,7 +11,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -75,27 +74,6 @@ fun QuickAddBar(
                 ),
                 modifier = Modifier.weight(1f)
             )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // Add Button
-            IconButton(
-                onClick = {
-                    if (text.isNotBlank()) {
-                        HapticsHelper.performLightHaptic(haptic)
-                        onQuickAdd(text)
-                        text = ""
-                    }
-                },
-                enabled = text.isNotBlank(),
-                modifier = Modifier.size(40.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Habit",
-                    tint = if (text.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
-                )
-            }
 
             // Expand to Full Form button
             IconButton(
