@@ -56,7 +56,9 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.productivity.habits.data.local.preferences.ThemeMode
 import com.productivity.habits.ui.common.HapticsHelper
+import com.productivity.habits.ui.common.ThemeToggleButton
 import com.productivity.habits.ui.form.HabitFormBottomSheet
 import com.productivity.habits.ui.form.HabitFormViewModel
 
@@ -69,6 +71,8 @@ enum class DashboardTab(val label: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DailyTrackerScreen(
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
+    onThemeModeSelected: (ThemeMode) -> Unit = {},
     onNavigateToDetail: (String) -> Unit,
     onNavigateToMatrix: () -> Unit,
     onNavigateToAnalytics: () -> Unit,
@@ -138,6 +142,11 @@ fun DailyTrackerScreen(
                         )
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
+                            ThemeToggleButton(
+                                currentTheme = themeMode,
+                                onThemeSelected = onThemeModeSelected
+                            )
+
                             IconButton(
                                 onClick = {
                                     HapticsHelper.performLightHaptic(haptic)

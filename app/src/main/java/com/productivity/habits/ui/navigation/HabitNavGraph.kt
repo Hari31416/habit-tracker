@@ -21,9 +21,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.productivity.habits.ui.daily.DailyTrackerScreen
 
+import com.productivity.habits.data.local.preferences.ThemeMode
+
 @Composable
 fun HabitNavGraph(
     modifier: Modifier = Modifier,
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
+    onThemeModeSelected: (ThemeMode) -> Unit = {},
     navController: NavHostController = rememberNavController(),
     startDestination: String = Screen.Daily.route
 ) {
@@ -34,6 +38,8 @@ fun HabitNavGraph(
     ) {
         composable(route = Screen.Daily.route) {
             DailyTrackerScreen(
+                themeMode = themeMode,
+                onThemeModeSelected = onThemeModeSelected,
                 onNavigateToDetail = { habitId ->
                     navController.navigate(Screen.Detail.createRoute(habitId))
                 },
@@ -48,6 +54,8 @@ fun HabitNavGraph(
 
         composable(route = Screen.WeekMatrix.route) {
             com.productivity.habits.ui.matrix.HabitWeekMatrixScreen(
+                themeMode = themeMode,
+                onThemeModeSelected = onThemeModeSelected,
                 onNavigateToDaily = {
                     navController.navigate(Screen.Daily.route) {
                         popUpTo(Screen.Daily.route) { inclusive = true }
@@ -66,6 +74,8 @@ fun HabitNavGraph(
 
         composable(route = Screen.Analytics.route) {
             com.productivity.habits.ui.analytics.HabitAnalyticsScreen(
+                themeMode = themeMode,
+                onThemeModeSelected = onThemeModeSelected,
                 onNavigateToDaily = {
                     navController.navigate(Screen.Daily.route) {
                         popUpTo(Screen.Daily.route) { inclusive = true }

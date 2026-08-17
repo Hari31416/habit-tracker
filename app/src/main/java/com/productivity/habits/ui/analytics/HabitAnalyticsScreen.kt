@@ -46,14 +46,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.productivity.habits.data.local.preferences.ThemeMode
 import com.productivity.habits.ui.common.ColorUtils
 import com.productivity.habits.ui.common.HabitIconRegistry
 import com.productivity.habits.ui.common.HapticsHelper
+import com.productivity.habits.ui.common.ThemeToggleButton
 import com.productivity.habits.ui.daily.DashboardTab
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HabitAnalyticsScreen(
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
+    onThemeModeSelected: (ThemeMode) -> Unit = {},
     onNavigateToDaily: () -> Unit,
     onNavigateToMatrix: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
@@ -87,13 +91,19 @@ fun HabitAnalyticsScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
                             text = "Analytics",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
+                        )
+
+                        ThemeToggleButton(
+                            currentTheme = themeMode,
+                            onThemeSelected = onThemeModeSelected
                         )
                     }
 

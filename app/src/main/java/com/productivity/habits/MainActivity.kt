@@ -15,10 +15,19 @@ import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import com.productivity.habits.ui.navigation.HabitNavGraph
 import com.productivity.habits.ui.theme.HabitTrackerTheme
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import com.productivity.habits.data.local.preferences.ThemeMode
+import com.productivity.habits.data.local.preferences.ThemePreferences
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var themePreferences: ThemePreferences
 
     private val requestNotificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -37,9 +46,19 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            HabitTrackerTheme {
+            val themeMode by themePreferences.themeMode.collectAsState()
+            val isDarkTheme = when (themeMode) {
+                ThemeMode.SYSTEM -> isSystemInDarkTheme()
+                ThemeMode.LIGHT -> false
+                ThemeMode.DARK -> true
+            }
+
+            HabitTrackerTheme(darkTheme = isDarkTheme) {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    HabitNavGraph()
+                    HabitNavGraph(
+                        themeMode = themeMode,
+                        onThemeModeSelected = { themePreferences.setThemeMode(it) }
+                    )
                 }
             }
         }

@@ -47,13 +47,17 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.productivity.habits.data.local.preferences.ThemeMode
 import com.productivity.habits.ui.common.HapticsHelper
+import com.productivity.habits.ui.common.ThemeToggleButton
 import com.productivity.habits.ui.daily.DashboardTab
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HabitWeekMatrixScreen(
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
+    onThemeModeSelected: (ThemeMode) -> Unit = {},
     onNavigateToDaily: () -> Unit,
     onNavigateToAnalytics: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
@@ -87,13 +91,19 @@ fun HabitWeekMatrixScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
                             text = "Week Matrix",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
+                        )
+
+                        ThemeToggleButton(
+                            currentTheme = themeMode,
+                            onThemeSelected = onThemeModeSelected
                         )
                     }
 
