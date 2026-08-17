@@ -2,6 +2,8 @@ package com.productivity.habits.widget
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,8 +48,6 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -89,13 +89,16 @@ class FocusTimerWidget : GlanceAppWidget() {
             FocusTimerEntryPoint::class.java
         )
 
-        val liveState = TimerStateHolder.timerState.value
-        val today = LocalDate.now()
-        val todayStr = today.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+        provideContent {
+            val liveState by TimerStateHolder.timerState.collectAsState()
+            val today = LocalDate.now()
+            val todayStr = today.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
 
-        val data = withContext(Dispatchers.IO) {
-            val activeHabits = entryPoint.habitDao().getActiveHabitsOnce()
-            val allLogsToday = entryPoint.habitLogDao().getLogsForDateOnce(todayStr)
+            val activeHabits by entryPoint.habitDao().getActiveHabits().collectAsState(initial = emptyList())
+            val allLogsToday by entryPoint.habitLogDao().getLogsForDate(todayStr).collectAsState(initial = emptyList())
+            val allLogs by entryPoint.habitLogDao().getAllLogs().collectAsState(initial = emptyList())
+
+            val isLiveActive = liveState.status == TimerStatus.RUNNING || liveState.status == TimerStatus.PAUSED
 
             val timerHabit = if (!liveState.habitId.isNullOrBlank()) {
                 activeHabits.find { it.id == liveState.habitId }
@@ -103,11 +106,29 @@ class FocusTimerWidget : GlanceAppWidget() {
                 activeHabits.firstOrNull { it.targetType == HabitTargetType.TIMER } ?: activeHabits.firstOrNull()
             }
 
-            val habitId = timerHabit?.id ?: liveState.habitId
-            val habitTitle = if (liveState.habitTitle.isNotBlank()) liveState.habitTitle else (timerHabit?.title ?: "Focus Session")
-            val durationMin = timerHabit?.targetValue ?: (liveState.totalSeconds / 60.0).coerceAtLeast(1.0)
-            val totalSec = if (liveState.totalSeconds > 0) liveState.totalSeconds else (durationMin * 60).toLong().coerceAtLeast(60L)
-            val remainingSec = if (liveState.status != TimerStatus.IDLE) liveState.remainingSeconds else totalSec
+            val habitId = if (isLiveActive && !liveState.habitId.isNullOrBlank()) {
+                liveState.habitId
+            } else {
+                timerHabit?.id ?: liveState.habitId
+            }
+
+            val habitTitle = if (isLiveActive && liveState.habitTitle.isNotBlank()) {
+                liveState.habitTitle
+            } else {
+                timerHabit?.title ?: "Focus Session"
+            }
+
+            val durationMin = if (isLiveActive) {
+                (liveState.totalSeconds / 60.0).coerceAtLeast(1.0)
+            } else {
+                timerHabit?.targetValue ?: (liveState.totalSeconds / 60.0).coerceAtLeast(1.0)
+            }
+
+            val totalSec = if (isLiveActive) {
+                liveState.totalSeconds
+            } else {
+                (durationMin * 60).toLong().coerceAtLeast(60L)
+            }
 
             var habitTodayFocusSec = 0L
             var habitCompletedSessions = 0
@@ -126,24 +147,43 @@ class FocusTimerWidget : GlanceAppWidget() {
 
             var streak = 0
             if (timerHabit != null) {
-                val habitLogs = entryPoint.habitLogDao().getLogsForHabitOnce(timerHabit.id)
+                val habitLogs = allLogs.filter { it.habitId == timerHabit.id }
                 streak = StreakCalculator.calculateStreak(timerHabit, habitLogs, today).currentStreak
             }
 
-            FocusTimerWidgetData(
+            val isHabitDone = if (timerHabit != null) {
+                val todayHabitLogs = allLogsToday.filter { it.habitId == timerHabit.id }
+                StreakCalculator.isHabitCompletedOnDate(timerHabit, todayHabitLogs)
+            } else false
+
+            val finalStatus = if (isLiveActive) {
+                liveState.status
+            } else if (isHabitDone) {
+                TimerStatus.COMPLETED
+            } else {
+                TimerStatus.IDLE
+            }
+
+            val finalRemainingSec = if (isLiveActive) {
+                liveState.remainingSeconds
+            } else if (isHabitDone) {
+                0L
+            } else {
+                totalSec
+            }
+
+            val data = FocusTimerWidgetData(
                 habitId = habitId,
                 habitTitle = habitTitle,
                 totalSeconds = totalSec,
-                remainingSeconds = remainingSec,
-                status = liveState.status,
+                remainingSeconds = finalRemainingSec,
+                status = finalStatus,
                 targetMinutes = durationMin,
                 todayFocusMinutes = (habitTodayFocusSec / 60).toInt(),
                 completedSessionsToday = habitCompletedSessions,
                 currentStreak = streak
             )
-        }
 
-        provideContent {
             GlanceTheme {
                 val layoutSize = resolveWidgetLayoutSize(LocalSize.current)
                 when (layoutSize) {
@@ -177,22 +217,35 @@ class FocusTimerControlCallback : ActionCallback {
         val preset = parameters[TimerPresetMinutesKey] ?: 25.0
 
         when (action) {
-            "START" -> FocusTimerService.startTimer(context, habitId, habitTitle, duration)
-            "PAUSE" -> FocusTimerService.pauseTimer(context)
-            "RESUME" -> FocusTimerService.resumeTimer(context)
-            "STOP" -> FocusTimerService.stopTimer(context)
-            "RESET" -> {
-                FocusTimerService.stopTimer(context)
-                TimerStateHolder.reset()
+            "START" -> {
+                TimerStateHolder.start(habitId, habitTitle, duration)
+                FocusTimerService.startTimer(context, habitId, habitTitle, duration)
             }
-            "ADJUST" -> FocusTimerService.adjustTimer(context, delta)
-            "SET_PRESET" -> {
+            "PAUSE" -> {
+                TimerStateHolder.pause()
+                FocusTimerService.pauseTimer(context)
+            }
+            "RESUME" -> {
+                TimerStateHolder.resume()
+                FocusTimerService.resumeTimer(context)
+            }
+            "STOP" -> {
+                TimerStateHolder.stop()
                 FocusTimerService.stopTimer(context)
+            }
+            "RESET" -> {
+                TimerStateHolder.reset()
+                FocusTimerService.stopTimer(context)
+            }
+            "ADJUST" -> {
+                TimerStateHolder.adjustRemaining(delta)
+                FocusTimerService.adjustTimer(context, delta)
+            }
+            "SET_PRESET" -> {
                 TimerStateHolder.setDuration(habitId, habitTitle, preset)
+                FocusTimerService.stopTimer(context)
             }
         }
-
-        WidgetUpdater.updateAllWidgets(context)
     }
 }
 

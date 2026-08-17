@@ -5,6 +5,7 @@ import com.productivity.habits.data.local.dao.HabitDao
 import com.productivity.habits.data.local.dao.HabitLogDao
 import com.productivity.habits.data.local.entity.HabitCategoryEntity
 import com.productivity.habits.data.local.entity.HabitEntity
+import com.productivity.habits.data.local.entity.HabitFrequencyType
 import com.productivity.habits.data.local.entity.HabitLogEntity
 import com.productivity.habits.data.local.entity.HabitTargetType
 import com.productivity.habits.domain.engine.StreakCalculator
@@ -125,23 +126,96 @@ class HabitRepositoryImpl @Inject constructor(
 
     override suspend fun toggleBooleanCheckIn(habitId: String, date: LocalDate) {
         val dateStr = date.format(dateFormatter)
+        val habit = habitDao.getHabitByIdOnce(habitId)
         val existingLogs = habitLogDao.getLogsForHabitAndDateOnce(habitId, dateStr)
-        val wasCompleted = existingLogs.any { it.completed }
+        val wasCompleted = if (habit != null) {
+            StreakCalculator.isHabitCompletedOnDate(habit, existingLogs)
+        } else {
+            existingLogs.any { it.completed }
+        }
 
         if (wasCompleted) {
             habitLogDao.deleteLogsForHabitAndDate(habitId, dateStr)
         } else {
+            habitLogDao.deleteLogsForHabitAndDate(habitId, dateStr)
             val now = Instant.now()
-            val log = HabitLogEntity(
-                id = existingLogs.firstOrNull()?.id ?: UUID.randomUUID().toString(),
-                habitId = habitId,
-                date = dateStr,
-                timestamp = now,
-                completed = true,
-                createdAt = existingLogs.firstOrNull()?.createdAt ?: now,
-                updatedAt = now
-            )
-            habitLogDao.upsertLog(log)
+            if (habit != null) {
+                when (habit.targetType) {
+                    HabitTargetType.BOOLEAN -> {
+                        when (habit.frequencyType) {
+                            HabitFrequencyType.TIMES_PER_DAY, HabitFrequencyType.SUBDAY_INTERVAL -> {
+                                val slots = habit.timesPerDay ?: habit.targetValue?.toInt() ?: 1
+                                for (i in 0 until slots) {
+                                    val slotLog = HabitLogEntity(
+                                        id = UUID.randomUUID().toString(),
+                                        habitId = habitId,
+                                        date = dateStr,
+                                        timestamp = now,
+                                        intervalIndex = i,
+                                        completed = true,
+                                        createdAt = now,
+                                        updatedAt = now
+                                    )
+                                    habitLogDao.upsertLog(slotLog)
+                                }
+                            }
+                            else -> {
+                                val log = HabitLogEntity(
+                                    id = UUID.randomUUID().toString(),
+                                    habitId = habitId,
+                                    date = dateStr,
+                                    timestamp = now,
+                                    completed = true,
+                                    createdAt = now,
+                                    updatedAt = now
+                                )
+                                habitLogDao.upsertLog(log)
+                            }
+                        }
+                    }
+                    HabitTargetType.NUMERIC -> {
+                        val target = habit.targetValue ?: 1.0
+                        val log = HabitLogEntity(
+                            id = UUID.randomUUID().toString(),
+                            habitId = habitId,
+                            date = dateStr,
+                            timestamp = now,
+                            completed = true,
+                            value = target,
+                            createdAt = now,
+                            updatedAt = now
+                        )
+                        habitLogDao.upsertLog(log)
+                    }
+                    HabitTargetType.TIMER -> {
+                        val targetMin = habit.targetValue ?: 25.0
+                        val totalSec = (targetMin * 60).toLong()
+                        val log = HabitLogEntity(
+                            id = UUID.randomUUID().toString(),
+                            habitId = habitId,
+                            date = dateStr,
+                            timestamp = now,
+                            completed = true,
+                            value = targetMin,
+                            durationSeconds = totalSec,
+                            createdAt = now,
+                            updatedAt = now
+                        )
+                        habitLogDao.upsertLog(log)
+                    }
+                }
+            } else {
+                val log = HabitLogEntity(
+                    id = UUID.randomUUID().toString(),
+                    habitId = habitId,
+                    date = dateStr,
+                    timestamp = now,
+                    completed = true,
+                    createdAt = now,
+                    updatedAt = now
+                )
+                habitLogDao.upsertLog(log)
+            }
         }
     }
 

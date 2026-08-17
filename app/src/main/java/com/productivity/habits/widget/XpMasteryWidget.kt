@@ -2,6 +2,8 @@ package com.productivity.habits.widget
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -62,9 +64,9 @@ class XpMasteryWidget : GlanceAppWidget() {
             XpMasteryEntryPoint::class.java
         )
 
-        val data = withContext(Dispatchers.IO) {
-            val progression = entryPoint.gamificationRepository().getPlayerProgression().first()
-            val achievements = entryPoint.gamificationRepository().getAchievements().first()
+        provideContent {
+            val progression by entryPoint.gamificationRepository().getPlayerProgression().collectAsState(initial = PlayerProgression())
+            val achievements by entryPoint.gamificationRepository().getAchievements().collectAsState(initial = emptyList<AchievementStatus>())
 
             val xpNeeded = (progression.nextLevelTargetXp - progression.totalXp).coerceAtLeast(0L)
             val nextTitle = PlayerTitle.nextTitle(progression.level)
@@ -74,15 +76,13 @@ class XpMasteryWidget : GlanceAppWidget() {
                 .filter { !it.isUnlocked }
                 .maxByOrNull { it.progressFraction }
 
-            XpMasteryWidgetData(
+            val data = XpMasteryWidgetData(
                 progression = progression,
                 xpNeededForNextLevel = xpNeeded,
                 nextTitle = nextTitle,
                 nextBadge = inProgressBadge
             )
-        }
 
-        provideContent {
             GlanceTheme {
                 val layoutSize = resolveWidgetLayoutSize(LocalSize.current)
                 when (layoutSize) {

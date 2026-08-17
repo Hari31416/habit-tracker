@@ -158,10 +158,6 @@ class FocusTimerService : Service() {
                 TimerStateHolder.tick(secondsLeft)
                 updateNotification()
 
-                try {
-                    com.productivity.habits.widget.FocusTimerWidget().updateAll(applicationContext)
-                } catch (_: Exception) {}
-
                 if (secondsLeft <= 0) {
                     onTimerFinished()
                     break

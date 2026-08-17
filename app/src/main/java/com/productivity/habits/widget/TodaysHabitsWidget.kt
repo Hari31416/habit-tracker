@@ -2,6 +2,8 @@ package com.productivity.habits.widget
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -86,14 +88,18 @@ class TodaysHabitsWidget : GlanceAppWidget() {
             TodaysHabitsEntryPoint::class.java
         )
 
-        val today = LocalDate.now()
-        val todayStr = today.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+        provideContent {
+            val today = LocalDate.now()
+            val todayStr = today.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
 
-        val data = withContext(Dispatchers.IO) {
-            val activeHabits = entryPoint.habitDao().getActiveHabitsOnce()
-            val categories = entryPoint.habitCategoryDao().getAllCategoriesOnce().associateBy { it.id }
-            val allLogsToday = entryPoint.habitLogDao().getLogsForDateOnce(todayStr)
+            val activeHabits by entryPoint.habitDao().getActiveHabits().collectAsState(initial = emptyList())
+            val categoriesList by entryPoint.habitCategoryDao().getAllCategories().collectAsState(initial = emptyList())
+            val allLogsToday by entryPoint.habitLogDao().getLogsForDate(todayStr).collectAsState(initial = emptyList())
+            val allLogs by entryPoint.habitLogDao().getAllLogs().collectAsState(initial = emptyList())
+
+            val categories = categoriesList.associateBy { it.id }
             val logsByHabit = allLogsToday.groupBy { it.habitId }
+            val allLogsByHabit = allLogs.groupBy { it.habitId }
 
             var completedCount = 0
             var scheduledCount = 0
@@ -104,7 +110,7 @@ class TodaysHabitsWidget : GlanceAppWidget() {
 
             for (habit in activeHabits) {
                 val isScheduled = StreakCalculator.isHabitScheduledOnDate(habit, today)
-                val habitLogs = entryPoint.habitLogDao().getLogsForHabitOnce(habit.id)
+                val habitLogs = allLogsByHabit[habit.id] ?: emptyList()
                 val streakResult = StreakCalculator.calculateStreak(habit, habitLogs, today)
                 if (streakResult.currentStreak > maxStreak) {
                     maxStreak = streakResult.currentStreak
@@ -138,23 +144,20 @@ class TodaysHabitsWidget : GlanceAppWidget() {
                 }
             }
 
-            // Prioritize: 1. Incomplete habits first, 2. Pinned habits, 3. Higher streaks
+            // Stable ordering: Pinned habits first, then by title
             val sorted = scheduledItems.sortedWith(
-                compareBy<TodaysHabitItem> { it.isCompleted }
-                    .thenByDescending { it.pinned }
-                    .thenByDescending { it.currentStreak }
+                compareByDescending<TodaysHabitItem> { it.pinned }
+                    .thenBy { it.title }
             )
 
-            TodaysHabitsWidgetData(
+            val data = TodaysHabitsWidgetData(
                 habits = sorted,
                 completedCount = completedCount,
                 totalScheduled = scheduledCount,
                 topStreak = maxStreak,
                 todayXp = totalXp
             )
-        }
 
-        provideContent {
             GlanceTheme {
                 val layoutSize = resolveWidgetLayoutSize(LocalSize.current)
                 when (layoutSize) {
@@ -399,7 +402,7 @@ fun TodaysHabitCompactRow(habit: TodaysHabitItem) {
                 .clickable(actionStartActivity(createDeepLinkIntent("app://habits/detail/${habit.id}")))
         )
 
-        HabitCheckButton(habit = habit, size = 20)
+        HabitCheckButton(habit = habit, size = 24)
     }
 }
 
@@ -438,7 +441,7 @@ fun TodaysHabitStandardRow(habit: TodaysHabitItem) {
             }
         }
 
-        HabitCheckButton(habit = habit, size = 24)
+        HabitCheckButton(habit = habit, size = 28)
     }
 }
 
@@ -482,12 +485,12 @@ fun TodaysHabitDetailedRow(habit: TodaysHabitItem) {
             )
         }
 
-        HabitCheckButton(habit = habit, size = 24)
+        HabitCheckButton(habit = habit, size = 28)
     }
 }
 
 @Composable
-fun HabitCheckButton(habit: TodaysHabitItem, size: Int) {
+fun HabitCheckButton(habit: TodaysHabitItem, size: Int = 28) {
     val checkColor = if (habit.isCompleted) WidgetColors.CheckActive else WidgetColors.CheckInactive
     val checkSymbol = if (habit.isCompleted) "✓" else "○"
 

@@ -2,6 +2,8 @@ package com.productivity.habits.widget
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -68,13 +70,16 @@ class DailyFocusWidget : GlanceAppWidget() {
             DailyFocusWidgetEntryPoint::class.java
         )
 
-        val today = LocalDate.now()
-        val todayStr = today.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+        provideContent {
+            val today = LocalDate.now()
+            val todayStr = today.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
 
-        val data = withContext(Dispatchers.IO) {
-            val allActive = entryPoint.habitDao().getActiveHabitsOnce()
-            val allLogsToday = entryPoint.habitLogDao().getLogsForDateOnce(todayStr)
+            val allActive by entryPoint.habitDao().getActiveHabits().collectAsState(initial = emptyList())
+            val allLogsToday by entryPoint.habitLogDao().getLogsForDate(todayStr).collectAsState(initial = emptyList())
+            val allLogs by entryPoint.habitLogDao().getAllLogs().collectAsState(initial = emptyList())
+
             val logsByHabit = allLogsToday.groupBy { it.habitId }
+            val allLogsByHabit = allLogs.groupBy { it.habitId }
 
             var completed = 0
             var scheduled = 0
@@ -84,7 +89,7 @@ class DailyFocusWidget : GlanceAppWidget() {
 
             for (habit in allActive) {
                 val isScheduled = StreakCalculator.isHabitScheduledOnDate(habit, today)
-                val habitLogs = entryPoint.habitLogDao().getLogsForHabitOnce(habit.id)
+                val habitLogs = allLogsByHabit[habit.id] ?: emptyList()
                 val streak = StreakCalculator.calculateStreak(habit, habitLogs, today)
                 if (streak.currentStreak > maxStreak) {
                     maxStreak = streak.currentStreak
@@ -120,7 +125,7 @@ class DailyFocusWidget : GlanceAppWidget() {
                 ((completed.toDouble() / scheduled.toDouble()) * 100).roundToInt()
             } else 0
 
-            DailyFocusWidgetData(
+            val data = DailyFocusWidgetData(
                 completedCount = completed,
                 totalScheduled = scheduled,
                 ratePercent = rate,
@@ -128,9 +133,7 @@ class DailyFocusWidget : GlanceAppWidget() {
                 focusMinutes = (totalFocusSec / 60).toInt(),
                 xpEarnedToday = totalXp
             )
-        }
 
-        provideContent {
             GlanceTheme {
                 val layoutSize = resolveWidgetLayoutSize(LocalSize.current)
                 when (layoutSize) {

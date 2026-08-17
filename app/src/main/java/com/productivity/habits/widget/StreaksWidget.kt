@@ -2,6 +2,8 @@ package com.productivity.habits.widget
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -77,20 +79,24 @@ class StreaksWidget : GlanceAppWidget() {
             StreaksWidgetEntryPoint::class.java
         )
 
-        val today = LocalDate.now()
-        val todayStr = today.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+        provideContent {
+            val today = LocalDate.now()
+            val todayStr = today.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
 
-        val data = withContext(Dispatchers.IO) {
-            val activeHabits = entryPoint.habitDao().getActiveHabitsOnce()
-            val categories = entryPoint.habitCategoryDao().getAllCategoriesOnce().associateBy { it.id }
-            val allLogsToday = entryPoint.habitLogDao().getLogsForDateOnce(todayStr)
+            val activeHabits by entryPoint.habitDao().getActiveHabits().collectAsState(initial = emptyList())
+            val categoriesList by entryPoint.habitCategoryDao().getAllCategories().collectAsState(initial = emptyList())
+            val allLogsToday by entryPoint.habitLogDao().getLogsForDate(todayStr).collectAsState(initial = emptyList())
+            val allLogs by entryPoint.habitLogDao().getAllLogs().collectAsState(initial = emptyList())
+
+            val categories = categoriesList.associateBy { it.id }
             val logsByHabit = allLogsToday.groupBy { it.habitId }
+            val allLogsByHabit = allLogs.groupBy { it.habitId }
 
             var bestOverall = 0
             val items = mutableListOf<StreakHabitItem>()
 
             for (habit in activeHabits) {
-                val habitLogs = entryPoint.habitLogDao().getLogsForHabitOnce(habit.id)
+                val habitLogs = allLogsByHabit[habit.id] ?: emptyList()
                 val streakResult = StreakCalculator.calculateStreak(habit, habitLogs, today)
                 if (streakResult.bestStreak > bestOverall) {
                     bestOverall = streakResult.bestStreak
@@ -123,14 +129,12 @@ class StreaksWidget : GlanceAppWidget() {
 
             val activeCount = sorted.count { it.currentStreak > 0 }
 
-            StreaksWidgetData(
+            val data = StreaksWidgetData(
                 habits = sorted,
                 bestOverallStreak = bestOverall,
                 activeStreaksCount = activeCount
             )
-        }
 
-        provideContent {
             GlanceTheme {
                 val layoutSize = resolveWidgetLayoutSize(LocalSize.current)
                 when (layoutSize) {
