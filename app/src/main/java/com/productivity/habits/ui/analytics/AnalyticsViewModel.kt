@@ -32,6 +32,7 @@ data class LeaderboardItem(
 
 data class AnalyticsUiState(
     val consistency30Days: Int = 0,
+    val consistencyDelta30Days: Int = 0,
     val bestStreakRecord: Int = 0,
     val bestStreakHabitTitle: String = "None",
     val bestStreakUnit: String = "days",
@@ -92,6 +93,25 @@ class AnalyticsViewModel @Inject constructor(
             }
         }
 
+        // Previous 30-Day window (days 30 to 59)
+        var totalScheduledPrev30d = 0
+        var totalCompletedPrev30d = 0
+
+        for (i in 30 until 60) {
+            val checkDate = today.minusDays(i.toLong())
+            val dateStr = checkDate.format(formatter)
+
+            habits.forEach { habit ->
+                if (StreakCalculator.isHabitScheduledOnDate(habit, checkDate)) {
+                    totalScheduledPrev30d++
+                    val dayLogs = (logsByHabit[habit.id] ?: emptyList()).filter { it.date == dateStr }
+                    if (StreakCalculator.isHabitCompletedOnDate(habit, dayLogs)) {
+                        totalCompletedPrev30d++
+                    }
+                }
+            }
+        }
+
         habits.forEach { habit ->
             if (StreakCalculator.isHabitScheduledOnDate(habit, today)) {
                 scheduledToday++
@@ -105,6 +125,12 @@ class AnalyticsViewModel @Inject constructor(
         val consistency30 = if (totalScheduled30d > 0) {
             ((totalCompleted30d.toDouble() / totalScheduled30d.toDouble()) * 100).roundToInt()
         } else 0
+
+        val prevConsistency30 = if (totalScheduledPrev30d > 0) {
+            ((totalCompletedPrev30d.toDouble() / totalScheduledPrev30d.toDouble()) * 100).roundToInt()
+        } else 0
+
+        val delta30 = consistency30 - prevConsistency30
 
         // 2. Streaks Leaderboard & Best Overall Record
         val habitStreaks = habits.map { habit ->
@@ -192,6 +218,7 @@ class AnalyticsViewModel @Inject constructor(
 
         AnalyticsUiState(
             consistency30Days = consistency30,
+            consistencyDelta30Days = delta30,
             bestStreakRecord = bestOverall?.bestStreak ?: 0,
             bestStreakHabitTitle = bestOverall?.habit?.title ?: "None",
             bestStreakUnit = bestOverall?.unitLabel ?: "days",
