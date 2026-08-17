@@ -143,6 +143,7 @@ fun DailyTrackerScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
+                    // Top Bar Title & Actions
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -150,24 +151,17 @@ fun DailyTrackerScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "Habits",
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
+                        Text(
+                            text = "Habits",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
 
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            PlayerLevelHeaderBadge(
-                                progression = gamificationState.progression,
-                                onClick = onNavigateToBadges
-                            )
-
                             ThemeToggleButton(
                                 currentTheme = themeMode,
                                 onThemeSelected = onThemeModeSelected
@@ -224,7 +218,15 @@ fun DailyTrackerScreen(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    // Player Progression & Multiplier Bar
+                    PlayerLevelHeaderBadge(
+                        progression = gamificationState.progression,
+                        onClick = onNavigateToBadges
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
 
                     // Dashboard Tabs
                     SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {

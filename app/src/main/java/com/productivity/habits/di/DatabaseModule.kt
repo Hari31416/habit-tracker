@@ -24,14 +24,16 @@ object DatabaseModule {
     @Singleton
     fun provideHabitDatabase(
         @ApplicationContext context: Context,
-        categoryDaoProvider: Provider<HabitCategoryDao>
+        categoryDaoProvider: Provider<HabitCategoryDao>,
+        habitDaoProvider: Provider<HabitDao>,
+        habitLogDaoProvider: Provider<HabitLogDao>
     ): HabitDatabase {
         return Room.databaseBuilder(
             context,
             HabitDatabase::class.java,
             "habits_database"
         )
-            .addCallback(PrepopulateDataCallback(categoryDaoProvider))
+            .addCallback(PrepopulateDataCallback(categoryDaoProvider, habitDaoProvider, habitLogDaoProvider))
             .fallbackToDestructiveMigration()
             .build()
     }
