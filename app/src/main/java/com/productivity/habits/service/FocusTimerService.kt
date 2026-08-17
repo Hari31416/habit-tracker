@@ -15,6 +15,7 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import androidx.core.app.NotificationCompat
+import androidx.glance.appwidget.updateAll
 import com.productivity.habits.MainActivity
 import com.productivity.habits.domain.repository.HabitRepository
 import dagger.hilt.android.AndroidEntryPoint
@@ -156,6 +157,10 @@ class FocusTimerService : Service() {
 
                 TimerStateHolder.tick(secondsLeft)
                 updateNotification()
+
+                try {
+                    com.productivity.habits.widget.FocusTimerWidget().updateAll(applicationContext)
+                } catch (_: Exception) {}
 
                 if (secondsLeft <= 0) {
                     onTimerFinished()

@@ -22,11 +22,12 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
-import com.productivity.habits.domain.gamification.GamificationEngine
+import com.productivity.habits.domain.gamification.AchievementStatus
 import com.productivity.habits.domain.gamification.PlayerProgression
 import com.productivity.habits.domain.gamification.PlayerTitle
 import com.productivity.habits.domain.repository.GamificationRepository
@@ -41,7 +42,8 @@ import kotlinx.coroutines.withContext
 data class XpMasteryWidgetData(
     val progression: PlayerProgression,
     val xpNeededForNextLevel: Long,
-    val nextTitle: PlayerTitle?
+    val nextTitle: PlayerTitle?,
+    val nextBadge: AchievementStatus?
 )
 
 class XpMasteryWidget : GlanceAppWidget() {
@@ -62,13 +64,21 @@ class XpMasteryWidget : GlanceAppWidget() {
 
         val data = withContext(Dispatchers.IO) {
             val progression = entryPoint.gamificationRepository().getPlayerProgression().first()
+            val achievements = entryPoint.gamificationRepository().getAchievements().first()
+
             val xpNeeded = (progression.nextLevelTargetXp - progression.totalXp).coerceAtLeast(0L)
             val nextTitle = PlayerTitle.nextTitle(progression.level)
+
+            // Find closest in-progress badge
+            val inProgressBadge = achievements
+                .filter { !it.isUnlocked }
+                .maxByOrNull { it.progressFraction }
 
             XpMasteryWidgetData(
                 progression = progression,
                 xpNeededForNextLevel = xpNeeded,
-                nextTitle = nextTitle
+                nextTitle = nextTitle,
+                nextBadge = inProgressBadge
             )
         }
 
@@ -142,52 +152,6 @@ fun XpMasteryMedium(data: XpMasteryWidgetData) {
 
             Spacer(modifier = GlanceModifier.height(6.dp))
 
-            Text(
-                text = "${prog.totalXp} XP",
-                style = TextStyle(
-                    color = ColorProvider(WidgetColors.Primary),
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            )
-
-            Spacer(modifier = GlanceModifier.height(6.dp))
-
-            WidgetProgressBar(progressFraction = prog.progressFraction, height = 6.dp)
-
-            Spacer(modifier = GlanceModifier.height(8.dp))
-
-            val nextText = if (data.nextTitle != null) {
-                "${data.xpNeededForNextLevel} XP to ${data.nextTitle.displayName}"
-            } else {
-                "${data.xpNeededForNextLevel} XP to Level ${prog.level + 1}"
-            }
-
-            Text(
-                text = nextText,
-                style = TextStyle(
-                    color = ColorProvider(WidgetColors.TextSecondary),
-                    fontSize = 11.sp
-                )
-            )
-        }
-    }
-}
-
-@Composable
-fun XpMasteryLarge(data: XpMasteryWidgetData) {
-    val prog = data.progression
-
-    WidgetCard(padding = 12.dp, deepLinkUri = "app://habits/badges") {
-        Column(modifier = GlanceModifier.fillMaxSize()) {
-            WidgetHeader(
-                title = "Level ${prog.level} - ${prog.title.displayName}",
-                badgeText = "${prog.unlockedBadgesCount}/${prog.totalBadgesCount} Badges Unlocked",
-                badgeColor = WidgetColors.AccentAmber
-            )
-
-            Spacer(modifier = GlanceModifier.height(8.dp))
-
             Row(
                 modifier = GlanceModifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -196,7 +160,7 @@ fun XpMasteryLarge(data: XpMasteryWidgetData) {
                     text = "${prog.totalXp} / ${prog.nextLevelTargetXp} XP",
                     style = TextStyle(
                         color = ColorProvider(WidgetColors.Primary),
-                        fontSize = 18.sp,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     ),
                     modifier = GlanceModifier.defaultWeight()
@@ -213,15 +177,19 @@ fun XpMasteryLarge(data: XpMasteryWidgetData) {
                 )
             }
 
-            Spacer(modifier = GlanceModifier.height(6.dp))
+            Spacer(modifier = GlanceModifier.height(4.dp))
 
-            WidgetProgressBar(progressFraction = prog.progressFraction, height = 6.dp)
+            WidgetProgressBar(progressFraction = prog.progressFraction, height = 5.dp)
 
             Spacer(modifier = GlanceModifier.height(8.dp))
 
-            Row(
-                modifier = GlanceModifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+            // Lower Section: Next milestone / badge progress
+            Column(
+                modifier = GlanceModifier
+                    .fillMaxWidth()
+                    .background(WidgetColors.Surface)
+                    .cornerRadius(8.dp)
+                    .padding(horizontal = 8.dp, vertical = 6.dp)
             ) {
                 val nextMilestone = if (data.nextTitle != null) {
                     "${data.xpNeededForNextLevel} XP to ${data.nextTitle.displayName}"
@@ -235,26 +203,163 @@ fun XpMasteryLarge(data: XpMasteryWidgetData) {
                         color = ColorProvider(WidgetColors.TextPrimary),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium
+                    )
+                )
+
+                if (data.nextBadge != null) {
+                    Spacer(modifier = GlanceModifier.height(4.dp))
+                    Text(
+                        text = "Next Badge: ${data.nextBadge.definition.title} (${data.nextBadge.currentProgress}/${data.nextBadge.definition.targetValue})",
+                        style = TextStyle(
+                            color = ColorProvider(WidgetColors.AccentAmber),
+                            fontSize = 10.sp
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun XpMasteryLarge(data: XpMasteryWidgetData) {
+    val prog = data.progression
+
+    WidgetCard(padding = 12.dp, deepLinkUri = "app://habits/badges") {
+        Column(
+            modifier = GlanceModifier.fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            WidgetHeader(
+                title = "Level ${prog.level} - ${prog.title.displayName}",
+                badgeText = "${prog.unlockedBadgesCount}/${prog.totalBadgesCount} Badges Unlocked",
+                badgeColor = WidgetColors.AccentAmber
+            )
+
+            Spacer(modifier = GlanceModifier.height(6.dp))
+
+            Row(
+                modifier = GlanceModifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "${prog.totalXp} / ${prog.nextLevelTargetXp} XP",
+                    style = TextStyle(
+                        color = ColorProvider(WidgetColors.Primary),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
                     ),
                     modifier = GlanceModifier.defaultWeight()
                 )
 
-                if (prog.activeStreakMultiplier > 1.0) {
-                    Box(
-                        modifier = GlanceModifier
-                            .background(WidgetColors.SurfaceElevated)
-                            .cornerRadius(6.dp)
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    ) {
+                val percent = (prog.progressFraction * 100).toInt()
+                Text(
+                    text = "$percent%",
+                    style = TextStyle(
+                        color = ColorProvider(WidgetColors.TextSecondary),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
+
+            Spacer(modifier = GlanceModifier.height(4.dp))
+
+            WidgetProgressBar(progressFraction = prog.progressFraction, height = 6.dp)
+
+            Spacer(modifier = GlanceModifier.height(8.dp))
+
+            // Lower 2-card section
+            Row(
+                modifier = GlanceModifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Card 1: Next Badge in progress
+                Column(
+                    modifier = GlanceModifier
+                        .defaultWeight()
+                        .background(WidgetColors.Surface)
+                        .cornerRadius(8.dp)
+                        .padding(horizontal = 8.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        text = "Next Badge",
+                        style = TextStyle(
+                            color = ColorProvider(WidgetColors.TextSecondary),
+                            fontSize = 10.sp
+                        )
+                    )
+                    Spacer(modifier = GlanceModifier.height(2.dp))
+                    if (data.nextBadge != null) {
                         Text(
-                            text = "${prog.activeStreakMultiplier}x Multiplier",
+                            text = data.nextBadge.definition.title,
+                            maxLines = 1,
+                            style = TextStyle(
+                                color = ColorProvider(WidgetColors.TextPrimary),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                        Spacer(modifier = GlanceModifier.height(2.dp))
+                        Text(
+                            text = "${data.nextBadge.currentProgress} / ${data.nextBadge.definition.targetValue} ${data.nextBadge.definition.unit}",
                             style = TextStyle(
                                 color = ColorProvider(WidgetColors.AccentAmber),
-                                fontSize = 10.sp,
+                                fontSize = 10.sp
+                            )
+                        )
+                    } else {
+                        Text(
+                            text = "All badges unlocked",
+                            style = TextStyle(
+                                color = ColorProvider(WidgetColors.Success),
+                                fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         )
                     }
+                }
+
+                Spacer(modifier = GlanceModifier.width(8.dp))
+
+                // Card 2: Next level milestone & multiplier
+                Column(
+                    modifier = GlanceModifier
+                        .defaultWeight()
+                        .background(WidgetColors.Surface)
+                        .cornerRadius(8.dp)
+                        .padding(horizontal = 8.dp, vertical = 6.dp)
+                ) {
+                    val nextTitleText = if (data.nextTitle != null) {
+                        "Next: ${data.nextTitle.displayName}"
+                    } else {
+                        "Level ${prog.level + 1}"
+                    }
+                    Text(
+                        text = nextTitleText,
+                        style = TextStyle(
+                            color = ColorProvider(WidgetColors.TextSecondary),
+                            fontSize = 10.sp
+                        )
+                    )
+                    Spacer(modifier = GlanceModifier.height(2.dp))
+                    Text(
+                        text = "${data.xpNeededForNextLevel} XP needed",
+                        style = TextStyle(
+                            color = ColorProvider(WidgetColors.TextPrimary),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                    Spacer(modifier = GlanceModifier.height(2.dp))
+                    Text(
+                        text = "${prog.activeStreakMultiplier}x Streak Multiplier",
+                        style = TextStyle(
+                            color = ColorProvider(WidgetColors.Primary),
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
                 }
             }
         }

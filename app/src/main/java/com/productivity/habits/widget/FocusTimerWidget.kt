@@ -36,7 +36,9 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.productivity.habits.data.local.dao.HabitDao
+import com.productivity.habits.data.local.dao.HabitLogDao
 import com.productivity.habits.data.local.entity.HabitTargetType
+import com.productivity.habits.domain.engine.StreakCalculator
 import com.productivity.habits.service.FocusTimerService
 import com.productivity.habits.service.TimerStateHolder
 import com.productivity.habits.service.TimerStatus
@@ -46,6 +48,8 @@ import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 data class FocusTimerWidgetData(
@@ -54,11 +58,15 @@ data class FocusTimerWidgetData(
     val totalSeconds: Long,
     val remainingSeconds: Long,
     val status: TimerStatus,
-    val targetMinutes: Double
+    val targetMinutes: Double,
+    val todayFocusMinutes: Int = 0,
+    val completedSessionsToday: Int = 0,
+    val currentStreak: Int = 0
 ) {
     val isRunning: Boolean get() = status == TimerStatus.RUNNING
     val isPaused: Boolean get() = status == TimerStatus.PAUSED
     val isCompleted: Boolean get() = status == TimerStatus.COMPLETED
+    val isIdle: Boolean get() = status == TimerStatus.IDLE
     val progress: Float get() = if (totalSeconds > 0) {
         ((totalSeconds - remainingSeconds).toFloat() / totalSeconds.toFloat()).coerceIn(0f, 1f)
     } else 0f
@@ -72,6 +80,7 @@ class FocusTimerWidget : GlanceAppWidget() {
     @InstallIn(SingletonComponent::class)
     interface FocusTimerEntryPoint {
         fun habitDao(): HabitDao
+        fun habitLogDao(): HabitLogDao
     }
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
@@ -81,38 +90,57 @@ class FocusTimerWidget : GlanceAppWidget() {
         )
 
         val liveState = TimerStateHolder.timerState.value
+        val today = LocalDate.now()
+        val todayStr = today.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
 
         val data = withContext(Dispatchers.IO) {
-            if (liveState.habitId != null && liveState.habitTitle.isNotBlank()) {
-                val targetMin = (liveState.totalSeconds / 60.0).coerceAtLeast(1.0)
-                FocusTimerWidgetData(
-                    habitId = liveState.habitId,
-                    habitTitle = liveState.habitTitle,
-                    totalSeconds = liveState.totalSeconds,
-                    remainingSeconds = liveState.remainingSeconds,
-                    status = liveState.status,
-                    targetMinutes = targetMin
-                )
+            val activeHabits = entryPoint.habitDao().getActiveHabitsOnce()
+            val allLogsToday = entryPoint.habitLogDao().getLogsForDateOnce(todayStr)
+
+            val timerHabit = if (!liveState.habitId.isNullOrBlank()) {
+                activeHabits.find { it.id == liveState.habitId }
             } else {
-                // Find first timer habit or active habit as default
-                val activeHabits = entryPoint.habitDao().getActiveHabitsOnce()
-                val timerHabit = activeHabits.firstOrNull { it.targetType == HabitTargetType.TIMER }
-                    ?: activeHabits.firstOrNull()
-
-                val habitId = timerHabit?.id
-                val habitTitle = timerHabit?.title ?: "Focus Session"
-                val durationMin = timerHabit?.targetValue ?: 25.0
-                val totalSec = (durationMin * 60).toLong().coerceAtLeast(60L)
-
-                FocusTimerWidgetData(
-                    habitId = habitId,
-                    habitTitle = habitTitle,
-                    totalSeconds = totalSec,
-                    remainingSeconds = totalSec,
-                    status = TimerStatus.IDLE,
-                    targetMinutes = durationMin
-                )
+                activeHabits.firstOrNull { it.targetType == HabitTargetType.TIMER } ?: activeHabits.firstOrNull()
             }
+
+            val habitId = timerHabit?.id ?: liveState.habitId
+            val habitTitle = if (liveState.habitTitle.isNotBlank()) liveState.habitTitle else (timerHabit?.title ?: "Focus Session")
+            val durationMin = timerHabit?.targetValue ?: (liveState.totalSeconds / 60.0).coerceAtLeast(1.0)
+            val totalSec = if (liveState.totalSeconds > 0) liveState.totalSeconds else (durationMin * 60).toLong().coerceAtLeast(60L)
+            val remainingSec = if (liveState.status != TimerStatus.IDLE) liveState.remainingSeconds else totalSec
+
+            var habitTodayFocusSec = 0L
+            var habitCompletedSessions = 0
+            for (log in allLogsToday) {
+                if (log.habitId == habitId || habitId == null) {
+                    if (log.durationSeconds != null && log.durationSeconds > 0) {
+                        habitTodayFocusSec += log.durationSeconds
+                    } else if (log.value != null && log.value > 0) {
+                        habitTodayFocusSec += (log.value * 60).toLong()
+                    }
+                    if (log.completed) {
+                        habitCompletedSessions++
+                    }
+                }
+            }
+
+            var streak = 0
+            if (timerHabit != null) {
+                val habitLogs = entryPoint.habitLogDao().getLogsForHabitOnce(timerHabit.id)
+                streak = StreakCalculator.calculateStreak(timerHabit, habitLogs, today).currentStreak
+            }
+
+            FocusTimerWidgetData(
+                habitId = habitId,
+                habitTitle = habitTitle,
+                totalSeconds = totalSec,
+                remainingSeconds = remainingSec,
+                status = liveState.status,
+                targetMinutes = durationMin,
+                todayFocusMinutes = (habitTodayFocusSec / 60).toInt(),
+                completedSessionsToday = habitCompletedSessions,
+                currentStreak = streak
+            )
         }
 
         provideContent {
@@ -133,6 +161,7 @@ val TimerHabitIdKey = ActionParameters.Key<String>("timer_habit_id")
 val TimerHabitTitleKey = ActionParameters.Key<String>("timer_habit_title")
 val TimerDurationKey = ActionParameters.Key<Double>("timer_duration")
 val TimerDeltaKey = ActionParameters.Key<Long>("timer_delta")
+val TimerPresetMinutesKey = ActionParameters.Key<Double>("timer_preset_minutes")
 
 class FocusTimerControlCallback : ActionCallback {
     override suspend fun onAction(
@@ -145,13 +174,22 @@ class FocusTimerControlCallback : ActionCallback {
         val habitTitle = parameters[TimerHabitTitleKey] ?: "Focus"
         val duration = parameters[TimerDurationKey] ?: 25.0
         val delta = parameters[TimerDeltaKey] ?: 0L
+        val preset = parameters[TimerPresetMinutesKey] ?: 25.0
 
         when (action) {
             "START" -> FocusTimerService.startTimer(context, habitId, habitTitle, duration)
             "PAUSE" -> FocusTimerService.pauseTimer(context)
             "RESUME" -> FocusTimerService.resumeTimer(context)
             "STOP" -> FocusTimerService.stopTimer(context)
+            "RESET" -> {
+                FocusTimerService.stopTimer(context)
+                TimerStateHolder.reset()
+            }
             "ADJUST" -> FocusTimerService.adjustTimer(context, delta)
+            "SET_PRESET" -> {
+                FocusTimerService.stopTimer(context)
+                TimerStateHolder.setDuration(habitId, habitTitle, preset)
+            }
         }
 
         WidgetUpdater.updateAllWidgets(context)
@@ -212,8 +250,7 @@ fun FocusTimerMedium(data: FocusTimerWidgetData) {
     WidgetCard(padding = 12.dp) {
         Column(
             modifier = GlanceModifier.fillMaxSize(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalAlignment = Alignment.CenterHorizontally
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Row(
                 modifier = GlanceModifier
@@ -256,34 +293,83 @@ fun FocusTimerMedium(data: FocusTimerWidgetData) {
                 )
             }
 
-            Spacer(modifier = GlanceModifier.height(6.dp))
+            Spacer(modifier = GlanceModifier.height(4.dp))
 
             Text(
                 text = formatTimeMmSs(data.remainingSeconds),
                 style = TextStyle(
                     color = ColorProvider(if (data.isRunning) WidgetColors.Primary else WidgetColors.TextPrimary),
-                    fontSize = 28.sp,
+                    fontSize = 26.sp,
                     fontWeight = FontWeight.Bold
                 )
             )
 
-            Spacer(modifier = GlanceModifier.height(6.dp))
+            Spacer(modifier = GlanceModifier.height(4.dp))
 
             WidgetProgressBar(progressFraction = data.progress, height = 5.dp)
 
             Spacer(modifier = GlanceModifier.height(8.dp))
 
-            TimerActionLargeButton(data = data)
+            Row(
+                modifier = GlanceModifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TimerActionLargeButton(data = data, modifier = GlanceModifier.defaultWeight())
 
-            Spacer(modifier = GlanceModifier.height(4.dp))
+                if (!data.isIdle) {
+                    Spacer(modifier = GlanceModifier.width(6.dp))
+                    ResetTimerButton(data = data)
+                }
+            }
 
-            Text(
-                text = "${data.targetMinutes.toInt()} min goal",
-                style = TextStyle(
-                    color = ColorProvider(WidgetColors.TextSecondary),
-                    fontSize = 10.sp
-                )
-            )
+            Spacer(modifier = GlanceModifier.height(8.dp))
+
+            // Lower context section: presets if idle, or today's stats if active
+            if (data.isIdle) {
+                Row(
+                    modifier = GlanceModifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Goal:",
+                        style = TextStyle(color = ColorProvider(WidgetColors.TextSecondary), fontSize = 10.sp)
+                    )
+                    Spacer(modifier = GlanceModifier.width(4.dp))
+                    listOf(15.0, 25.0, 45.0, 60.0).forEach { mins ->
+                        PresetChip(data = data, minutes = mins)
+                        Spacer(modifier = GlanceModifier.width(3.dp))
+                    }
+                }
+            } else {
+                Row(
+                    modifier = GlanceModifier
+                        .fillMaxWidth()
+                        .background(WidgetColors.Surface)
+                        .cornerRadius(6.dp)
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Today: ${data.todayFocusMinutes}m focused",
+                        style = TextStyle(
+                            color = ColorProvider(WidgetColors.Primary),
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    )
+                    if (data.currentStreak > 0) {
+                        Spacer(modifier = GlanceModifier.defaultWeight())
+                        Text(
+                            text = "${data.currentStreak}d streak",
+                            style = TextStyle(
+                                color = ColorProvider(WidgetColors.AccentAmber),
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -293,7 +379,10 @@ fun FocusTimerLarge(data: FocusTimerWidgetData) {
     val deepLink = if (data.habitId != null) "app://habits/detail/${data.habitId}" else "app://habits/daily"
 
     WidgetCard(padding = 12.dp) {
-        Column(modifier = GlanceModifier.fillMaxSize()) {
+        Column(
+            modifier = GlanceModifier.fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Row(
                 modifier = GlanceModifier
                     .fillMaxWidth()
@@ -322,7 +411,7 @@ fun FocusTimerLarge(data: FocusTimerWidgetData) {
                 )
             }
 
-            Spacer(modifier = GlanceModifier.height(6.dp))
+            Spacer(modifier = GlanceModifier.height(4.dp))
 
             Row(
                 modifier = GlanceModifier.fillMaxWidth(),
@@ -348,9 +437,9 @@ fun FocusTimerLarge(data: FocusTimerWidgetData) {
                 )
             }
 
-            Spacer(modifier = GlanceModifier.height(6.dp))
+            Spacer(modifier = GlanceModifier.height(4.dp))
 
-            WidgetProgressBar(progressFraction = data.progress, height = 6.dp)
+            WidgetProgressBar(progressFraction = data.progress, height = 5.dp)
 
             Spacer(modifier = GlanceModifier.height(8.dp))
 
@@ -361,15 +450,132 @@ fun FocusTimerLarge(data: FocusTimerWidgetData) {
             ) {
                 TimerActionLargeButton(data = data, modifier = GlanceModifier.defaultWeight())
 
-                Spacer(modifier = GlanceModifier.width(8.dp))
+                Spacer(modifier = GlanceModifier.width(6.dp))
 
                 AdjustTimerButton(deltaSeconds = -300L, label = "-5m")
 
-                Spacer(modifier = GlanceModifier.width(6.dp))
+                Spacer(modifier = GlanceModifier.width(4.dp))
 
                 AdjustTimerButton(deltaSeconds = 300L, label = "+5m")
+
+                if (!data.isIdle) {
+                    Spacer(modifier = GlanceModifier.width(4.dp))
+                    ResetTimerButton(data = data)
+                }
+            }
+
+            Spacer(modifier = GlanceModifier.height(8.dp))
+
+            // Rich Bottom Section filling vertical space
+            Row(
+                modifier = GlanceModifier
+                    .fillMaxWidth()
+                    .background(WidgetColors.Surface)
+                    .cornerRadius(8.dp)
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (data.isIdle) {
+                    Text(
+                        text = "Quick Presets:",
+                        style = TextStyle(
+                            color = ColorProvider(WidgetColors.TextSecondary),
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    )
+                    Spacer(modifier = GlanceModifier.width(6.dp))
+                    listOf(15.0, 25.0, 45.0, 60.0).forEach { mins ->
+                        PresetChip(data = data, minutes = mins)
+                        Spacer(modifier = GlanceModifier.width(4.dp))
+                    }
+                } else {
+                    Text(
+                        text = "Today: ${data.todayFocusMinutes}m logged (${data.completedSessionsToday} sessions)",
+                        style = TextStyle(
+                            color = ColorProvider(WidgetColors.TextPrimary),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium
+                        ),
+                        modifier = GlanceModifier.defaultWeight()
+                    )
+
+                    if (data.currentStreak > 0) {
+                        Text(
+                            text = "${data.currentStreak}d streak",
+                            style = TextStyle(
+                                color = ColorProvider(WidgetColors.AccentAmber),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+                }
             }
         }
+    }
+}
+
+@Composable
+fun PresetChip(data: FocusTimerWidgetData, minutes: Double) {
+    val isSelected = (data.targetMinutes == minutes)
+    val bgColor = if (isSelected) WidgetColors.PrimaryContainer else WidgetColors.SurfaceElevated
+    val textColor = if (isSelected) WidgetColors.Primary else WidgetColors.TextSecondary
+
+    Box(
+        modifier = GlanceModifier
+            .background(bgColor)
+            .cornerRadius(4.dp)
+            .padding(horizontal = 6.dp, vertical = 2.dp)
+            .clickable(
+                actionRunCallback<FocusTimerControlCallback>(
+                    actionParametersOf(
+                        TimerActionKey to "SET_PRESET",
+                        TimerHabitIdKey to (data.habitId ?: ""),
+                        TimerHabitTitleKey to data.habitTitle,
+                        TimerPresetMinutesKey to minutes
+                    )
+                )
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "${minutes.toInt()}m",
+            style = TextStyle(
+                color = ColorProvider(textColor),
+                fontSize = 10.sp,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+            )
+        )
+    }
+}
+
+@Composable
+fun ResetTimerButton(data: FocusTimerWidgetData) {
+    Box(
+        modifier = GlanceModifier
+            .background(WidgetColors.SurfaceElevated)
+            .cornerRadius(8.dp)
+            .padding(horizontal = 8.dp, vertical = 6.dp)
+            .clickable(
+                actionRunCallback<FocusTimerControlCallback>(
+                    actionParametersOf(
+                        TimerActionKey to "RESET",
+                        TimerHabitIdKey to (data.habitId ?: ""),
+                        TimerHabitTitleKey to data.habitTitle
+                    )
+                )
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "↺",
+            style = TextStyle(
+                color = ColorProvider(WidgetColors.TextSecondary),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold
+            )
+        )
     }
 }
 
@@ -466,7 +672,7 @@ fun TimerActionLargeButton(data: FocusTimerWidgetData, modifier: GlanceModifier 
 fun AdjustTimerButton(deltaSeconds: Long, label: String) {
     Box(
         modifier = GlanceModifier
-            .background(WidgetColors.Surface)
+            .background(WidgetColors.SurfaceElevated)
             .cornerRadius(8.dp)
             .padding(horizontal = 10.dp, vertical = 6.dp)
             .clickable(
