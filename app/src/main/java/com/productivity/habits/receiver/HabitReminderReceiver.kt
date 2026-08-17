@@ -11,6 +11,9 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.productivity.habits.MainActivity
 import com.productivity.habits.data.local.dao.HabitDao
+import com.productivity.habits.data.local.entity.HabitEntity
+import com.productivity.habits.data.local.entity.HabitTargetType
+import com.productivity.habits.domain.engine.DynamicStepEngine
 import com.productivity.habits.domain.scheduler.HabitReminderScheduler
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -56,16 +59,16 @@ class HabitReminderReceiver : BroadcastReceiver() {
 
         fun showNotification(
             context: Context,
-            habitId: String,
-            habitTitle: String,
+            habit: HabitEntity,
             reminderIndex: Int
         ) {
             createNotificationChannel(context)
-            val notificationId = (habitId.hashCode() * 31) + reminderIndex
+            val notificationId = (habit.id.hashCode() * 31) + reminderIndex
 
+            // 1. Content Intent: Opens habit detail via deep link
             val deepLinkIntent = Intent(
                 Intent.ACTION_VIEW,
-                Uri.parse("app://habits/detail/$habitId"),
+                Uri.parse("app://habits/detail/${habit.id}"),
                 context,
                 MainActivity::class.java
             ).apply {
@@ -79,40 +82,96 @@ class HabitReminderReceiver : BroadcastReceiver() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
-            val checkInIntent = Intent(context, HabitActionReceiver::class.java).apply {
-                action = HabitActionReceiver.ACTION_CHECK_IN
-                putExtra(HabitActionReceiver.EXTRA_HABIT_ID, habitId)
+            // 2. Mark Done Intent
+            val markDoneIntent = Intent(context, HabitActionReceiver::class.java).apply {
+                action = HabitActionReceiver.ACTION_MARK_DONE
+                putExtra(HabitActionReceiver.EXTRA_HABIT_ID, habit.id)
                 putExtra(HabitActionReceiver.EXTRA_NOTIFICATION_ID, notificationId)
             }
-
-            val checkInPendingIntent = PendingIntent.getBroadcast(
+            val markDonePendingIntent = PendingIntent.getBroadcast(
                 context,
-                notificationId,
-                checkInIntent,
+                notificationId * 10 + 1,
+                markDoneIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
-            val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            val builder = NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(android.R.drawable.ic_dialog_info)
-                .setContentTitle(habitTitle)
-                .setContentText("Time to complete your habit today!")
+                .setContentTitle(habit.title)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(contentPendingIntent)
                 .setAutoCancel(true)
-                .addAction(android.R.drawable.checkbox_on_background, "+1 Check-in", checkInPendingIntent)
-                .build()
+
+            when (habit.targetType) {
+                HabitTargetType.BOOLEAN -> {
+                    builder.setContentText("Ready for your daily check-in?")
+                    builder.addAction(android.R.drawable.checkbox_on_background, "Check-In", markDonePendingIntent)
+                    builder.addAction(android.R.drawable.ic_menu_view, "View Habit", contentPendingIntent)
+                }
+
+                HabitTargetType.NUMERIC -> {
+                    val stepConfig = DynamicStepEngine.getDynamicStepConfig(habit.targetValue ?: 1.0, habit.unit)
+                    val primaryStep = stepConfig.primaryStep
+                    val stepText = if (primaryStep % 1.0 == 0.0) "${primaryStep.toInt()}" else "$primaryStep"
+                    val unitSuffix = if (!habit.unit.isNullOrBlank()) " ${habit.unit}" else ""
+                    val stepLabel = "+$stepText$unitSuffix"
+
+                    builder.setContentText("Log progress ($stepLabel) toward daily goal.")
+
+                    // Log Progress Delta Intent
+                    val deltaIntent = Intent(context, HabitActionReceiver::class.java).apply {
+                        action = HabitActionReceiver.ACTION_ADD_DELTA
+                        putExtra(HabitActionReceiver.EXTRA_HABIT_ID, habit.id)
+                        putExtra(HabitActionReceiver.EXTRA_NOTIFICATION_ID, notificationId)
+                        putExtra(HabitActionReceiver.EXTRA_DELTA, primaryStep)
+                    }
+                    val deltaPendingIntent = PendingIntent.getBroadcast(
+                        context,
+                        notificationId * 10 + 2,
+                        deltaIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    )
+
+                    builder.addAction(android.R.drawable.checkbox_on_background, "Mark Done", markDonePendingIntent)
+                    builder.addAction(android.R.drawable.ic_input_add, "Log Progress", deltaPendingIntent)
+                    builder.addAction(android.R.drawable.ic_menu_view, "View Habit", contentPendingIntent)
+                }
+
+                HabitTargetType.TIMER -> {
+                    val timerConfig = DynamicStepEngine.getDynamicTimerConfig(habit.targetValue ?: 25.0)
+                    val primaryStep = timerConfig.primaryStep
+                    val stepLabel = "+${primaryStep.toInt()} min"
+
+                    builder.setContentText("Log progress ($stepLabel) toward daily goal.")
+
+                    // Add Timer Minutes Delta Intent
+                    val deltaIntent = Intent(context, HabitActionReceiver::class.java).apply {
+                        action = HabitActionReceiver.ACTION_ADD_DELTA
+                        putExtra(HabitActionReceiver.EXTRA_HABIT_ID, habit.id)
+                        putExtra(HabitActionReceiver.EXTRA_NOTIFICATION_ID, notificationId)
+                        putExtra(HabitActionReceiver.EXTRA_DELTA, primaryStep)
+                    }
+                    val deltaPendingIntent = PendingIntent.getBroadcast(
+                        context,
+                        notificationId * 10 + 2,
+                        deltaIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    )
+
+                    builder.addAction(android.R.drawable.checkbox_on_background, "Mark Done", markDonePendingIntent)
+                    builder.addAction(android.R.drawable.ic_input_add, "Log Progress", deltaPendingIntent)
+                    builder.addAction(android.R.drawable.ic_menu_view, "View Habit", contentPendingIntent)
+                }
+            }
 
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.notify(notificationId, notification)
+            notificationManager.notify(notificationId, builder.build())
         }
     }
 
     override fun onReceive(context: Context, intent: Intent) {
         val habitId = intent.getStringExtra(EXTRA_HABIT_ID) ?: return
-        val habitTitle = intent.getStringExtra(EXTRA_HABIT_TITLE) ?: "Habit Reminder"
         val reminderIndex = intent.getIntExtra(EXTRA_REMINDER_INDEX, 0)
-
-        showNotification(context, habitId, habitTitle, reminderIndex)
 
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
@@ -123,6 +182,7 @@ class HabitReminderReceiver : BroadcastReceiver() {
                 )
                 val habit = entryPoint.habitDao().getHabitByIdOnce(habitId)
                 if (habit != null) {
+                    showNotification(context, habit, reminderIndex)
                     entryPoint.scheduler().schedule(habit)
                 }
             } finally {
