@@ -22,6 +22,7 @@ data class TimerState(
     val isRunning: Boolean get() = status == TimerStatus.RUNNING
     val isPaused: Boolean get() = status == TimerStatus.PAUSED
     val isCompleted: Boolean get() = status == TimerStatus.COMPLETED
+    val focusModeActive: Boolean get() = status == TimerStatus.RUNNING || status == TimerStatus.PAUSED
     val progress: Float get() = if (totalSeconds > 0) {
         ((totalSeconds - remainingSeconds).toFloat() / totalSeconds.toFloat()).coerceIn(0f, 1f)
     } else 0f

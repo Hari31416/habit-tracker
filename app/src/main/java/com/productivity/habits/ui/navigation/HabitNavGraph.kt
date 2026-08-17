@@ -131,7 +131,8 @@ fun HabitNavGraph(
             deepLinks = Screen.Detail.deepLinks
         ) {
             HabitDetailScreen(
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                themePreferences = themePreferences ?: return@composable
             )
         }
     }

@@ -21,6 +21,9 @@ class ThemePreferences @Inject constructor(
     private val _userName = MutableStateFlow(loadUserName())
     val userName: StateFlow<String> = _userName.asStateFlow()
 
+    private val _focusDndEnabled = MutableStateFlow(loadFocusDndEnabled())
+    val focusDndEnabled: StateFlow<Boolean> = _focusDndEnabled.asStateFlow()
+
     private fun loadThemeMode(): ThemeMode {
         val savedName = prefs.getString(KEY_THEME_MODE, ThemeMode.SYSTEM.name)
         return try {
@@ -34,6 +37,10 @@ class ThemePreferences @Inject constructor(
         return prefs.getString(KEY_USER_NAME, "") ?: ""
     }
 
+    private fun loadFocusDndEnabled(): Boolean {
+        return prefs.getBoolean(KEY_FOCUS_DND_ENABLED, false)
+    }
+
     fun setThemeMode(mode: ThemeMode) {
         prefs.edit().putString(KEY_THEME_MODE, mode.name).apply()
         _themeMode.value = mode
@@ -44,9 +51,16 @@ class ThemePreferences @Inject constructor(
         _userName.value = name.trim()
     }
 
+    fun setFocusDndEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_FOCUS_DND_ENABLED, enabled).apply()
+        _focusDndEnabled.value = enabled
+    }
+
     companion object {
         private const val PREFS_NAME = "habit_tracker_theme_prefs"
         private const val KEY_THEME_MODE = "key_theme_mode"
         private const val KEY_USER_NAME = "key_user_name"
+        private const val KEY_FOCUS_DND_ENABLED = "key_focus_dnd_enabled"
     }
 }
+

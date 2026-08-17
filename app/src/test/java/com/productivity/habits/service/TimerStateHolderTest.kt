@@ -93,4 +93,26 @@ class TimerStateHolderTest {
         assertThat(state.remainingSeconds).isEqualTo(15 * 60L)
         assertThat(state.status).isEqualTo(TimerStatus.IDLE)
     }
+
+    @Test
+    fun `focusModeActive is true when running or paused and false otherwise`() {
+        // IDLE state
+        assertThat(TimerStateHolder.timerState.value.focusModeActive).isFalse()
+
+        // RUNNING state
+        TimerStateHolder.start("habit_1", "Focus Work", 25.0)
+        assertThat(TimerStateHolder.timerState.value.focusModeActive).isTrue()
+
+        // PAUSED state
+        TimerStateHolder.pause()
+        assertThat(TimerStateHolder.timerState.value.focusModeActive).isTrue()
+
+        // COMPLETED state
+        TimerStateHolder.tick(0L)
+        assertThat(TimerStateHolder.timerState.value.focusModeActive).isFalse()
+
+        // After stop
+        TimerStateHolder.stop()
+        assertThat(TimerStateHolder.timerState.value.focusModeActive).isFalse()
+    }
 }

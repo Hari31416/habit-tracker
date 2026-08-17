@@ -69,6 +69,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.productivity.habits.data.local.entity.HabitFrequencyType
 import com.productivity.habits.data.local.entity.HabitTargetType
+import com.productivity.habits.data.local.preferences.ThemePreferences
 import com.productivity.habits.ui.common.ColorUtils
 import com.productivity.habits.ui.common.HabitIconRegistry
 import com.productivity.habits.ui.common.HapticsHelper
@@ -81,6 +82,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun HabitDetailScreen(
     onBack: () -> Unit,
+    themePreferences: ThemePreferences,
     viewModel: HabitDetailViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
@@ -503,7 +505,8 @@ fun HabitDetailScreen(
                         habitTitle = habit.title,
                         defaultDurationMinutes = timerDuration,
                         remainingUnloggedMinutes = remainingMinutes,
-                        accentColor = accentColor
+                        accentColor = accentColor,
+                        themePreferences = themePreferences
                     )
                 }
             }

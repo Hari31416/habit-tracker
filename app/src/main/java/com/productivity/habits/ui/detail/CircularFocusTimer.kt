@@ -1,5 +1,9 @@
 package com.productivity.habits.ui.detail
 
+import android.app.NotificationManager
+import android.content.Context
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
@@ -19,6 +23,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
@@ -51,6 +57,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.productivity.habits.data.local.preferences.ThemePreferences
 import com.productivity.habits.service.FocusTimerService
 import com.productivity.habits.service.TimerStateHolder
 import com.productivity.habits.service.TimerStatus
@@ -64,6 +71,7 @@ fun CircularFocusTimer(
     defaultDurationMinutes: Double,
     remainingUnloggedMinutes: Double = defaultDurationMinutes,
     accentColor: Color,
+    themePreferences: ThemePreferences,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -344,6 +352,54 @@ fun CircularFocusTimer(
                     modifier = Modifier.padding(horizontal = 4.dp)
                 )
             }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // DND Toggle Chip
+        val dndEnabled by themePreferences.focusDndEnabled.collectAsState()
+        val notificationManager = remember {
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            FilterChip(
+                selected = dndEnabled,
+                onClick = {
+                    HapticsHelper.performLightHaptic(haptic)
+                    if (!dndEnabled && !notificationManager.isNotificationPolicyAccessGranted) {
+                        // Redirect to system settings to grant DND access
+                        val intent = Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        context.startActivity(intent)
+                    } else {
+                        themePreferences.setFocusDndEnabled(!dndEnabled)
+                    }
+                },
+                label = {
+                    Text(
+                        text = if (dndEnabled) "DND On" else "DND Off",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Medium
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = if (dndEnabled) Icons.Default.NotificationsOff else Icons.Default.Notifications,
+                        contentDescription = if (dndEnabled) "Disable Do Not Disturb" else "Enable Do Not Disturb",
+                        modifier = Modifier.size(16.dp)
+                    )
+                },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = accentColor.copy(alpha = 0.2f),
+                    selectedLabelColor = accentColor,
+                    selectedLeadingIconColor = accentColor
+                ),
+                modifier = Modifier.padding(horizontal = 4.dp)
+            )
         }
     }
 }
