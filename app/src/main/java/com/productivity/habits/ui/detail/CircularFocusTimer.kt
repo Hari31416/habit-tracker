@@ -2,7 +2,6 @@ package com.productivity.habits.ui.detail
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -26,10 +25,11 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -75,7 +75,6 @@ fun CircularFocusTimer(
     val isRunningOrPausedForThisHabit = timerState.habitId == habitId && (timerState.status == TimerStatus.RUNNING || timerState.status == TimerStatus.PAUSED)
     val isCompletedForThisHabit = timerState.habitId == habitId && timerState.status == TimerStatus.COMPLETED
 
-    // Default duration in seconds based on current remaining unlogged time
     val defaultDurationSec = (defaultDurationMinutes * 60).toLong().coerceAtLeast(60L)
 
     val remainingSec = when {
@@ -178,9 +177,9 @@ fun CircularFocusTimer(
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Circular Countdown Canvas
+        // Large Circular Countdown Canvas
         Box(
             modifier = Modifier.size(200.dp),
             contentAlignment = Alignment.Center
@@ -189,7 +188,7 @@ fun CircularFocusTimer(
             val sweepAngle = animatedProgress * 360f
 
             Canvas(modifier = Modifier.size(190.dp)) {
-                val strokeWidth = 12.dp.toPx()
+                val strokeWidth = 10.dp.toPx()
 
                 // Background track circle
                 drawCircle(
@@ -234,7 +233,7 @@ fun CircularFocusTimer(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Primary Control Buttons: Play/Pause and Reset
+        // Primary Control Buttons: Play/Pause Pill and Reset
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -250,8 +249,7 @@ fun CircularFocusTimer(
                         TimerStateHolder.stop()
                     },
                 shape = CircleShape,
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                color = MaterialTheme.colorScheme.surfaceVariant
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
@@ -263,48 +261,50 @@ fun CircularFocusTimer(
                 }
             }
 
-            // Play / Pause Main Button
+            // Primary Play / Pause Pill Button
             Button(
                 onClick = {
                     HapticsHelper.performLightHaptic(haptic)
-                    if (status == TimerStatus.RUNNING && isRunningOrPausedForThisHabit) {
-                        FocusTimerService.pauseTimer(context)
-                    } else if (status == TimerStatus.PAUSED && isRunningOrPausedForThisHabit) {
-                        FocusTimerService.resumeTimer(context)
-                    } else {
-                        FocusTimerService.startTimer(
-                            context = context,
-                            habitId = habitId,
-                            habitTitle = habitTitle,
-                            durationMinutes = (remainingSec / 60.0)
-                        )
+                    when (status) {
+                        TimerStatus.RUNNING -> {
+                            FocusTimerService.pauseTimer(context)
+                        }
+                        TimerStatus.PAUSED -> {
+                            FocusTimerService.resumeTimer(context)
+                        }
+                        TimerStatus.COMPLETED, TimerStatus.IDLE -> {
+                            val durationMins = if (totalSec > 0) totalSec / 60.0 else defaultDurationMinutes
+                            FocusTimerService.startTimer(context, habitId, habitTitle, durationMins)
+                        }
                     }
                 },
                 modifier = Modifier
-                    .height(52.dp)
-                    .width(140.dp),
-                shape = RoundedCornerShape(26.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = accentColor)
+                    .height(48.dp)
+                    .width(160.dp),
+                shape = RoundedCornerShape(24.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = accentColor,
+                    contentColor = Color.White
+                )
             ) {
                 Icon(
-                    imageVector = if (status == TimerStatus.RUNNING && isRunningOrPausedForThisHabit) Icons.Default.Pause else Icons.Default.PlayArrow,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
+                    imageVector = if (status == TimerStatus.RUNNING) Icons.Default.Pause else Icons.Default.PlayArrow,
+                    contentDescription = if (status == TimerStatus.RUNNING) "Pause" else "Start",
+                    modifier = Modifier.size(20.dp)
                 )
-                Spacer(modifier = Modifier.width(6.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = if (status == TimerStatus.RUNNING && isRunningOrPausedForThisHabit) "Pause" else "Start",
+                    text = if (status == TimerStatus.RUNNING) "Pause" else "Start",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Quick Adjustment Chips (-10m, -5m, +5m, +10m, and Remaining)
+        // Duration Adjustment Quick Chips: -10m, -5m, [Goal], +5m, +10m
+        val currentGoalMins = (totalSec / 60).toInt()
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -312,59 +312,37 @@ fun CircularFocusTimer(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val remMinInt = remainingUnloggedMinutes.toInt()
-            if (remMinInt > 0) {
-                Surface(
-                    modifier = Modifier
-                        .padding(horizontal = 4.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .clickable {
-                            HapticsHelper.performLightHaptic(haptic)
-                            if (isRunningOrPausedForThisHabit) {
-                                FocusTimerService.stopTimer(context)
-                            }
-                            TimerStateHolder.setDuration(habitId, habitTitle, remMinInt.toDouble())
-                        },
-                    shape = RoundedCornerShape(14.dp),
-                    color = accentColor.copy(alpha = 0.15f),
-                    border = BorderStroke(1.dp, accentColor.copy(alpha = 0.4f))
-                ) {
-                    Text(
-                        text = "Remaining (${remMinInt}m)",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = accentColor,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
-                    )
-                }
-            }
+            val deltas = listOf(-10, -5, 0, 5, 10)
+            deltas.forEach { delta ->
+                val label = if (delta == 0) "${currentGoalMins}m Goal" else if (delta > 0) "+${delta}m" else "${delta}m"
+                val isGoal = delta == 0
 
-            listOf(-600L to "-10m", -300L to "-5m", 300L to "+5m", 600L to "+10m").forEach { (deltaSec, label) ->
-                Surface(
-                    modifier = Modifier
-                        .padding(horizontal = 4.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .clickable {
+                FilterChip(
+                    selected = isGoal,
+                    onClick = {
+                        if (delta != 0) {
                             HapticsHelper.performLightHaptic(haptic)
+                            val newMins = maxOf(1L, (totalSec / 60) + delta)
                             if (isRunningOrPausedForThisHabit) {
-                                FocusTimerService.adjustTimer(context, deltaSec)
+                                TimerStateHolder.setRemainingMinutes(newMins)
                             } else {
-                                val currentMins = (totalSec / 60) + (deltaSec / 60)
-                                TimerStateHolder.setDuration(habitId, habitTitle, currentMins.toDouble().coerceAtLeast(1.0))
+                                TimerStateHolder.setDuration(habitId, habitTitle, newMins.toDouble())
                             }
-                        },
-                    shape = RoundedCornerShape(14.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
-                ) {
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
-                    )
-                }
+                        }
+                    },
+                    label = {
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = if (isGoal) FontWeight.Bold else FontWeight.Medium
+                        )
+                    },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = accentColor.copy(alpha = 0.2f),
+                        selectedLabelColor = accentColor
+                    ),
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
             }
         }
     }
