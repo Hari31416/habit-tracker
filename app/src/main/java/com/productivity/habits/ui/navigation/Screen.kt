@@ -23,6 +23,7 @@ sealed class Screen(val route: String) {
             navDeepLink { uriPattern = "app://habits/detail/{$HABIT_ID_ARG}" }
         )
     }
+    data object Badges : Screen("badges")
     data object AddHabit : Screen("add_habit")
     data object EditHabit : Screen("edit_habit/{habitId}") {
         const val HABIT_ID_ARG = "habitId"

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.productivity.habits.data.local.HabitDatabase
 import com.productivity.habits.data.local.PrepopulateDataCallback
+import com.productivity.habits.data.local.dao.GamificationDao
 import com.productivity.habits.data.local.dao.HabitCategoryDao
 import com.productivity.habits.data.local.dao.HabitDao
 import com.productivity.habits.data.local.dao.HabitLogDao
@@ -43,4 +44,7 @@ object DatabaseModule {
 
     @Provides
     fun provideHabitCategoryDao(database: HabitDatabase): HabitCategoryDao = database.habitCategoryDao()
+
+    @Provides
+    fun provideGamificationDao(database: HabitDatabase): GamificationDao = database.gamificationDao()
 }

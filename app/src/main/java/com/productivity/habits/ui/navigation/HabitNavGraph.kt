@@ -48,7 +48,18 @@ fun HabitNavGraph(
                 },
                 onNavigateToAnalytics = {
                     navController.navigate(Screen.Analytics.route)
+                },
+                onNavigateToBadges = {
+                    navController.navigate(Screen.Badges.route)
                 }
+            )
+        }
+
+        composable(route = Screen.Badges.route) {
+            com.productivity.habits.ui.gamification.BadgesShowcaseScreen(
+                onBack = { navController.popBackStack() },
+                themeMode = themeMode,
+                onThemeModeSelected = onThemeModeSelected
             )
         }
 
@@ -88,6 +99,9 @@ fun HabitNavGraph(
                 },
                 onNavigateToDetail = { habitId ->
                     navController.navigate(Screen.Detail.createRoute(habitId))
+                },
+                onNavigateToBadges = {
+                    navController.navigate(Screen.Badges.route)
                 }
             )
         }

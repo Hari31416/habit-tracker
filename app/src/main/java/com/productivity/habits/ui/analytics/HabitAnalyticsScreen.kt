@@ -53,6 +53,10 @@ import com.productivity.habits.ui.common.HapticsHelper
 import com.productivity.habits.ui.common.ThemeToggleButton
 import com.productivity.habits.ui.daily.DashboardTab
 
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import com.productivity.habits.ui.gamification.GamificationViewModel
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HabitAnalyticsScreen(
@@ -61,11 +65,14 @@ fun HabitAnalyticsScreen(
     onNavigateToDaily: () -> Unit,
     onNavigateToMatrix: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
+    onNavigateToBadges: () -> Unit = {},
     viewModel: AnalyticsViewModel = hiltViewModel(),
+    gamificationViewModel: GamificationViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
     val haptic = LocalHapticFeedback.current
     val uiState by viewModel.uiState.collectAsState()
+    val gamificationState by gamificationViewModel.uiState.collectAsState()
 
     Scaffold(
         modifier = modifier.fillMaxSize()
@@ -222,6 +229,75 @@ fun HabitAnalyticsScreen(
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.tertiary
+                            )
+                        }
+                    }
+
+                    // Mastery & Progression Showcase Card
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable {
+                                HapticsHelper.performLightHaptic(haptic)
+                                onNavigateToBadges()
+                            },
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Surface(
+                                    modifier = Modifier.size(42.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Text(
+                                            text = "Lv.${gamificationState.progression.level}",
+                                            style = MaterialTheme.typography.labelLarge,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.width(12.dp))
+
+                                Column {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = "Mastery: ${gamificationState.progression.title.displayName}",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                    Text(
+                                        text = "${gamificationState.progression.totalXp} Total XP • ${gamificationState.progression.unlockedBadgesCount} / ${gamificationState.progression.totalBadgesCount} Badges",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = "View Badges",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     }

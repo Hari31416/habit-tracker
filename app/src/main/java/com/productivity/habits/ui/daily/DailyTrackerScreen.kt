@@ -61,6 +61,9 @@ import com.productivity.habits.ui.common.HapticsHelper
 import com.productivity.habits.ui.common.ThemeToggleButton
 import com.productivity.habits.ui.form.HabitFormBottomSheet
 import com.productivity.habits.ui.form.HabitFormViewModel
+import com.productivity.habits.ui.gamification.GamificationViewModel
+import com.productivity.habits.ui.gamification.LevelUpCelebrationDialog
+import com.productivity.habits.ui.gamification.PlayerLevelHeaderBadge
 
 enum class DashboardTab(val label: String) {
     DAILY("Daily"),
@@ -76,11 +79,14 @@ fun DailyTrackerScreen(
     onNavigateToDetail: (String) -> Unit,
     onNavigateToMatrix: () -> Unit,
     onNavigateToAnalytics: () -> Unit,
+    onNavigateToBadges: () -> Unit = {},
     viewModel: DailyTrackerViewModel = hiltViewModel(),
+    gamificationViewModel: GamificationViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
     val haptic = LocalHapticFeedback.current
     val uiState by viewModel.uiState.collectAsState()
+    val gamificationState by gamificationViewModel.uiState.collectAsState()
 
     var showAddForm by remember { mutableStateOf(false) }
     var habitIdToEdit by remember { mutableStateOf<String?>(null) }
@@ -88,6 +94,16 @@ fun DailyTrackerScreen(
     var isSortMenuExpanded by remember { mutableStateOf(false) }
 
     val formViewModel: HabitFormViewModel = hiltViewModel()
+
+    // Level-up celebration dialog host
+    gamificationState.pendingCelebration?.let { celebration ->
+        LevelUpCelebrationDialog(
+            celebration = celebration,
+            onDismiss = {
+                gamificationViewModel.dismissCelebration(celebration.newLevel)
+            }
+        )
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -134,14 +150,24 @@ fun DailyTrackerScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(
-                            text = "Habits",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-
                         Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "Habits",
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            PlayerLevelHeaderBadge(
+                                progression = gamificationState.progression,
+                                onClick = onNavigateToBadges
+                            )
+
                             ThemeToggleButton(
                                 currentTheme = themeMode,
                                 onThemeSelected = onThemeModeSelected

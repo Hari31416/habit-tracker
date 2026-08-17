@@ -4,19 +4,27 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.LocalCafe
+import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.MilitaryTech
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.SentimentSatisfied
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.TrackChanges
@@ -42,6 +50,20 @@ object HabitIconRegistry {
         "zap" to Icons.Default.FlashOn,
         "heart" to Icons.Default.Favorite,
         "clock" to Icons.Default.Schedule,
+
+        // Badges and gamification icons
+        "flame" to Icons.Default.LocalFireDepartment,
+        "shield" to Icons.Default.Security,
+        "award" to Icons.Default.EmojiEvents,
+        "trophy" to Icons.Default.EmojiEvents,
+        "crown" to Icons.Default.AutoAwesome,
+        "medal" to Icons.Default.MilitaryTech,
+        "layers" to Icons.Default.Layers,
+        "compass" to Icons.Default.Explore,
+        "calendar" to Icons.Default.CalendarMonth,
+        "trending_up" to Icons.AutoMirrored.Filled.TrendingUp,
+        "briefcase" to Icons.Default.Work,
+        "check_circle" to Icons.Default.CheckCircle,
 
         // Common habit icons
         "check" to Icons.Default.CheckCircle,

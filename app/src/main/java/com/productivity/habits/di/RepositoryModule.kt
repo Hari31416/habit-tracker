@@ -1,6 +1,8 @@
 package com.productivity.habits.di
 
+import com.productivity.habits.data.repository.GamificationRepositoryImpl
 import com.productivity.habits.data.repository.HabitRepositoryImpl
+import com.productivity.habits.domain.repository.GamificationRepository
 import com.productivity.habits.domain.repository.HabitRepository
 import dagger.Binds
 import dagger.Module
@@ -17,4 +19,10 @@ abstract class RepositoryModule {
     abstract fun bindHabitRepository(
         impl: HabitRepositoryImpl
     ): HabitRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindGamificationRepository(
+        impl: GamificationRepositoryImpl
+    ): GamificationRepository
 }
