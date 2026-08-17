@@ -47,16 +47,38 @@ fun HabitNavGraph(
         }
 
         composable(route = Screen.WeekMatrix.route) {
-            PlaceholderScreen(
-                title = "Week Matrix",
-                onBack = { navController.popBackStack() }
+            com.productivity.habits.ui.matrix.HabitWeekMatrixScreen(
+                onNavigateToDaily = {
+                    navController.navigate(Screen.Daily.route) {
+                        popUpTo(Screen.Daily.route) { inclusive = true }
+                    }
+                },
+                onNavigateToAnalytics = {
+                    navController.navigate(Screen.Analytics.route) {
+                        popUpTo(Screen.Daily.route)
+                    }
+                },
+                onNavigateToDetail = { habitId ->
+                    navController.navigate(Screen.Detail.createRoute(habitId))
+                }
             )
         }
 
         composable(route = Screen.Analytics.route) {
-            PlaceholderScreen(
-                title = "Analytics",
-                onBack = { navController.popBackStack() }
+            com.productivity.habits.ui.analytics.HabitAnalyticsScreen(
+                onNavigateToDaily = {
+                    navController.navigate(Screen.Daily.route) {
+                        popUpTo(Screen.Daily.route) { inclusive = true }
+                    }
+                },
+                onNavigateToMatrix = {
+                    navController.navigate(Screen.WeekMatrix.route) {
+                        popUpTo(Screen.Daily.route)
+                    }
+                },
+                onNavigateToDetail = { habitId ->
+                    navController.navigate(Screen.Detail.createRoute(habitId))
+                }
             )
         }
 
