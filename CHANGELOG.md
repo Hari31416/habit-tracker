@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-08-17
+
+### Added
+
+- 5 responsive Android home-screen widgets built with Jetpack Glance:
+  - **Today's Habits**: Interactive daily habit checklist with Glance `LazyColumn` and stable check-in toggles.
+  - **Daily Focus**: Summary of daily completion rate, active streak, focus minutes, and earned XP.
+  - **Focus Timer**: Dedicated timer card with live countdown, quick presets, and Start/Pause/Resume/Reset controls.
+  - **Streaks**: At-a-glance tracker highlighting active streaks, best records, and at-risk habits.
+  - **XP / Mastery**: Gamification widget displaying player level, title, progress bar, and next badge target.
+- Multi-size responsive widget layouts tailored for Small (2x1), Medium (2x2), and Large (4x2) dimensions.
+- Reactive Glance composition architecture bound directly to `StateFlow` and Room database queries.
+- Immersive Focus Mode experience:
+  - Automatic fullscreen immersive mode hiding system status and navigation bars during active sessions.
+  - Screen wake lock (`FLAG_KEEP_SCREEN_ON`) during focus sessions.
+  - Opt-in Do Not Disturb (DND) filter integration with automatic filter restoration on session completion.
+- Bottom navigation bar featuring 4 core destinations and an elevated center quick-add action button.
+- Redesigned Daily Tracker screen with circular hero adherence progress ring and compact date selector.
+- Redesigned Habit Detail view with a 200dp circular sweep countdown, duration adjust chips, and statistics strip.
+- Redesigned Week Matrix grid with adherence headers and a daily completions breakdown chart.
+- Enhanced Analytics and Badges showcase with 30-day consistency metrics and ranked leaderboard layout.
+
+### Fixed
+
+- Replaced standard Glance Column with `LazyColumn` in Today's Habits widget to remove the 10-child element limit.
+- Prevented unneeded full-screen widget refreshes on timer state transitions.
+- Resolved check-in toggle support across Numeric, Timer, Times-per-day, and Boolean habit types.
+- Fixed week matrix grid text truncation and unpinned badges showcase top bar for natural scrolling.
+
 ## [0.1.0] - 2026-08-17
 
 ### Added
