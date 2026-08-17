@@ -17,6 +17,7 @@ import android.os.VibratorManager
 import androidx.core.app.NotificationCompat
 import androidx.glance.appwidget.updateAll
 import com.productivity.habits.MainActivity
+import com.productivity.habits.data.local.preferences.ThemePreferences
 import com.productivity.habits.domain.repository.HabitRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -35,10 +36,14 @@ class FocusTimerService : Service() {
     @Inject
     lateinit var repository: HabitRepository
 
+    @Inject
+    lateinit var themePreferences: ThemePreferences
+
     private val serviceScope = CoroutineScope(Dispatchers.Default + Job())
     private var timerJob: Job? = null
 
     private lateinit var notificationManager: NotificationManager
+    private var previousInterruptionFilter: Int = NotificationManager.INTERRUPTION_FILTER_ALL
 
     companion object {
         const val CHANNEL_ID = "habit_focus_timer"
@@ -114,32 +119,35 @@ class FocusTimerService : Service() {
 
                 TimerStateHolder.start(habitId, title, duration)
                 startForegroundWithNotification(buildNotification())
+                activateDnd()
                 startCountdown()
-                serviceScope.launch { com.productivity.habits.widget.WidgetUpdater.updateAllWidgets(applicationContext) }
+                serviceScope.launch { try { com.productivity.habits.widget.FocusTimerWidget().updateAll(applicationContext) } catch (_: Exception) {} }
             }
             ACTION_PAUSE -> {
                 TimerStateHolder.pause()
                 timerJob?.cancel()
                 updateNotification()
-                serviceScope.launch { com.productivity.habits.widget.WidgetUpdater.updateAllWidgets(applicationContext) }
+                serviceScope.launch { try { com.productivity.habits.widget.FocusTimerWidget().updateAll(applicationContext) } catch (_: Exception) {} }
             }
             ACTION_RESUME -> {
                 TimerStateHolder.resume()
                 startCountdown()
-                serviceScope.launch { com.productivity.habits.widget.WidgetUpdater.updateAllWidgets(applicationContext) }
+                updateNotification()
+                serviceScope.launch { try { com.productivity.habits.widget.FocusTimerWidget().updateAll(applicationContext) } catch (_: Exception) {} }
             }
             ACTION_STOP -> {
                 timerJob?.cancel()
+                deactivateDnd()
                 TimerStateHolder.stop()
                 stopForeground(STOP_FOREGROUND_REMOVE)
-                serviceScope.launch { com.productivity.habits.widget.WidgetUpdater.updateAllWidgets(applicationContext) }
+                serviceScope.launch { try { com.productivity.habits.widget.FocusTimerWidget().updateAll(applicationContext) } catch (_: Exception) {} }
                 stopSelf()
             }
             ACTION_ADJUST -> {
                 val delta = intent.getLongExtra(EXTRA_DELTA_SECONDS, 0L)
                 TimerStateHolder.adjustRemaining(delta)
                 updateNotification()
-                serviceScope.launch { com.productivity.habits.widget.WidgetUpdater.updateAllWidgets(applicationContext) }
+                serviceScope.launch { try { com.productivity.habits.widget.FocusTimerWidget().updateAll(applicationContext) } catch (_: Exception) {} }
             }
         }
         return START_NOT_STICKY
@@ -187,6 +195,7 @@ class FocusTimerService : Service() {
         }
 
         playCompletionFeedback()
+        deactivateDnd()
         TimerStateHolder.complete()
         serviceScope.launch { com.productivity.habits.widget.WidgetUpdater.updateAllWidgets(applicationContext) }
 
@@ -313,6 +322,22 @@ class FocusTimerService : Service() {
 
     override fun onDestroy() {
         timerJob?.cancel()
+        deactivateDnd()
         super.onDestroy()
+    }
+
+    private fun activateDnd() {
+        if (!themePreferences.focusDndEnabled.value) return
+        if (!notificationManager.isNotificationPolicyAccessGranted) return
+
+        previousInterruptionFilter = notificationManager.currentInterruptionFilter
+        notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
+    }
+
+    private fun deactivateDnd() {
+        if (!notificationManager.isNotificationPolicyAccessGranted) return
+        if (notificationManager.currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_PRIORITY) {
+            notificationManager.setInterruptionFilter(previousInterruptionFilter)
+        }
     }
 }

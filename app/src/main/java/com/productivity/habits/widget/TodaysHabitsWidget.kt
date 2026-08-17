@@ -20,6 +20,8 @@ import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.cornerRadius
+import androidx.glance.appwidget.lazy.LazyColumn
+import androidx.glance.appwidget.lazy.items
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.layout.Alignment
@@ -200,7 +202,7 @@ class TodaysHabitToggleCallback : ActionCallback {
 
 @Composable
 fun TodaysHabitsSmall(data: TodaysHabitsWidgetData) {
-    WidgetCard(padding = 10.dp) {
+    WidgetCard(padding = 8.dp) {
         Column(modifier = GlanceModifier.fillMaxSize()) {
             WidgetHeader(
                 title = "Today's Habits",
@@ -208,7 +210,7 @@ fun TodaysHabitsSmall(data: TodaysHabitsWidgetData) {
                 deepLinkUri = "app://habits/daily"
             )
 
-            Spacer(modifier = GlanceModifier.height(6.dp))
+            Spacer(modifier = GlanceModifier.height(4.dp))
 
             if (data.habits.isEmpty()) {
                 WidgetEmptyState(
@@ -217,31 +219,10 @@ fun TodaysHabitsSmall(data: TodaysHabitsWidgetData) {
                     actionDeepLink = "app://habits/daily"
                 )
             } else {
-                val displayHabits = data.habits.take(2)
-                val remaining = data.habits.size - displayHabits.size
-
-                Column(
-                    modifier = GlanceModifier.fillMaxSize(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    displayHabits.forEach { habit ->
+                LazyColumn(modifier = GlanceModifier.fillMaxSize()) {
+                    items(data.habits) { habit ->
                         TodaysHabitCompactRow(habit = habit)
-                        Spacer(modifier = GlanceModifier.height(4.dp))
-                    }
-
-                    if (remaining > 0) {
-                        Row(
-                            modifier = GlanceModifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.End
-                        ) {
-                            Text(
-                                text = "+$remaining more",
-                                style = TextStyle(
-                                    color = ColorProvider(WidgetColors.TextSecondary),
-                                    fontSize = 10.sp
-                                )
-                            )
-                        }
+                        Spacer(modifier = GlanceModifier.height(2.dp))
                     }
                 }
             }
@@ -251,7 +232,7 @@ fun TodaysHabitsSmall(data: TodaysHabitsWidgetData) {
 
 @Composable
 fun TodaysHabitsMedium(data: TodaysHabitsWidgetData) {
-    WidgetCard(padding = 12.dp) {
+    WidgetCard(padding = 10.dp) {
         Column(modifier = GlanceModifier.fillMaxSize()) {
             WidgetHeader(
                 title = "Today's Habits",
@@ -259,7 +240,7 @@ fun TodaysHabitsMedium(data: TodaysHabitsWidgetData) {
                 deepLinkUri = "app://habits/daily"
             )
 
-            Spacer(modifier = GlanceModifier.height(8.dp))
+            Spacer(modifier = GlanceModifier.height(4.dp))
 
             if (data.habits.isEmpty()) {
                 WidgetEmptyState(
@@ -268,29 +249,10 @@ fun TodaysHabitsMedium(data: TodaysHabitsWidgetData) {
                     actionDeepLink = "app://habits/daily"
                 )
             } else {
-                val displayHabits = data.habits.take(4)
-                val remaining = data.habits.size - displayHabits.size
-
-                Column(modifier = GlanceModifier.defaultWeight()) {
-                    displayHabits.forEach { habit ->
-                        TodaysHabitStandardRow(habit = habit)
-                        Spacer(modifier = GlanceModifier.height(5.dp))
-                    }
-                }
-
-                if (remaining > 0) {
-                    Row(
-                        modifier = GlanceModifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.End,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "+$remaining more",
-                            style = TextStyle(
-                                color = ColorProvider(WidgetColors.TextSecondary),
-                                fontSize = 10.sp
-                            )
-                        )
+                LazyColumn(modifier = GlanceModifier.defaultWeight()) {
+                    items(data.habits) { habit ->
+                        TodaysHabitCompactRow(habit = habit)
+                        Spacer(modifier = GlanceModifier.height(3.dp))
                     }
                 }
             }
@@ -300,7 +262,7 @@ fun TodaysHabitsMedium(data: TodaysHabitsWidgetData) {
 
 @Composable
 fun TodaysHabitsLarge(data: TodaysHabitsWidgetData) {
-    WidgetCard(padding = 12.dp) {
+    WidgetCard(padding = 10.dp) {
         Column(modifier = GlanceModifier.fillMaxSize()) {
             WidgetHeader(
                 title = "Today's Habits",
@@ -308,7 +270,7 @@ fun TodaysHabitsLarge(data: TodaysHabitsWidgetData) {
                 deepLinkUri = "app://habits/daily"
             )
 
-            Spacer(modifier = GlanceModifier.height(8.dp))
+            Spacer(modifier = GlanceModifier.height(4.dp))
 
             if (data.habits.isEmpty()) {
                 WidgetEmptyState(
@@ -317,31 +279,29 @@ fun TodaysHabitsLarge(data: TodaysHabitsWidgetData) {
                     actionDeepLink = "app://habits/daily"
                 )
             } else {
-                val displayHabits = data.habits.take(5)
-
-                Column(modifier = GlanceModifier.defaultWeight()) {
-                    displayHabits.forEach { habit ->
+                LazyColumn(modifier = GlanceModifier.defaultWeight()) {
+                    items(data.habits) { habit ->
                         TodaysHabitDetailedRow(habit = habit)
-                        Spacer(modifier = GlanceModifier.height(5.dp))
+                        Spacer(modifier = GlanceModifier.height(3.dp))
                     }
                 }
 
-                Spacer(modifier = GlanceModifier.height(6.dp))
+                Spacer(modifier = GlanceModifier.height(4.dp))
 
                 // Bottom summary bar
                 Row(
                     modifier = GlanceModifier
                         .fillMaxWidth()
                         .background(WidgetColors.SurfaceElevated)
-                        .cornerRadius(8.dp)
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                        .cornerRadius(6.dp)
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = "Top Streak: ${data.topStreak}d",
                         style = TextStyle(
                             color = ColorProvider(WidgetColors.AccentAmber),
-                            fontSize = 11.sp,
+                            fontSize = 10.sp,
                             fontWeight = FontWeight.Bold
                         )
                     )
@@ -352,12 +312,12 @@ fun TodaysHabitsLarge(data: TodaysHabitsWidgetData) {
                         text = "+${data.todayXp} XP today",
                         style = TextStyle(
                             color = ColorProvider(WidgetColors.Primary),
-                            fontSize = 11.sp,
+                            fontSize = 10.sp,
                             fontWeight = FontWeight.Bold
                         )
                     )
 
-                    Spacer(modifier = GlanceModifier.width(12.dp))
+                    Spacer(modifier = GlanceModifier.width(10.dp))
 
                     Box(
                         modifier = GlanceModifier
@@ -368,7 +328,7 @@ fun TodaysHabitsLarge(data: TodaysHabitsWidgetData) {
                             text = "+ Add",
                             style = TextStyle(
                                 color = ColorProvider(WidgetColors.TextPrimary),
-                                fontSize = 11.sp,
+                                fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         )
@@ -385,8 +345,8 @@ fun TodaysHabitCompactRow(habit: TodaysHabitItem) {
         modifier = GlanceModifier
             .fillMaxWidth()
             .background(WidgetColors.Surface)
-            .cornerRadius(8.dp)
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .cornerRadius(6.dp)
+            .padding(horizontal = 8.dp, vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -394,7 +354,7 @@ fun TodaysHabitCompactRow(habit: TodaysHabitItem) {
             maxLines = 1,
             style = TextStyle(
                 color = ColorProvider(if (habit.isCompleted) WidgetColors.Primary else WidgetColors.TextPrimary),
-                fontSize = 12.sp,
+                fontSize = 11.sp,
                 fontWeight = if (habit.isCompleted) FontWeight.Bold else FontWeight.Normal
             ),
             modifier = GlanceModifier
@@ -402,7 +362,7 @@ fun TodaysHabitCompactRow(habit: TodaysHabitItem) {
                 .clickable(actionStartActivity(createDeepLinkIntent("app://habits/detail/${habit.id}")))
         )
 
-        HabitCheckButton(habit = habit, size = 24)
+        HabitCheckButton(habit = habit, size = 22)
     }
 }
 
@@ -412,47 +372,8 @@ fun TodaysHabitStandardRow(habit: TodaysHabitItem) {
         modifier = GlanceModifier
             .fillMaxWidth()
             .background(WidgetColors.Surface)
-            .cornerRadius(10.dp)
-            .padding(horizontal = 10.dp, vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(
-            modifier = GlanceModifier
-                .defaultWeight()
-                .clickable(actionStartActivity(createDeepLinkIntent("app://habits/detail/${habit.id}")))
-        ) {
-            Text(
-                text = habit.title,
-                maxLines = 1,
-                style = TextStyle(
-                    color = ColorProvider(if (habit.isCompleted) WidgetColors.Primary else WidgetColors.TextPrimary),
-                    fontSize = 13.sp,
-                    fontWeight = if (habit.isCompleted) FontWeight.Bold else FontWeight.Medium
-                )
-            )
-            if (habit.currentStreak > 0) {
-                Text(
-                    text = "${habit.currentStreak}d streak",
-                    style = TextStyle(
-                        color = ColorProvider(WidgetColors.AccentAmber),
-                        fontSize = 10.sp
-                    )
-                )
-            }
-        }
-
-        HabitCheckButton(habit = habit, size = 28)
-    }
-}
-
-@Composable
-fun TodaysHabitDetailedRow(habit: TodaysHabitItem) {
-    Row(
-        modifier = GlanceModifier
-            .fillMaxWidth()
-            .background(WidgetColors.Surface)
-            .cornerRadius(10.dp)
-            .padding(horizontal = 10.dp, vertical = 5.dp),
+            .cornerRadius(8.dp)
+            .padding(horizontal = 8.dp, vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
@@ -469,9 +390,48 @@ fun TodaysHabitDetailedRow(habit: TodaysHabitItem) {
                     fontWeight = if (habit.isCompleted) FontWeight.Bold else FontWeight.Medium
                 )
             )
+            if (habit.currentStreak > 0) {
+                Text(
+                    text = "${habit.currentStreak}d streak",
+                    style = TextStyle(
+                        color = ColorProvider(WidgetColors.AccentAmber),
+                        fontSize = 9.sp
+                    )
+                )
+            }
+        }
+
+        HabitCheckButton(habit = habit, size = 24)
+    }
+}
+
+@Composable
+fun TodaysHabitDetailedRow(habit: TodaysHabitItem) {
+    Row(
+        modifier = GlanceModifier
+            .fillMaxWidth()
+            .background(WidgetColors.Surface)
+            .cornerRadius(8.dp)
+            .padding(horizontal = 8.dp, vertical = 3.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(
+            modifier = GlanceModifier
+                .defaultWeight()
+                .clickable(actionStartActivity(createDeepLinkIntent("app://habits/detail/${habit.id}")))
+        ) {
+            Text(
+                text = habit.title,
+                maxLines = 1,
+                style = TextStyle(
+                    color = ColorProvider(if (habit.isCompleted) WidgetColors.Primary else WidgetColors.TextPrimary),
+                    fontSize = 11.sp,
+                    fontWeight = if (habit.isCompleted) FontWeight.Bold else FontWeight.Medium
+                )
+            )
 
             val metaText = if (habit.currentStreak > 0) {
-                "${habit.categoryName} - ${habit.currentStreak}d streak"
+                "${habit.categoryName} · ${habit.currentStreak}d streak"
             } else {
                 habit.categoryName
             }
@@ -480,17 +440,17 @@ fun TodaysHabitDetailedRow(habit: TodaysHabitItem) {
                 text = metaText,
                 style = TextStyle(
                     color = ColorProvider(WidgetColors.TextSecondary),
-                    fontSize = 10.sp
+                    fontSize = 9.sp
                 )
             )
         }
 
-        HabitCheckButton(habit = habit, size = 28)
+        HabitCheckButton(habit = habit, size = 24)
     }
 }
 
 @Composable
-fun HabitCheckButton(habit: TodaysHabitItem, size: Int = 28) {
+fun HabitCheckButton(habit: TodaysHabitItem, size: Int = 24) {
     val checkColor = if (habit.isCompleted) WidgetColors.CheckActive else WidgetColors.CheckInactive
     val checkSymbol = if (habit.isCompleted) "✓" else "○"
 
