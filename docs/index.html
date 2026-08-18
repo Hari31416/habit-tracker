@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Habit Tracker - Build Unbreakable Momentum</title>
+  <meta name="description"
+    content="A private, offline-first Material 3 habit tracker with RPG gamification, Circular Focus Timer, Habit Shields, and Week Matrix analytics.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+
+  <!-- Site Navigation Header -->
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="index.html" class="brand">
+        <div class="brand-icon">✓</div>
+        <span>Habit Tracker</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#focus-timer">Focus Timer</a></li>
+        <li><a href="#screenshots">Screenshots</a></li>
+        <li><a href="guide.html">User Guide</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <button id="theme-toggle-btn" class="btn-icon" aria-label="Toggle Dark/Light Mode">
+          <span id="theme-toggle-icon"></span>
+        </button>
+        <a href="guide.html" class="btn btn-secondary">Documentation</a>
+        <a href="https://github.com/Hari31416/habit-tracker" target="_blank" rel="noopener noreferrer"
+          class="btn btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+          </svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <h1>
+        Master Your Daily Habits.<br>
+        <span class="gradient-text">Focus Deeply. Level Up Daily.</span>
+      </h1>
+
+      <p class="lead">
+        A distraction-free, privacy-first productivity companion. Combine deep focus sessions, flexible habit tracking,
+        weekly consistency analytics, and RPG mastery into one seamless daily flow.
+      </p>
+
+      <div class="hero-actions">
+        <a href="guide.html" class="btn btn-primary" style="padding: 12px 28px; font-size: 1.05rem;">
+          Get Started & User Guide →
+        </a>
+        <a href="#focus-timer" class="btn btn-secondary" style="padding: 12px 24px; font-size: 1.05rem;">
+          ⏱️ Try Live Focus Timer
+        </a>
+      </div>
+
+      <!-- Hero Phone & Feature Showcase Mockup -->
+      <div class="mockup-grid">
+        <div class="phone-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">Good evening</div>
+              <div style="font-weight: 800; font-size: 1.1rem;">Daily Tracker</div>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span
+                style="background: var(--primary-container); color: var(--primary); padding: 4px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: bold;">
+                🛡️ 2/3 Shields
+              </span>
+              <span
+                style="background: var(--tertiary-container); color: var(--tertiary); padding: 4px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: bold;">
+                Level 4 Apprentice
+              </span>
+            </div>
+          </div>
+
+          <!-- Habit Item 1 -->
+          <div
+            style="background: var(--surface-elevated); border: 1px solid var(--outline); border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div
+                style="width: 36px; height: 36px; border-radius: 10px; background: rgba(16, 185, 129, 0.15); display: flex; align-items: center; justify-content: center; color: var(--accent); font-weight: bold;">
+                ⚡
+              </div>
+              <div>
+                <div style="font-weight: 700; font-size: 0.95rem;">Deep Work Session</div>
+                <div style="font-size: 0.8rem; color: var(--tertiary); font-weight: 600;">🔥 18 days streak (1.5x XP)
+                </div>
+              </div>
+            </div>
+            <span
+              style="background: var(--primary); color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold;">Focus</span>
+          </div>
+
+          <!-- Habit Item 2 -->
+          <div
+            style="background: var(--surface-elevated); border: 1px solid var(--outline); border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div
+                style="width: 36px; height: 36px; border-radius: 10px; background: rgba(6, 182, 212, 0.15); display: flex; align-items: center; justify-content: center; color: var(--cyan); font-weight: bold;">
+                💧
+              </div>
+              <div>
+                <div style="font-weight: 700; font-size: 0.95rem;">Hydration (2500 ml)</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">2000 / 2500 ml logged</div>
+              </div>
+            </div>
+            <span
+              style="border: 2px solid var(--outline); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"></span>
+          </div>
+
+          <!-- Habit Item 3 (Shielded) -->
+          <div
+            style="background: rgba(20, 184, 166, 0.12); border: 1px solid var(--primary); border-radius: 14px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div
+                style="width: 36px; height: 36px; border-radius: 10px; background: var(--primary-container); display: flex; align-items: center; justify-content: center; color: var(--primary); font-weight: bold;">
+                🛡️
+              </div>
+              <div>
+                <div style="font-weight: 700; font-size: 0.95rem;">Morning Meditation</div>
+                <div style="font-size: 0.8rem; color: var(--primary); font-weight: 600;">Shielded • Streak Preserved
+                </div>
+              </div>
+            </div>
+            <span style="color: var(--primary); font-weight: bold; font-size: 0.85rem;">Protected</span>
+          </div>
+        </div>
+
+        <div>
+          <h3 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 16px; line-height: 1.2;">
+            Your Complete System for Focus & Daily Growth
+          </h3>
+          <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 1.05rem;">
+            Designed to bridge the gap between setting intentions and building lifelong habits. Get into the zone with
+            distraction-free focus sessions, track progress across weekly heatmaps, and watch your discipline level up
+            over time.
+          </p>
+          <ul style="list-style: none; padding: 0;">
+            <li style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-weight: 500;">
+              <span style="color: var(--primary); font-weight: bold;">✓</span> <strong>Circular Focus Timer</strong>
+              for deep work with background service execution.
+            </li>
+            <li style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-weight: 500;">
+              <span style="color: var(--primary); font-weight: bold;">✓</span> <strong>Flexible Habit Modes</strong>
+              supporting boolean, numeric, timer, and sub-day slot targets.
+            </li>
+            <li style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-weight: 500;">
+              <span style="color: var(--primary); font-weight: bold;">✓</span> <strong>RPG Level & Streak
+                Multipliers</strong>
+              rewarding consistent daily momentum with XP progression.
+            </li>
+            <li style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-weight: 500;">
+              <span style="color: var(--primary); font-weight: bold;">✓</span> <strong>100% Offline & Private</strong>
+              powered by Drift SQLite with zero tracking or telemetry.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Circular Focus Timer Demo Section -->
+  <section id="focus-timer"
+    style="padding: 60px 0; background: var(--surface-elevated); border-top: 1px solid var(--outline); border-bottom: 1px solid var(--outline);">
+    <div class="container">
+      <div class="section-title">
+        <h2>⏱️ Circular Focus Timer & Zen Mode</h2>
+        <p>Zero clutter, ambient ring progress, and persistent background isolate execution. Test the interactive timer
+          directly in your browser below.</p>
+      </div>
+
+      <div style="max-width: 520px; margin: 0 auto;">
+        <div class="timer-interactive-card">
+          <div style="margin-bottom: 12px;">
+            <span
+              style="background: var(--primary-container); color: var(--on-primary-container); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 700;">
+              FOCUS SESSION
+            </span>
+          </div>
+          <h3 style="font-size: 1.3rem; margin-bottom: 24px;">Deep Work & Study</h3>
+
+          <div class="timer-circle-wrap">
+            <svg class="timer-svg" width="240" height="240" viewBox="0 0 240 240">
+              <circle class="timer-svg-bg" cx="120" cy="120" r="90" stroke-width="12" fill="none" />
+              <circle id="timer-progress-circle" class="timer-svg-progress" cx="120" cy="120" r="90" stroke-width="12"
+                fill="none" stroke-linecap="round" />
+            </svg>
+            <div class="timer-inner-content">
+              <div id="timer-time-display" class="timer-time-display">25:00</div>
+              <div class="timer-label">Remaining</div>
+            </div>
+          </div>
+
+          <div class="timer-controls">
+            <button id="timer-toggle-btn" class="btn btn-primary" style="min-width: 140px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              Start Focus
+            </button>
+            <button id="timer-add5m-btn" class="btn btn-secondary">+5 min</button>
+            <button id="timer-reset-btn" class="btn btn-secondary">Reset</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Key Features Grid -->
+  <section id="features" style="padding: 80px 0;">
+    <div class="container">
+      <div class="section-title">
+        <h2>Designed for Discipline and Resilience</h2>
+        <p>Explore the innovative features that transform habit tracking into an empowering daily ritual.</p>
+      </div>
+
+      <div class="features-grid">
+        <!-- Feature 1: Focus Timer -->
+        <div class="feature-card">
+          <div class="feature-icon primary">⏱️</div>
+          <h3>Circular Focus Timer</h3>
+          <p>Immersive distraction-free Pomodoro and deep work timer. Runs seamlessly as a background service with
+            lock-screen notification action buttons and auto-logged completion history.</p>
+          <div class="feature-tag">Zen Mode • Background Isolate</div>
+        </div>
+
+        <!-- Feature 2: Habit Shields -->
+        <div class="feature-card">
+          <div class="feature-icon cyan">🛡️</div>
+          <h3>Habit Shields & Grace Days</h3>
+          <p>Protect streaks against unavoidable emergencies or travel. Earn 1 shield for every 14 days of consistency,
+            auto-freeze missed days on midnight rollover, or manually protect past dates.</p>
+          <div class="feature-tag">Streak Freeze • 14d Banking</div>
+        </div>
+
+        <!-- Feature 3: RPG Gamification -->
+        <div class="feature-card">
+          <div class="feature-icon amber">🎮</div>
+          <h3>RPG XP & Mastery Levels</h3>
+          <p>Turn personal growth into an engaging RPG. Earn XP for every check-in, level up from Novice to Grandmaster
+            across quadratic thresholds, and unlock streak multipliers up to 2.0x.</p>
+          <div class="feature-tag">Quadratic XP • 20+ Badges</div>
+        </div>
+
+        <!-- Feature 4: Week Matrix -->
+        <div class="feature-card">
+          <div class="feature-icon purple">📊</div>
+          <h3>Interactive Week Matrix</h3>
+          <p>A high-density 7-day adherence grid built on ISO Monday–Sunday boundaries. Inspect daily completion rates,
+            long-press to shield dates, and analyze consistency heatmaps.</p>
+          <div class="feature-tag">ISO Monday Standard • Heatmaps</div>
+        </div>
+
+        <!-- Feature 5: Flexible Targets -->
+        <div class="feature-card">
+          <div class="feature-icon primary">⚙️</div>
+          <h3>Flexible Multi-Target Engines</h3>
+          <p>Supports boolean completions, numeric targets with dynamic delta steps (e.g. hydration, reading pages),
+            timers, and sub-day time-windowed interval slots (morning, afternoon, night).</p>
+          <div class="feature-tag">Numeric • Sub-day Slots • Timers</div>
+        </div>
+
+        <!-- Feature 6: Local-First & Offline -->
+        <div class="feature-card">
+          <div class="feature-icon amber">🔒</div>
+          <h3>100% Offline & Private</h3>
+          <p>Stored entirely on your device using a reactive Drift SQLite database. Zero account creation required, zero
+            trackers or telemetry, and complete data ownership.</p>
+          <div class="feature-tag">Drift SQLite • Zero Telemetry</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screenshots & Views Walkthrough -->
+  <section id="screenshots"
+    style="padding: 70px 0; background: var(--surface-elevated); border-top: 1px solid var(--outline); border-bottom: 1px solid var(--outline);">
+    <div class="container">
+      <div class="section-title">
+        <h2>Visual Tour of the App</h2>
+        <p>Explore the clean Material 3 design crafted for one-handed reachability and high visual hierarchy.</p>
+      </div>
+
+      <div class="tabs-nav">
+        <button class="tab-btn active" data-tab="tab-daily">Daily Tracker</button>
+        <button class="tab-btn" data-tab="tab-timer">Circular Focus Timer</button>
+        <button class="tab-btn" data-tab="tab-shields">Shield Bank & Grace Days</button>
+        <button class="tab-btn" data-tab="tab-matrix">Week Matrix Grid</button>
+        <button class="tab-btn" data-tab="tab-badges">Mastery & Badges</button>
+      </div>
+
+      <div class="mockup-preview-box">
+        <!-- Tab 1: Daily -->
+        <div id="tab-daily" class="tab-pane active">
+          <div style="text-align: center; padding: 20px 0;">
+            <h4 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 8px;">Hero Daily Tracker</h4>
+            <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto 20px;">
+              Date stepper, category filter chips, circular completion progress ring, and 48dp tappable check-in
+              targets.
+            </p>
+            <div
+              style="background: var(--surface); border: 1px solid var(--outline); border-radius: 16px; padding: 20px; text-align: left; max-width: 500px; margin: 0 auto;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                <span style="font-weight: 700;">Tue, Aug 18</span>
+                <span style="color: var(--primary); font-weight: 700;">80% Today</span>
+              </div>
+              <div
+                style="height: 8px; background: var(--surface-container); border-radius: 4px; overflow: hidden; margin-bottom: 16px;">
+                <div style="width: 80%; height: 100%; background: var(--primary);"></div>
+              </div>
+              <div style="font-size: 0.85rem; color: var(--text-muted);">4 of 5 habits completed • +65 XP earned today
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Timer -->
+        <div id="tab-timer" class="tab-pane">
+          <div style="text-align: center; padding: 20px 0;">
+            <h4 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 8px;">Distraction-Free Zen Timer</h4>
+            <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto 20px;">
+              Ambient circular countdown, quick step adjusters, and background persistence during multitasking.
+            </p>
+            <div
+              style="font-family: 'JetBrains Mono', monospace; font-size: 2.5rem; font-weight: 800; color: var(--primary); margin: 20px 0;">
+              25:00
+            </div>
+            <div style="color: var(--text-muted); font-size: 0.9rem;">Auto-logs duration to habit history on session
+              finish</div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Shields -->
+        <div id="tab-shields" class="tab-pane">
+          <div style="text-align: center; padding: 20px 0;">
+            <h4 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 8px;">Shield Bank Bottom Sheet</h4>
+            <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto 20px;">
+              Bank status breakdown, 14-day consistency progress bar, auto-consume toggle, and 1-tap quick protect for
+              missed habits.
+            </p>
+            <div
+              style="display: inline-flex; gap: 20px; background: var(--surface); padding: 16px 28px; border-radius: 14px; border: 1px solid var(--outline);">
+              <div>
+                <div style="font-weight: 800; font-size: 1.4rem; color: var(--primary);">2 / 3</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Available</div>
+              </div>
+              <div>
+                <div style="font-weight: 800; font-size: 1.4rem;">4</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Total Earned</div>
+              </div>
+              <div>
+                <div style="font-weight: 800; font-size: 1.4rem; color: var(--text-muted);">2</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Active Shields</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Matrix -->
+        <div id="tab-matrix" class="tab-pane">
+          <div style="text-align: center; padding: 20px 0;">
+            <h4 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 8px;">Week Matrix 7-Day Adherence Grid</h4>
+            <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto 20px;">
+              Compare all active habits across the week with distinct checkmarks and cyan shield markers.
+            </p>
+            <div style="display: flex; justify-content: center; gap: 8px; margin: 16px 0;">
+              <span
+                style="width: 28px; height: 28px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px;">✓</span>
+              <span
+                style="width: 28px; height: 28px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px;">✓</span>
+              <span
+                style="width: 28px; height: 28px; border-radius: 50%; background: var(--primary-container); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 14px;">🛡️</span>
+              <span
+                style="width: 28px; height: 28px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px;">✓</span>
+              <span style="width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--outline);"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 5: Badges -->
+        <div id="tab-badges" class="tab-pane">
+          <div style="text-align: center; padding: 20px 0;">
+            <h4 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 8px;">RPG Mastery & Badges Showcase</h4>
+            <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto 20px;">
+              Level titles (Novice, Apprentice, Pathfinder, Grandmaster), streak multipliers, and 20+ unlockable
+              achievement badges.
+            </p>
+            <div style="display: inline-flex; gap: 12px;">
+              <span
+                style="padding: 8px 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--outline); font-weight: bold;">🏆
+                First Step</span>
+              <span
+                style="padding: 8px 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--outline); font-weight: bold;">🔥
+                7-Day Flame</span>
+              <span
+                style="padding: 8px 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--outline); font-weight: bold;">⚡
+                Habit Master</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ready to Start CTA -->
+  <section style="padding: 80px 0; text-align: center;">
+    <div class="container">
+      <h2 style="font-size: 2.25rem; font-weight: 800; margin-bottom: 16px;">Ready to Master Your Habits?</h2>
+      <p style="font-size: 1.1rem; color: var(--text-muted); max-width: 550px; margin: 0 auto 30px;">
+        Read the comprehensive user guide to learn how each engine operates, or build and run the app from GitHub.
+      </p>
+      <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+        <a href="guide.html" class="btn btn-primary" style="padding: 12px 28px; font-size: 1rem;">
+          Read the Full User Guide →
+        </a>
+        <a href="https://github.com/Hari31416/habit-tracker" target="_blank" rel="noopener noreferrer"
+          class="btn btn-secondary" style="padding: 12px 24px; font-size: 1rem;">
+          GitHub Repository
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <p style="margin-bottom: 8px;">
+        <strong>Habit Tracker</strong> • Built with Flutter, Drift SQLite, and Material 3.
+      </p>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Guide & Documentation - Habit Tracker</title>
+  <meta name="description"
+    content="Comprehensive technical guide and documentation for Habit Tracker features including Focus Timer, Habit Shields, RPG Gamification, and Week Matrix.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+
+  <!-- Site Navigation Header -->
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="index.html" class="brand">
+        <div class="brand-icon">✓</div>
+        <span>Habit Tracker Docs</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="index.html#features">Features</a></li>
+        <li><a href="index.html#focus-timer">Focus Timer</a></li>
+        <li><a href="guide.html" class="active">User Guide</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <button id="theme-toggle-btn" class="btn-icon" aria-label="Toggle Dark/Light Mode">
+          <span id="theme-toggle-icon"></span>
+        </button>
+        <a href="https://github.com/Hari31416/habit-tracker" target="_blank" rel="noopener noreferrer"
+          class="btn btn-secondary">
+          GitHub
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Guide Layout -->
+  <div class="container">
+    <div class="guide-layout">
+
+      <!-- Sticky Sidebar -->
+      <aside class="guide-sidebar">
+        <div class="guide-search-box">
+          <span class="guide-search-icon">🔍</span>
+          <input type="text" id="guide-search" class="guide-search-input" placeholder="Search documentation...">
+        </div>
+
+        <div class="toc-group-title">Getting Started</div>
+        <ul class="toc-list">
+          <li><a href="#core-tracking" class="active">Core Habit Tracking</a></li>
+          <li><a href="#frequency-types">Frequencies & Targets</a></li>
+        </ul>
+
+        <div class="toc-group-title">Focus & Productivity</div>
+        <ul class="toc-list">
+          <li><a href="#focus-timer-guide">Circular Focus Timer</a></li>
+          <li><a href="#zen-mode">Zen Distraction-Free Mode</a></li>
+        </ul>
+
+        <div class="toc-group-title">Resilience & Gamification</div>
+        <ul class="toc-list">
+          <li><a href="#habit-shields">Habit Shields & Grace Days</a></li>
+          <li><a href="#rpg-gamification">RPG XP & Level Curves</a></li>
+          <li><a href="#xp-simulator">Interactive XP Simulator</a></li>
+          <li><a href="#shield-simulator">Shield Bank Calculator</a></li>
+        </ul>
+
+        <div class="toc-group-title">Analytics & System</div>
+        <ul class="toc-list">
+          <li><a href="#week-matrix">Week Matrix & Heatmaps</a></li>
+          <li><a href="#widgets-system">Widgets, Shortcuts & Rollover</a></li>
+        </ul>
+      </aside>
+
+      <!-- Main Documentation Content -->
+      <main class="guide-content guide-article">
+
+        <div style="margin-bottom: 30px;">
+          <h1 style="font-size: 2.6rem; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.02em;">
+            Habit Tracker User Guide
+          </h1>
+          <p style="color: var(--text-muted); font-size: 1.15rem;">
+            Learn how each calculation engine, focus tool, streak freeze mechanism, and gamification system works under
+            the hood.
+          </p>
+        </div>
+
+        <!-- Section 1: Core Habit Tracking -->
+        <section id="core-tracking" class="guide-section">
+          <h2>1. Core Habit Tracking</h2>
+          <p>
+            Habit Tracker is built on clean unidirectional architecture using Flutter, Riverpod, and a reactive
+            <strong>Drift SQLite</strong> database. Everything is saved locally with sub-millisecond query performance
+            and zero remote network requests.
+          </p>
+
+          <h3 id="frequency-types">Habit Frequency Types</h3>
+          <p>When creating a habit, you can configure four distinct recurrence schedules:</p>
+          <ul>
+            <li><strong>Daily</strong>: Scheduled for every single day. A missed day will break the current streak chain
+              unless protected by a Habit Shield.</li>
+            <li><strong>Weekly Target</strong>: Specify an adherence target per canonical ISO week (Monday through
+              Sunday), such as <em>3 times per week</em>. Streaks increment in units of completed weeks.</li>
+            <li><strong>Custom Days</strong>: Specify exact days of the week (e.g. <em>Mon, Wed, Fri</em>).
+              Non-scheduled days are automatically skipped and never break your streak.</li>
+            <li><strong>Interval (Every N Days)</strong>: Specify recurring interval rhythms (e.g. <em>Every 2
+                days</em>).</li>
+          </ul>
+
+          <h3>Target Types</h3>
+          <ul>
+            <li><strong>Boolean</strong>: Binary 1-tap completion checkmark (e.g. *Take Vitamins*).</li>
+            <li><strong>Numeric</strong>: Track quantitative goals with customizable units and dynamic delta increment
+              chips (e.g. *Drink 2500 ml*, *Read 30 pages*).</li>
+            <li><strong>Timer</strong>: Dedicated focus duration goals (e.g. *45 minutes Deep Work*).</li>
+            <li><strong>Sub-Day Slots</strong>: Divide a habit into multiple time-windowed daily intervals (e.g.
+              *Morning 8-10am*, *Afternoon 1-3pm*, *Night 8-10pm*).</li>
+          </ul>
+        </section>
+
+        <!-- Section 2: Circular Focus Timer -->
+        <section id="focus-timer-guide" class="guide-section">
+          <h2>2. Circular Focus Timer & Zen Mode</h2>
+          <p>
+            The Circular Focus Timer is designed for deep work, meditation, pomodoro sessions, and exercise. It
+            eliminates all interface clutter, enabling you to enter a distraction-free flow state.
+          </p>
+
+          <div class="callout">
+            <div class="callout-title">⏱️ Persistent Background Service</div>
+            <div>
+              The timer runs in an isolated Android background service with a persistent foreground notification.
+              Multitasking, switching apps, or turning off the screen will not interrupt your session.
+            </div>
+          </div>
+
+          <h3 id="zen-mode">Timer Features</h3>
+          <ul>
+            <li><strong>Ambient Circular Progress Ring</strong>: Renders remaining session duration with smooth
+              interpolation.</li>
+            <li><strong>Quick Delta Increments</strong>: Add or subtract 1m or 5m on the fly without restarting your
+              session.</li>
+            <li><strong>Notification Controls</strong>: Pause, resume, and stop sessions directly from the Android
+              lock-screen or notification shade.</li>
+            <li><strong>Automatic Completion Logging</strong>: When the countdown finishes, elapsed focus time is
+              automatically logged into the habit history database and awards corresponding XP.</li>
+          </ul>
+        </section>
+
+        <!-- Section 3: Habit Shields & Grace Days -->
+        <section id="habit-shields" class="guide-section">
+          <h2>3. Habit Shields & Grace Days (Streak Freeze)</h2>
+          <p>
+            Real life involves unexpected disruptions—illness, travel, or family emergencies. Habit Shields protect your
+            streaks against unavoidable missed days so you never suffer the demotivating "what-the-hell" effect from a
+            broken 50-day streak.
+          </p>
+
+          <h3>How Shields Work</h3>
+          <ul>
+            <li><strong>Starter Gift</strong>: Every user receives <strong>1 starter shield</strong> automatically.</li>
+            <li><strong>14-Day Consistency Banking</strong>: You earn <strong>1 additional shield for every 14 days of
+                unbroken consistency</strong> across your habit routine.</li>
+            <li><strong>Configurable Bank Capacity</strong>: Store up to 3 shields by default (customizable from 1 to
+              10).</li>
+            <li><strong>Streak Continuity Preservation</strong>: When a shielded day is encountered, the streak engine
+              preserves the unbroken chain.</li>
+            <li><strong>Authentic Historical Integrity</strong>: A shielded day keeps the streak alive but does
+              <em>not</em> falsely inflate your actual check-in counts or completion metrics.</li>
+          </ul>
+
+          <div class="callout">
+            <div class="callout-title">🛡️ Auto vs Manual Protection</div>
+            <div>
+              <strong>Auto-Consume:</strong> The midnight rollover task automatically freezes active streaks that were
+              missed.<br>
+              <strong>Manual Freeze:</strong> Tap any past date in the Habit Detail calendar or long-press in the Week
+              Matrix to freeze or unfreeze a specific date.
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 4: RPG Gamification -->
+        <section id="rpg-gamification" class="guide-section">
+          <h2>4. RPG Gamification & Mastery Progression</h2>
+          <p>
+            Habit Tracker incorporates RPG elements to make discipline intrinsically rewarding. Completing habits awards
+            Experience Points (XP), levels up your player rank, and unlocks milestones.
+          </p>
+
+          <h3>Base XP Formula</h3>
+          <ul>
+            <li><strong>Boolean Habit</strong>: <code>+15 Base XP</code> per completion.</li>
+            <li><strong>Numeric Habit</strong>: Scaled proportionally to target completion (up to
+              <code>+20 Base XP</code>).</li>
+            <li><strong>Focus Timer Habit</strong>: Scaled by duration (<code>+1 XP per minute</code>, up to
+              <code>+45 XP</code> per session).</li>
+          </ul>
+
+          <h3>Streak Multipliers</h3>
+          <p>Maintaining consecutive streaks scales your earned XP:</p>
+          <div style="overflow-x: auto; margin: 16px 0;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+              <thead>
+                <tr style="border-bottom: 2px solid var(--outline);">
+                  <th style="padding: 10px;">Consecutive Streak</th>
+                  <th style="padding: 10px;">XP Multiplier</th>
+                  <th style="padding: 10px;">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom: 1px solid var(--outline);">
+                  <td style="padding: 10px;">0 – 2 Days</td>
+                  <td style="padding: 10px;"><strong>1.00x</strong></td>
+                  <td style="padding: 10px;">Standard</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--outline);">
+                  <td style="padding: 10px;">3 – 6 Days</td>
+                  <td style="padding: 10px;"><strong>1.10x</strong></td>
+                  <td style="padding: 10px;">Sparking</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--outline);">
+                  <td style="padding: 10px;">7 – 13 Days</td>
+                  <td style="padding: 10px;"><strong>1.25x</strong></td>
+                  <td style="padding: 10px;">Ignited</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--outline);">
+                  <td style="padding: 10px;">14 – 29 Days</td>
+                  <td style="padding: 10px;"><strong>1.50x</strong></td>
+                  <td style="padding: 10px;">Blazing</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px;">30+ Days</td>
+                  <td style="padding: 10px; color: var(--primary);"><strong>2.00x</strong></td>
+                  <td style="padding: 10px; color: var(--primary);">Unstoppable</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Quadratic Level Threshold Curve</h3>
+          <p>
+            Level requirements follow a quadratic progression: Level \(L\) requires \(100 \times L^2\) cumulative XP.
+            This ensures early levels feel fast and motivating while higher masteries reflect true long-term dedication.
+          </p>
+        </section>
+
+        <!-- Interactive Simulators -->
+        <section id="xp-simulator" class="guide-section">
+          <h2>🎮 Interactive XP & Level Simulator</h2>
+          <p>Adjust the sliders below to simulate how streaks and session durations scale your XP and player rank:</p>
+
+          <div class="simulator-box">
+            <div class="slider-group">
+              <div class="slider-header">
+                <span>Active Habit Streak:</span>
+                <span id="sim-streak-val" style="color: var(--primary); font-weight: bold;">14 days</span>
+              </div>
+              <input type="range" id="sim-streak" min="0" max="60" value="14">
+            </div>
+
+            <div class="slider-group">
+              <div class="slider-header">
+                <span>Habit Type & Target:</span>
+              </div>
+              <select id="sim-difficulty"
+                style="width: 100%; padding: 8px 12px; border-radius: 8px; background: var(--surface-elevated); color: var(--text); border: 1px solid var(--outline);">
+                <option value="normal">Standard Boolean Habit (15 Base XP)</option>
+                <option value="easy">Simple Habit (10 Base XP)</option>
+                <option value="hard">Challenging / Numeric Habit (25 Base XP)</option>
+                <option value="timer">Focus Timer Session (Duration Scaled)</option>
+              </select>
+            </div>
+
+            <div class="slider-group">
+              <div class="slider-header">
+                <span>Timer Duration (if timer selected):</span>
+                <span id="sim-duration-val" style="color: var(--primary); font-weight: bold;">25 min</span>
+              </div>
+              <input type="range" id="sim-duration" min="5" max="90" step="5" value="25">
+            </div>
+
+            <div
+              style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--outline);">
+              <div style="text-align: center;">
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Base XP</div>
+                <div id="sim-base-xp" style="font-size: 1.2rem; font-weight: 800;">15 XP</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Streak Multiplier</div>
+                <div id="sim-multiplier" style="font-size: 1.2rem; font-weight: 800; color: var(--tertiary);">1.50x
+                </div>
+              </div>
+              <div style="text-align: center;">
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Check-in XP</div>
+                <div id="sim-total-xp" style="font-size: 1.2rem; font-weight: 800; color: var(--primary);">+23 XP</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Player Level</div>
+                <div id="sim-level" style="font-size: 1.2rem; font-weight: 800;">Level 3</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Rank Title</div>
+                <div id="sim-title" style="font-size: 1.2rem; font-weight: 800; color: var(--purple);">Apprentice</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 5: Shield Bank Calculator -->
+        <section id="shield-simulator" class="guide-section">
+          <h2>🛡️ Interactive Shield Banking Calculator</h2>
+          <p>Estimate how many grace shields you will bank based on consecutive days of consistency:</p>
+
+          <div class="simulator-box">
+            <div class="slider-group">
+              <div class="slider-header">
+                <span>Consecutive Consistency Days:</span>
+                <span id="sim-consistency-val" style="color: var(--primary); font-weight: bold;">28 days</span>
+              </div>
+              <input type="range" id="sim-consistency" min="0" max="90" value="28">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="slider-group">
+                <div class="slider-header">
+                  <span>Currently Used Shields:</span>
+                </div>
+                <input type="number" id="sim-used-shields" min="0" max="10" value="1"
+                  style="width: 100%; padding: 8px 12px; border-radius: 8px; background: var(--surface-elevated); color: var(--text); border: 1px solid var(--outline);">
+              </div>
+
+              <div class="slider-group">
+                <div class="slider-header">
+                  <span>Max Bank Capacity:</span>
+                </div>
+                <input type="number" id="sim-max-cap" min="1" max="10" value="3"
+                  style="width: 100%; padding: 8px 12px; border-radius: 8px; background: var(--surface-elevated); color: var(--text); border: 1px solid var(--outline);">
+              </div>
+            </div>
+
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--outline); text-align: center;">
+              <div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Total Shields Earned</div>
+                <div id="sim-shields-earned" style="font-size: 1.3rem; font-weight: 800;">3</div>
+              </div>
+              <div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Available in Bank</div>
+                <div id="sim-shields-avail" style="font-size: 1.3rem; font-weight: 800; color: var(--primary);">2 / 3
+                </div>
+              </div>
+              <div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Days to Next Shield</div>
+                <div id="sim-days-next" style="font-size: 1.3rem; font-weight: 800; color: var(--tertiary);">14 days
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 6: Week Matrix & Heatmaps -->
+        <section id="week-matrix" class="guide-section">
+          <h2>5. Week Matrix & Completion Analytics</h2>
+          <p>
+            The Week Matrix view provides a high-density 7-day visualization conforming to the <strong>ISO 8601
+              standard</strong> (weeks start on Monday and conclude on Sunday).
+          </p>
+
+          <h3>Matrix Cell States</h3>
+          <ul>
+            <li><strong>Completed (Solid Checkmark)</strong>: Habit target successfully logged for that date.</li>
+            <li><strong>Shielded (Cyan Shield Icon)</strong>: Protected grace day preserving consecutive streak.</li>
+            <li><strong>Missed (Dim Border)</strong>: Scheduled past day that was not completed.</li>
+            <li><strong>Non-Scheduled (Dash)</strong>: Day off based on custom schedule.</li>
+          </ul>
+        </section>
+
+        <!-- Section 7: Widgets & System Integration -->
+        <section id="widgets-system" class="guide-section">
+          <h2>6. Widgets, Shortcuts & System Integration</h2>
+          <p>
+            Habit Tracker integrates deeply with Android system features to make logging instant from anywhere on your
+            device.
+          </p>
+          <ul>
+            <li><strong>Android AppWidgets</strong>: Home screen widgets synchronized via <code>SharedPreferences</code>
+              and background method channels.</li>
+            <li><strong>Dynamic App Shortcuts</strong>: Long-press the app launcher icon to instantly check-in or focus
+              on your top pinned habits.</li>
+            <li><strong>Midnight Rollover Background Task</strong>: Auto-evaluates streak risks, consumes shields if
+              enabled, and resets daily widgets at 00:01.</li>
+          </ul>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <p style="margin-bottom: 8px;">
+        <strong>Habit Tracker</strong> • Built with Flutter, Drift SQLite, and Material 3.
+      </p>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/guide.js"></script>
+</body>
+
+</html>
