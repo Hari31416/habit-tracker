@@ -7,6 +7,8 @@ class ThemePreferences {
   static const String keyThemeMode = 'key_theme_mode';
   static const String keyUserName = 'key_user_name';
   static const String keyFocusDndEnabled = 'key_focus_dnd_enabled';
+  static const String keyAmbientSoundType = 'key_ambient_sound_type';
+  static const String keyAmbientSoundVolume = 'key_ambient_sound_volume';
 
   final SharedPreferences? _prefs;
 
@@ -40,6 +42,22 @@ class ThemePreferences {
 
   Future<void> setFocusDndEnabled(bool enabled) async {
     await _prefs?.setBool(keyFocusDndEnabled, enabled);
+  }
+
+  String loadAmbientSoundType() {
+    return _prefs?.getString(keyAmbientSoundType) ?? 'none';
+  }
+
+  Future<void> setAmbientSoundType(String type) async {
+    await _prefs?.setString(keyAmbientSoundType, type);
+  }
+
+  double loadAmbientSoundVolume() {
+    return _prefs?.getDouble(keyAmbientSoundVolume) ?? 0.7;
+  }
+
+  Future<void> setAmbientSoundVolume(double volume) async {
+    await _prefs?.setDouble(keyAmbientSoundVolume, volume.clamp(0.0, 1.0));
   }
 }
 

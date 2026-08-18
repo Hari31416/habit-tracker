@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/preferences/theme_preferences.dart';
+import '../../domain/models/ambient_sound_type.dart';
 import '../../services/dnd_service.dart';
 import '../common/haptics_helper.dart';
+import 'controllers/ambient_audio_controller.dart';
 import 'controllers/timer_state_holder.dart';
+import 'widgets/ambient_sound_bottom_sheet.dart';
 
 class FocusTimerScreen extends ConsumerStatefulWidget {
   final String habitId;
@@ -22,6 +25,8 @@ class FocusTimerScreen extends ConsumerStatefulWidget {
 }
 
 class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen> {
+  AmbientAudioNotifier? _audioNotifier;
+
   @override
   void initState() {
     super.initState();
@@ -30,7 +35,15 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _audioNotifier = ref.read(ambientAudioControllerProvider.notifier);
+  }
+
+  @override
   void dispose() {
+    // Stop ambient audio playback on leaving focus mode
+    _audioNotifier?.stopPlayback();
     // Restore standard edge-to-edge UI
     SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.manual,
@@ -45,6 +58,16 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen> {
     final timerState = ref.watch(timerStateHolderProvider);
     final timerNotifier = ref.read(timerStateHolderProvider.notifier);
     final dndEnabled = ref.watch(focusDndProvider);
+    final audioState = ref.watch(ambientAudioControllerProvider);
+
+    // Synchronize ambient audio playback with timer state transitions
+    ref.listen<TimerState>(timerStateHolderProvider, (previous, next) {
+      if (next.habitId == widget.habitId || next.habitId == null) {
+        ref
+            .read(ambientAudioControllerProvider.notifier)
+            .onTimerStatusChanged(next.status);
+      }
+    });
 
     final isActiveForHabit = timerState.habitId == widget.habitId;
     final status = isActiveForHabit ? timerState.status : TimerStatus.idle;
@@ -243,42 +266,83 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen> {
 
                     const SizedBox(height: 24),
 
-                    // DND Toggle
-                    FilterChip(
-                      selected: dndEnabled,
-                      showCheckmark: false,
-                      avatar: Icon(
-                        dndEnabled
-                            ? Icons.notifications_off
-                            : Icons.notifications,
-                        size: 16,
-                        color: dndEnabled
-                            ? accentColor
-                            : theme.colorScheme.onSurfaceVariant,
-                      ),
-                      label: Text(
-                        dndEnabled ? 'DND On' : 'DND Off',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          fontWeight: FontWeight.w500,
-                          color: dndEnabled
-                              ? accentColor
-                              : theme.colorScheme.onSurface,
+                    // Bottom Action Chips: DND + Ambient Audio
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 12,
+                      runSpacing: 8,
+                      children: [
+                        // DND Toggle
+                        FilterChip(
+                          selected: dndEnabled,
+                          showCheckmark: false,
+                          avatar: Icon(
+                            dndEnabled
+                                ? Icons.notifications_off
+                                : Icons.notifications,
+                            size: 16,
+                            color: dndEnabled
+                                ? accentColor
+                                : theme.colorScheme.onSurfaceVariant,
+                          ),
+                          label: Text(
+                            dndEnabled ? 'DND On' : 'DND Off',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              fontWeight: FontWeight.w500,
+                              color: dndEnabled
+                                  ? accentColor
+                                  : theme.colorScheme.onSurface,
+                            ),
+                          ),
+                          selectedColor: accentColor.withValues(alpha: 0.2),
+                          onSelected: (_) async {
+                            HapticsHelper.performLightHaptic();
+                            if (!dndEnabled) {
+                              final granted =
+                                  await DndService.isDndAccessGranted();
+                              if (!granted) {
+                                await DndService.openDndSettings();
+                                return;
+                              }
+                            }
+                            await ref
+                                .read(focusDndProvider.notifier)
+                                .setFocusDndEnabled(!dndEnabled);
+                          },
                         ),
-                      ),
-                      selectedColor: accentColor.withValues(alpha: 0.2),
-                      onSelected: (_) async {
-                        HapticsHelper.performLightHaptic();
-                        if (!dndEnabled) {
-                          final granted = await DndService.isDndAccessGranted();
-                          if (!granted) {
-                            await DndService.openDndSettings();
-                            return;
-                          }
-                        }
-                        await ref
-                            .read(focusDndProvider.notifier)
-                            .setFocusDndEnabled(!dndEnabled);
-                      },
+
+                        // Ambient Soundscape Selector Chip
+                        FilterChip(
+                          selected:
+                              audioState.selectedSound != AmbientSoundType.none,
+                          showCheckmark: false,
+                          avatar: Icon(
+                            audioState.selectedSound.icon,
+                            size: 16,
+                            color: audioState.selectedSound !=
+                                    AmbientSoundType.none
+                                ? accentColor
+                                : theme.colorScheme.onSurfaceVariant,
+                          ),
+                          label: Text(
+                            audioState.selectedSound == AmbientSoundType.none
+                                ? 'Audio Off'
+                                : audioState.selectedSound.displayName,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              fontWeight: FontWeight.w500,
+                              color: audioState.selectedSound !=
+                                      AmbientSoundType.none
+                                  ? accentColor
+                                  : theme.colorScheme.onSurface,
+                            ),
+                          ),
+                          selectedColor: accentColor.withValues(alpha: 0.2),
+                          onSelected: (_) {
+                            HapticsHelper.performLightHaptic();
+                            AmbientSoundBottomSheet.show(context);
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 ),
