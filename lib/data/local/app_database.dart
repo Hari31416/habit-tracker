@@ -26,12 +26,29 @@ part 'app_database.g.dart';
   daos: [HabitDao, HabitLogDao, HabitCategoryDao, GamificationDao],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());
+  static AppDatabase? _sharedInstance;
 
-  /// Creates a database instance for use in background isolates
-  /// (e.g., notification action handlers). Points to the same SQLite file.
-  static AppDatabase backgroundInstance() {
-    return AppDatabase(_openConnection());
+  AppDatabase._(QueryExecutor e) : super(e);
+
+  /// Default connection used by the running app. Reuses one instance per
+  /// isolate so notification actions and Riverpod share the same database.
+  factory AppDatabase([QueryExecutor? executor]) {
+    if (executor != null) {
+      return AppDatabase._(executor);
+    }
+    return _sharedInstance ??= AppDatabase._(_openConnection());
+  }
+
+  /// Database for a background isolate. On the main isolate this returns the
+  /// shared instance so we never open the file twice.
+  static AppDatabase backgroundInstance() => AppDatabase();
+
+  @override
+  Future<void> close() {
+    if (identical(this, _sharedInstance)) {
+      _sharedInstance = null;
+    }
+    return super.close();
   }
 
   @override

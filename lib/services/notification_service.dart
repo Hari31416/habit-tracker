@@ -22,7 +22,7 @@ typedef NotificationActionCallback = Future<void> Function({
 /// Must be a top-level function for isolate compatibility.
 @pragma('vm:entry-point')
 void onNotificationActionBackground(NotificationResponse response) {
-  NotificationService.dispatchAction(response);
+  NotificationService.dispatchAction(response, allowBackgroundDb: true);
 }
 
 class NotificationService {
@@ -287,7 +287,10 @@ class NotificationService {
     }
   }
 
-  static void dispatchAction(NotificationResponse response) {
+  static void dispatchAction(
+    NotificationResponse response, {
+    bool allowBackgroundDb = false,
+  }) {
     final payload = response.payload;
     if (payload == null || payload.isEmpty) return;
 
@@ -313,11 +316,15 @@ class NotificationService {
       }
 
       _pendingActionResponse = response;
-      _handleActionInBackgroundIsolate(
-        action: action,
-        habitId: habitId,
-        delta: delta,
-      );
+      // On the main isolate during startup, wait for bindActionHandler so we
+      // reuse the Riverpod AppDatabase instead of opening a second connection.
+      if (allowBackgroundDb) {
+        _handleActionInBackgroundIsolate(
+          action: action,
+          habitId: habitId,
+          delta: delta,
+        );
+      }
     } catch (e) {
       debugPrint('Failed to handle notification action: $e');
     }
