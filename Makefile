@@ -118,8 +118,14 @@ flutter-run: ## Ensure emulator and run Flutter app on Android
 		echo "No active Android device/emulator detected."; \
 		$(MAKE) emulator-start; \
 		$(MAKE) emulator-wait; \
+	fi; \
+	ANDROID_DEVICE=$$($(ADB) devices | grep -v "List" | grep "device" | head -n 1 | awk '{print $$1}'); \
+	if [ -n "$$ANDROID_DEVICE" ]; then \
+		echo "Running Flutter app on Android device: $$ANDROID_DEVICE"; \
+		flutter run -d "$$ANDROID_DEVICE"; \
+	else \
+		flutter run -d android-arm64; \
 	fi
-	flutter run -d android
 
 flutter-run-android: flutter-run ## Alias for flutter-run
 
