@@ -83,7 +83,18 @@ class TodaysHabitsWidgetReceiver : BaseHabitWidgetProvider(R.layout.widget_today
                 }
             }
             obj.put("completedCount", completedCount)
-            prefs.edit().putString("todays_habits", obj.toString()).apply()
+
+            val currentPending = prefs.getStringSet("pending_toggled_habit_ids", null)?.toMutableSet() ?: mutableSetOf()
+            if (currentPending.contains(habitId)) {
+                currentPending.remove(habitId)
+            } else {
+                currentPending.add(habitId)
+            }
+
+            prefs.edit()
+                .putString("todays_habits", obj.toString())
+                .putStringSet("pending_toggled_habit_ids", currentPending)
+                .apply()
 
             val appWidgetManager = AppWidgetManager.getInstance(context)
             val ids = appWidgetManager.getAppWidgetIds(

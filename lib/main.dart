@@ -15,8 +15,11 @@ import 'di/providers.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final container = ProviderContainer();
-  // Trigger initial background sync for home widgets
-  Future.microtask(() => container.read(widgetSyncServiceProvider).syncAllWidgets());
+  // Trigger initial background sync and consume any pending widget actions
+  Future.microtask(() async {
+    await container.read(widgetSyncServiceProvider).consumePendingWidgetActions();
+    await container.read(widgetSyncServiceProvider).syncAllWidgets();
+  });
 
   runApp(
     UncontrolledProviderScope(
@@ -26,11 +29,36 @@ void main() async {
   );
 }
 
-class HabitTrackerApp extends ConsumerWidget {
+class HabitTrackerApp extends ConsumerStatefulWidget {
   const HabitTrackerApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HabitTrackerApp> createState() => _HabitTrackerAppState();
+}
+
+class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.read(widgetSyncServiceProvider).consumePendingWidgetActions();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final themeMode = ref.watch(themeModeProvider);
 
     final ThemeMode flutterThemeMode;

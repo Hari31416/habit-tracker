@@ -252,6 +252,23 @@ class WidgetSyncService {
     } catch (_) {}
   }
 
+  Future<void> consumePendingWidgetActions() async {
+    try {
+      const channel = MethodChannel('com.productivity.habits/widgets');
+      final dynamic res =
+          await channel.invokeMethod('getPendingWidgetCheckIns');
+      if (res is List && res.isNotEmpty) {
+        final now = DateTime.now();
+        for (final habitId in res) {
+          if (habitId is String && habitId.isNotEmpty) {
+            await _repository.toggleBooleanCheckIn(habitId, now);
+          }
+        }
+        await syncAllWidgets(now);
+      }
+    } catch (_) {}
+  }
+
   Future<void> syncAllWidgets([DateTime? date]) async {
     final today = date ?? DateTime.now();
     final todayStr = _dateFormatter.format(today);

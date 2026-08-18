@@ -30,6 +30,13 @@ class MainActivity : FlutterActivity() {
                     updateAllAppWidgets(applicationContext)
                     result.success(true)
                 }
+                "getPendingWidgetCheckIns" -> {
+                    val prefs = getSharedPreferences("habit_widget_prefs", Context.MODE_PRIVATE)
+                    val pendingSet = prefs.getStringSet("pending_toggled_habit_ids", null)
+                    val pendingList = pendingSet?.toList() ?: emptyList<String>()
+                    prefs.edit().remove("pending_toggled_habit_ids").apply()
+                    result.success(pendingList)
+                }
                 else -> result.notImplemented()
             }
         }
