@@ -7,12 +7,12 @@ MAIN_ACTIVITY := $(PACKAGE_NAME).MainActivity
 DEFAULT_AVD := $(shell $(EMULATOR) -list-avds 2>/dev/null | head -n 1)
 AVD ?= $(DEFAULT_AVD)
 
-.PHONY: help build build-release build-release-universal build-appbundle test lint clean install uninstall emulator-list emulator-start emulator-stop emulator-wait start stop restart run debug logcat flutter-run flutter-run-android flutter-build-apk flutter-build-release flutter-build-appbundle flutter-test flutter-analyze flutter-codegen codegen kotlin-build kotlin-build-release kotlin-test kotlin-lint kotlin-clean kotlin-install kotlin-run
+.PHONY: help build build-release build-release-universal build-appbundle test lint clean install uninstall emulator-list emulator-start emulator-stop emulator-wait start stop restart run debug logcat flutter-run flutter-run-android flutter-build-apk flutter-build-release flutter-build-appbundle flutter-test flutter-analyze flutter-codegen codegen
 
 help: ## Show this help message
 	@echo "Usage: make [target] [AVD=avd_name]"
 	@echo ""
-	@echo "Default Android (Flutter):"
+	@echo "Build & Test (Flutter):"
 	@echo "  make build           - Build the debug APK via Flutter"
 	@echo "  make build-release   - Build release split-ABI APKs via Flutter"
 	@echo "  make build-appbundle - Build release Android App Bundle (.aab) via Flutter"
@@ -30,15 +30,6 @@ help: ## Show this help message
 	@echo "  make flutter-test    - Run all Flutter unit and widget tests"
 	@echo "  make flutter-analyze - Run Flutter code analysis"
 	@echo "  make flutter-codegen - Run build_runner for Drift/Riverpod codegen"
-	@echo ""
-	@echo "Native Android Reference (Kotlin):"
-	@echo "  make kotlin-build    - Build native Kotlin debug APK (assembleDebug)"
-	@echo "  make kotlin-build-release - Build native Kotlin release APK (assembleRelease)"
-	@echo "  make kotlin-test     - Run native Kotlin unit tests"
-	@echo "  make kotlin-lint     - Run native Kotlin Android lint check"
-	@echo "  make kotlin-clean    - Clean native Kotlin build artifacts"
-	@echo "  make kotlin-install  - Build and install native Kotlin debug APK"
-	@echo "  make kotlin-run      - Complete pipeline: ensure emulator, build, install & launch Kotlin app"
 	@echo ""
 	@echo "Emulator & Device:"
 	@echo "  make emulator-list   - List all available Android Virtual Devices (AVDs)"
@@ -76,7 +67,7 @@ lint: ## Run Flutter analyzer
 
 clean: ## Clean Flutter and Gradle build artifacts
 	flutter clean
-	./gradlew clean
+	(cd android && ./gradlew clean)
 
 install: build ## Install debug APK on connected device
 	$(ADB) install -r build/app/outputs/flutter-apk/app-debug.apk
@@ -155,32 +146,4 @@ flutter-analyze: lint ## Run Flutter analyzer
 
 flutter-codegen: ## Run build_runner for code generation
 	dart run build_runner build --delete-conflicting-outputs
-
-kotlin-build: ## Build native Kotlin debug APK (assembleDebug)
-	./gradlew assembleDebug
-
-kotlin-build-release: ## Build native Kotlin release APK (assembleRelease)
-	./gradlew assembleRelease
-
-kotlin-test: ## Run native Kotlin unit tests
-	./gradlew testDebugUnitTest
-
-kotlin-lint: ## Run native Kotlin lint
-	./gradlew lintDebug
-
-kotlin-clean: ## Clean native Kotlin build
-	./gradlew clean
-
-kotlin-install: ## Build and install native Kotlin debug APK
-	./gradlew installDebug
-
-kotlin-run: ## Ensure device, build, install, and launch Kotlin app
-	@DEVICES=$$($(ADB) devices | grep -v "List" | grep "device" | wc -l | tr -d ' '); \
-	if [ "$$DEVICES" -eq "0" ]; then \
-		echo "No active device/emulator detected."; \
-		$(MAKE) emulator-start; \
-		$(MAKE) emulator-wait; \
-	fi
-	./gradlew installDebug
-	$(MAKE) start
 

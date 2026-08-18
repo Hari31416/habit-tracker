@@ -11,10 +11,6 @@
 - Charts: Custom / `fl_chart` with Vico styling parity
 - Haptics: System haptics only (no Konfetti or particle libraries)
 
-### Native Android Reference (Kotlin)
-- Language: Kotlin 2.0+ targeting SDK 34 (min SDK 26) with Java 8+ API desugaring (`app/src/main/java/com/productivity/habits/`)
-- Architecture: Clean Architecture (Jetpack Compose, Room, Hilt, Glance)
-
 ## Development and Verification Flow
 
 When making changes to the codebase, follow this sequential verification workflow:
@@ -81,15 +77,6 @@ make stop
 make emulator-stop
 ```
 
-### 7. Native Kotlin Reference Verification (Optional)
-
-To verify the Kotlin baseline when comparing reference logic:
-
-```bash
-make kotlin-test
-make kotlin-build
-```
-
 ## Git Commit Guidelines
 
 - Commit only when explicitly requested by the user
@@ -108,5 +95,4 @@ make kotlin-build
   - Custom Days: non-scheduled days are skipped without breaking consecutive streak chains
 - Icons: String keys stored on habits resolved at runtime via `HabitIconRegistry` to Material Icons
 - Cards vs Detail: Habit cards support pin and check-in controls; archive and delete are restricted to Habit Detail view
-- Parity Directive: All calculations, algorithms, UI paddings, colors, shapes, haptic strengths, and lifecycle behaviors in Flutter match the Kotlin reference with 100% exact parity. Reference mapping table in `plans/flutter/README.md`.
 
