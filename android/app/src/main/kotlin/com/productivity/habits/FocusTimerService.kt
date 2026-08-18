@@ -25,6 +25,7 @@ class FocusTimerService : Service() {
     private lateinit var notificationManager: NotificationManager
     private val mainHandler = Handler(Looper.getMainLooper())
     private var tickerRunnable: Runnable? = null
+    private var previousInterruptionFilter: Int = NotificationManager.INTERRUPTION_FILTER_ALL
 
     private var habitId: String = ""
     private var habitTitle: String = "Focus Session"
@@ -115,6 +116,7 @@ class FocusTimerService : Service() {
                 saveStateToPreferences("Running")
                 emitStateToFlutter()
                 startForegroundWithNotification(buildNotification())
+                activateDnd()
                 startCountdown()
                 MainActivity.updateAllAppWidgets(applicationContext)
             }
@@ -143,6 +145,7 @@ class FocusTimerService : Service() {
             }
             ACTION_STOP -> {
                 stopCountdown()
+                deactivateDnd()
                 isRunning = false
                 isPaused = false
                 remainingSeconds = totalSeconds
@@ -206,6 +209,7 @@ class FocusTimerService : Service() {
 
     private fun onTimerFinished() {
         stopCountdown()
+        deactivateDnd()
         isRunning = false
         isPaused = false
         remainingSeconds = 0
@@ -389,6 +393,27 @@ class FocusTimerService : Service() {
 
     override fun onDestroy() {
         stopCountdown()
+        deactivateDnd()
         super.onDestroy()
+    }
+
+    private fun activateDnd() {
+        val prefs = getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+        val dndEnabled = prefs.getBoolean("flutter.key_focus_dnd_enabled", prefs.getBoolean("key_focus_dnd_enabled", false))
+        if (!dndEnabled) return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!notificationManager.isNotificationPolicyAccessGranted) return
+            previousInterruptionFilter = notificationManager.currentInterruptionFilter
+            notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
+        }
+    }
+
+    private fun deactivateDnd() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!notificationManager.isNotificationPolicyAccessGranted) return
+            if (notificationManager.currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_PRIORITY) {
+                notificationManager.setInterruptionFilter(previousInterruptionFilter)
+            }
+        }
     }
 }

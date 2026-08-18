@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:habit_tracker/data/preferences/theme_preferences.dart';
 import 'package:habit_tracker/domain/models/habit.dart';
 import 'package:habit_tracker/domain/models/habit_frequency_type.dart';
 import 'package:habit_tracker/domain/models/habit_log.dart';
@@ -9,7 +11,10 @@ import 'package:habit_tracker/ui/daily/dialogs/direct_numeric_input_dialog.dart'
 import 'package:habit_tracker/ui/daily/widgets/numeric_habit_controls.dart';
 import 'package:habit_tracker/ui/daily/widgets/slot_habit_controls.dart';
 import 'package:habit_tracker/ui/daily/widgets/timer_habit_controls.dart';
+import 'package:habit_tracker/ui/detail/focus_timer_screen.dart';
+import 'package:habit_tracker/ui/detail/widgets/circular_focus_timer.dart';
 import 'package:habit_tracker/ui/theme/app_theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('DirectNumericInputDialog', () {
@@ -205,6 +210,77 @@ void main() {
       await tester.tap(find.text('12:00'));
       await tester.pump();
       expect(toggledSlot, 1);
+    });
+  });
+
+  group('CircularFocusTimer and FocusTimerScreen DND Toggle', () {
+    testWidgets('CircularFocusTimer renders DND toggle chip and reflects state',
+        (WidgetTester tester) async {
+      SharedPreferences.setMockInitialValues({'key_focus_dnd_enabled': false});
+      final prefs = await SharedPreferences.getInstance();
+      final themePrefs = ThemePreferences(prefs);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            themePreferencesProvider.overrideWithValue(themePrefs),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.lightTheme,
+            home: Scaffold(
+              body: CircularFocusTimer(
+                habitId: 'h-timer',
+                habitTitle: 'Meditation',
+                defaultDurationMinutes: 25,
+                accentColor: const Color(0xFF3B82F6),
+                onFocusScreenClick: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('DND Off'), findsOneWidget);
+      expect(find.byIcon(Icons.notifications), findsOneWidget);
+
+      await tester.tap(find.text('DND Off'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('DND On'), findsOneWidget);
+      expect(find.byIcon(Icons.notifications_off), findsOneWidget);
+    });
+
+    testWidgets('FocusTimerScreen renders DND toggle chip and reflects state',
+        (WidgetTester tester) async {
+      SharedPreferences.setMockInitialValues({'key_focus_dnd_enabled': true});
+      final prefs = await SharedPreferences.getInstance();
+      final themePrefs = ThemePreferences(prefs);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            themePreferencesProvider.overrideWithValue(themePrefs),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.lightTheme,
+            home: Scaffold(
+              body: FocusTimerScreen(
+                habitId: 'h-timer',
+                onBack: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('DND On'), findsOneWidget);
+      expect(find.byIcon(Icons.notifications_off), findsOneWidget);
+
+      await tester.tap(find.text('DND On'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('DND Off'), findsOneWidget);
+      expect(find.byIcon(Icons.notifications), findsOneWidget);
     });
   });
 }

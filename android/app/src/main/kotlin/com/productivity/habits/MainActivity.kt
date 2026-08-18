@@ -1,8 +1,12 @@
 package com.productivity.habits
- 
+
+import android.app.NotificationManager
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.os.Build
+import android.provider.Settings
 import com.productivity.habits.widgets.*
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -81,6 +85,25 @@ class MainActivity : FlutterActivity() {
                 "getTimerState" -> {
                     val prefs = getSharedPreferences("habit_widget_prefs", Context.MODE_PRIVATE)
                     result.success(prefs.getString("focus_timer", null))
+                }
+                "isDndAccessGranted" -> {
+                    val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        result.success(notificationManager.isNotificationPolicyAccessGranted)
+                    } else {
+                        result.success(true)
+                    }
+                }
+                "openDndSettings" -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        val intent = Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        startActivity(intent)
+                        result.success(true)
+                    } else {
+                        result.success(false)
+                    }
                 }
                 else -> result.notImplemented()
             }

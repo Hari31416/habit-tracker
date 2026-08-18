@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../data/preferences/theme_preferences.dart';
+import '../../../services/dnd_service.dart';
 import '../../common/haptics_helper.dart';
 import '../controllers/timer_state_holder.dart';
 
@@ -87,6 +89,7 @@ class _CircularFocusTimerState extends ConsumerState<CircularFocusTimer> {
     final theme = Theme.of(context);
     final timerState = ref.watch(timerStateHolderProvider);
     final timerNotifier = ref.read(timerStateHolderProvider.notifier);
+    final dndEnabled = ref.watch(focusDndProvider);
 
     final isRunningOrPausedForThisHabit = timerState.habitId == widget.habitId &&
         (timerState.status == TimerStatus.running ||
@@ -373,6 +376,51 @@ class _CircularFocusTimerState extends ConsumerState<CircularFocusTimer> {
                 );
               }).toList(),
             ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // DND Toggle Chip
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FilterChip(
+                selected: dndEnabled,
+                showCheckmark: false,
+                avatar: Icon(
+                  dndEnabled
+                      ? Icons.notifications_off
+                      : Icons.notifications,
+                  size: 16,
+                  color: dndEnabled
+                      ? widget.accentColor
+                      : theme.colorScheme.onSurfaceVariant,
+                ),
+                label: Text(
+                  dndEnabled ? 'DND On' : 'DND Off',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: dndEnabled
+                        ? widget.accentColor
+                        : theme.colorScheme.onSurface,
+                  ),
+                ),
+                selectedColor: widget.accentColor.withValues(alpha: 0.2),
+                onSelected: (_) async {
+                  HapticsHelper.performLightHaptic();
+                  if (!dndEnabled) {
+                    final granted = await DndService.isDndAccessGranted();
+                    if (!granted) {
+                      await DndService.openDndSettings();
+                      return;
+                    }
+                  }
+                  await ref
+                      .read(focusDndProvider.notifier)
+                      .setFocusDndEnabled(!dndEnabled);
+                },
+              ),
+            ],
           ),
         ],
       ),

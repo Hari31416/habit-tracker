@@ -2,6 +2,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../data/preferences/theme_preferences.dart';
+import '../../services/dnd_service.dart';
 import '../common/haptics_helper.dart';
 import 'controllers/timer_state_holder.dart';
 
@@ -42,6 +44,7 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen> {
     final theme = Theme.of(context);
     final timerState = ref.watch(timerStateHolderProvider);
     final timerNotifier = ref.read(timerStateHolderProvider.notifier);
+    final dndEnabled = ref.watch(focusDndProvider);
 
     final isActiveForHabit = timerState.habitId == widget.habitId;
     final status = isActiveForHabit ? timerState.status : TimerStatus.idle;
@@ -234,6 +237,46 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen> {
                           ),
                         ),
                       ],
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // DND Toggle
+                    FilterChip(
+                      selected: dndEnabled,
+                      showCheckmark: false,
+                      avatar: Icon(
+                        dndEnabled
+                            ? Icons.notifications_off
+                            : Icons.notifications,
+                        size: 16,
+                        color: dndEnabled
+                            ? accentColor
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
+                      label: Text(
+                        dndEnabled ? 'DND On' : 'DND Off',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.w500,
+                          color: dndEnabled
+                              ? accentColor
+                              : theme.colorScheme.onSurface,
+                        ),
+                      ),
+                      selectedColor: accentColor.withValues(alpha: 0.2),
+                      onSelected: (_) async {
+                        HapticsHelper.performLightHaptic();
+                        if (!dndEnabled) {
+                          final granted = await DndService.isDndAccessGranted();
+                          if (!granted) {
+                            await DndService.openDndSettings();
+                            return;
+                          }
+                        }
+                        await ref
+                            .read(focusDndProvider.notifier)
+                            .setFocusDndEnabled(!dndEnabled);
+                      },
                     ),
                   ],
                 ),

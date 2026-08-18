@@ -66,6 +66,23 @@ class UserNameNotifier extends StateNotifier<String> {
   }
 }
 
+class FocusDndNotifier extends StateNotifier<bool> {
+  final ThemePreferences _prefs;
+
+  FocusDndNotifier(this._prefs) : super(_prefs.loadFocusDndEnabled());
+
+  Future<void> setFocusDndEnabled(bool enabled) async {
+    state = enabled;
+    await _prefs.setFocusDndEnabled(enabled);
+  }
+
+  Future<void> toggle() async {
+    final next = !state;
+    state = next;
+    await _prefs.setFocusDndEnabled(next);
+  }
+}
+
 final sharedPreferencesProvider = FutureProvider<SharedPreferences>((ref) async {
   return await SharedPreferences.getInstance();
 });
@@ -84,3 +101,9 @@ final userNameProvider = StateNotifierProvider<UserNameNotifier, String>((ref) {
   final prefs = ref.watch(themePreferencesProvider);
   return UserNameNotifier(prefs);
 });
+
+final focusDndProvider = StateNotifierProvider<FocusDndNotifier, bool>((ref) {
+  final prefs = ref.watch(themePreferencesProvider);
+  return FocusDndNotifier(prefs);
+});
+

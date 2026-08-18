@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:habit_tracker/data/preferences/theme_preferences.dart';
 import 'package:habit_tracker/ui/common/color_utils.dart';
 import 'package:habit_tracker/ui/theme/app_colors.dart';
 import 'package:habit_tracker/ui/theme/app_shapes.dart';
@@ -69,6 +70,20 @@ void main() {
       expect(ColorUtils.parseHexColor(null), defaultC);
       expect(ColorUtils.parseHexColor(''), defaultC);
       expect(ColorUtils.parseHexColor('invalid'), defaultC);
+    });
+  });
+
+  group('FocusDndNotifier', () {
+    test('loads default DND state as false and toggles state correctly', () async {
+      final themePrefs = ThemePreferences(null);
+      final notifier = FocusDndNotifier(themePrefs);
+
+      expect(notifier.state, isFalse);
+      await notifier.toggle();
+      expect(notifier.state, isTrue);
+
+      await notifier.setFocusDndEnabled(false);
+      expect(notifier.state, isFalse);
     });
   });
 }
