@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-08-18
+
+### Added
+
+- Ambient Audio sound generator with 8 looping soundscapes (Rain, Ocean Waves, Campfire, Forest Birds, Running Stream, Cafe Ambience, Gentle Wind, White Noise) and master volume slider.
+- Comprehensive technical documentation and App Showcase deployed via GitHub Pages.
+- High-resolution app screenshots and verified feature guides for all core engines.
+
+### Changed
+
+- Updated landing page aesthetics and navigation with direct GitHub Release APK download links.
+- Streamlined App Showcase with tabbed interface covering daily tracker, 7-day week matrix, Zen focus timer, habit detail, habit shields, analytics, and RPG mastery.
+
 ## [0.5.0] - 2026-08-18
 
 ### Added
