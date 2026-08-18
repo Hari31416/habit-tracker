@@ -48,9 +48,9 @@ Strategic feature roadmap for the Habit Tracker application, ordered sequentiall
 
 ## 8. Check-In Micro-Notes and Mood/Energy Tagging
 
-- [ ] **Post-Check-In Reflection:** Optional 1-tap energy rating (1-5 scale), mood selection, and short 1-line notes on completion.
-- [ ] **History Timeline:** Visual timeline of reflections and energy levels on the Habit Detail screen.
-- [ ] **Wellbeing Correlation:** Visual charts showing how habit consistency impacts self-reported energy over time.
+- [x] **Post-Check-In Reflection:** Optional 1-tap energy rating (1-5 scale), mood selection, and short 1-line notes on completion.
+- [x] **History Timeline:** Visual timeline of reflections and energy levels on the Habit Detail screen.
+- [x] **Wellbeing Correlation:** Visual charts showing how habit consistency impacts self-reported energy over time.
 
 ## 9. Negative Habits and Sobriety Counter
 
