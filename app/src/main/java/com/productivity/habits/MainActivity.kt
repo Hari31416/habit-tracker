@@ -1,6 +1,7 @@
 package com.productivity.habits
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -14,9 +15,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import androidx.navigation.NavHostController
 import com.productivity.habits.ui.navigation.HabitNavGraph
 import com.productivity.habits.ui.theme.HabitTrackerTheme
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.navigation.compose.rememberNavController
 import com.productivity.habits.data.local.preferences.ThemeMode
 import com.productivity.habits.data.local.preferences.ThemePreferences
 import dagger.hilt.android.AndroidEntryPoint
@@ -27,6 +30,8 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var themePreferences: ThemePreferences
+
+    private var navController: NavHostController? = null
 
     private val requestNotificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -52,9 +57,13 @@ class MainActivity : ComponentActivity() {
                 ThemeMode.DARK -> true
             }
 
+            val nc = rememberNavController()
+            navController = nc
+
             HabitTrackerTheme(darkTheme = isDarkTheme) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     HabitNavGraph(
+                        navController = nc,
                         themeMode = themeMode,
                         onThemeModeSelected = { themePreferences.setThemeMode(it) },
                         themePreferences = themePreferences
@@ -62,5 +71,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        navController?.handleDeepLink(intent)
     }
 }
