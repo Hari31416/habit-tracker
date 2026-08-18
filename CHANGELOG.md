@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-08-18
+
+### Added
+
+- Dedicated Focus Timer screen:
+  - Full-screen focus session with large animated circular timer arc and live countdown.
+  - Duration adjustment chips (+1m, +5m, -1m, -5m) and session controls (Start, Pause, Resume, Reset).
+  - Integrated Do Not Disturb (DND) filter toggle.
+  - Lifecycle-scoped immersive fullscreen mode (hidden status and navigation bars) and screen wake lock.
+  - Direct navigation entry from the Habit Detail circular focus timer header.
+
+### Changed
+
+- Compacted Habit Detail hero header layout with refined typography and circular check-in button.
+
+### Fixed
+
+- Applied system navigation bar insets to prevent bottom navigation bar content clipping.
+- Added partial progress increment/decrement controls to Habit Detail card for numeric and timer habits.
+- Aligned custom reminder time picker chip styling with preset reminder chips.
+
 ## [0.2.0] - 2026-08-17
 
 ### Added
