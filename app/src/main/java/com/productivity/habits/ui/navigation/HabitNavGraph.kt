@@ -11,6 +11,7 @@ import com.productivity.habits.data.local.preferences.ThemeMode
 import com.productivity.habits.data.local.preferences.ThemePreferences
 import com.productivity.habits.ui.analytics.HabitAnalyticsScreen
 import com.productivity.habits.ui.daily.DailyTrackerScreen
+import com.productivity.habits.ui.detail.FocusTimerScreen
 import com.productivity.habits.ui.detail.HabitDetailScreen
 import com.productivity.habits.ui.gamification.BadgesShowcaseScreen
 import com.productivity.habits.ui.matrix.HabitWeekMatrixScreen
@@ -132,7 +133,22 @@ fun HabitNavGraph(
         ) {
             HabitDetailScreen(
                 onBack = { navController.popBackStack() },
+                onNavigateToFocusScreen = { habitId ->
+                    navController.navigate(Screen.FocusTimer.createRoute(habitId))
+                },
                 themePreferences = themePreferences ?: return@composable
+            )
+        }
+
+        composable(
+            route = Screen.FocusTimer.route,
+            arguments = Screen.FocusTimer.arguments
+        ) { backStackEntry ->
+            val habitId = backStackEntry.arguments?.getString(Screen.FocusTimer.HABIT_ID_ARG) ?: return@composable
+            FocusTimerScreen(
+                habitId = habitId,
+                themePreferences = themePreferences ?: return@composable,
+                onBack = { navController.popBackStack() }
             )
         }
     }

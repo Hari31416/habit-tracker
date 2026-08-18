@@ -22,6 +22,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CenterFocusStrong
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsOff
@@ -72,6 +73,7 @@ fun CircularFocusTimer(
     remainingUnloggedMinutes: Double = defaultDurationMinutes,
     accentColor: Color,
     themePreferences: ThemePreferences,
+    onFocusScreenClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -169,19 +171,45 @@ fun CircularFocusTimer(
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            IconButton(
-                onClick = {
-                    HapticsHelper.performLightHaptic(haptic)
-                    showEditMinutesDialog = true
-                },
-                modifier = Modifier.size(32.dp)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit timer duration",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(18.dp)
-                )
+                // Focus Screen toggle (enabled when timer is active)
+                IconButton(
+                    onClick = {
+                        HapticsHelper.performLightHaptic(haptic)
+                        onFocusScreenClick()
+                    },
+                    enabled = isRunningOrPausedForThisHabit,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CenterFocusStrong,
+                        contentDescription = "Enter focus mode",
+                        tint = if (isRunningOrPausedForThisHabit) {
+                            accentColor
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        },
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                IconButton(
+                    onClick = {
+                        HapticsHelper.performLightHaptic(haptic)
+                        showEditMinutesDialog = true
+                    },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit timer duration",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
         }
 

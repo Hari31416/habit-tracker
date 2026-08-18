@@ -45,6 +45,15 @@ sealed class Screen(val route: String) {
         )
     }
 
+    data object FocusTimer : Screen("focus_timer/{habitId}") {
+        const val HABIT_ID_ARG = "habitId"
+        fun createRoute(habitId: String) = "focus_timer/$habitId"
+
+        val arguments: List<NamedNavArgument> = listOf(
+            navArgument(HABIT_ID_ARG) { type = NavType.StringType }
+        )
+    }
+
     data object AddHabit : Screen("add_habit")
 
     data object EditHabit : Screen("edit_habit/{habitId}") {

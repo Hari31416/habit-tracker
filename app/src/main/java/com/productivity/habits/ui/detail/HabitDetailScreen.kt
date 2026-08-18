@@ -82,6 +82,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun HabitDetailScreen(
     onBack: () -> Unit,
+    onNavigateToFocusScreen: (String) -> Unit,
     themePreferences: ThemePreferences,
     viewModel: HabitDetailViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
@@ -234,10 +235,10 @@ fun HabitDetailScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // 1. Hero Header with Icon, Title, Category Pill, Since Date, and Mark as Done Action
+            // 1. Compact Hero Header with Icon, Title, Category, and Mark as Done
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(18.dp),
+                shape = RoundedCornerShape(14.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
@@ -245,15 +246,15 @@ fun HabitDetailScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(12.dp)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Surface(
-                            modifier = Modifier.size(54.dp),
-                            shape = RoundedCornerShape(14.dp),
+                            modifier = Modifier.size(40.dp),
+                            shape = RoundedCornerShape(10.dp),
                             color = accentColor.copy(alpha = 0.15f)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
@@ -261,101 +262,63 @@ fun HabitDetailScreen(
                                     imageVector = iconVector,
                                     contentDescription = null,
                                     tint = accentColor,
-                                    modifier = Modifier.size(30.dp)
+                                    modifier = Modifier.size(22.dp)
                                 )
                             }
                         }
 
-                        Spacer(modifier = Modifier.width(14.dp))
+                        Spacer(modifier = Modifier.width(10.dp))
 
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = habit.title,
-                                style = MaterialTheme.typography.titleLarge,
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
 
-                            if (!habit.description.isNullOrBlank()) {
+                            uiState.category?.let { cat ->
                                 Text(
-                                    text = habit.description,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(top = 2.dp)
-                                )
-                            }
-
-                            Row(
-                                modifier = Modifier.padding(top = 6.dp),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                uiState.category?.let { cat ->
-                                    Surface(
-                                        shape = RoundedCornerShape(8.dp),
-                                        color = accentColor.copy(alpha = 0.15f)
-                                    ) {
-                                        Text(
-                                            text = cat.name,
-                                            style = MaterialTheme.typography.labelSmall,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = accentColor,
-                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                                        )
-                                    }
-                                }
-
-                                val createdDate = habit.createdAt.atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("MMM yyyy"))
-                                Text(
-                                    text = "Since $createdDate",
+                                    text = cat.name,
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.outline
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
-                    }
 
-                    Spacer(modifier = Modifier.height(14.dp))
+                        // Mark as done button (compact circle)
+                        val buttonBgColor by animateColorAsState(
+                            targetValue = if (isCompleted) accentColor else MaterialTheme.colorScheme.surfaceVariant,
+                            label = "detail_check_bg"
+                        )
 
-                    // Option to mark as done directly on the detail page
-                    val buttonBgColor by animateColorAsState(
-                        targetValue = if (isCompleted) accentColor else MaterialTheme.colorScheme.surfaceVariant,
-                        label = "detail_check_bg"
-                    )
-                    val buttonTextColor by animateColorAsState(
-                        targetValue = if (isCompleted) Color.White else MaterialTheme.colorScheme.onSurface,
-                        label = "detail_check_text"
-                    )
-
-                    Button(
-                        onClick = {
-                            if (!isCompleted) {
-                                HapticsHelper.performHeavyConfirmationHaptic(context, haptic)
-                            } else {
-                                HapticsHelper.performLightHaptic(haptic)
+                        Surface(
+                            modifier = Modifier
+                                .size(38.dp)
+                                .clip(CircleShape)
+                                .clickable {
+                                    if (!isCompleted) {
+                                        HapticsHelper.performHeavyConfirmationHaptic(
+                                            context,
+                                            haptic
+                                        )
+                                    } else {
+                                        HapticsHelper.performLightHaptic(haptic)
+                                    }
+                                    viewModel.toggleCheckInForDate(uiState.selectedDate)
+                                },
+                            shape = CircleShape,
+                            color = buttonBgColor
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = if (isCompleted) "Completed" else "Mark as Done",
+                                    tint = if (isCompleted) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(20.dp)
+                                )
                             }
-                            viewModel.toggleCheckInForDate(uiState.selectedDate)
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(44.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = buttonBgColor,
-                            contentColor = buttonTextColor
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = if (isCompleted) "Completed for Selected Date" else "Mark as Done for Selected Date",
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold
-                        )
+                        }
                     }
                 }
             }
@@ -506,7 +469,8 @@ fun HabitDetailScreen(
                         defaultDurationMinutes = timerDuration,
                         remainingUnloggedMinutes = remainingMinutes,
                         accentColor = accentColor,
-                        themePreferences = themePreferences
+                        themePreferences = themePreferences,
+                        onFocusScreenClick = { onNavigateToFocusScreen(habit.id) }
                     )
                 }
             }
