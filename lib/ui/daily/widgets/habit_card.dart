@@ -6,6 +6,8 @@ import '../../../domain/models/habit_with_progress.dart';
 import '../../common/color_utils.dart';
 import '../../common/habit_icon_registry.dart';
 import '../../common/haptics_helper.dart';
+import 'numeric_habit_controls.dart';
+import 'slot_habit_controls.dart';
 
 class HabitCard extends StatelessWidget {
   final HabitWithProgress habitWithProgress;
@@ -132,6 +134,29 @@ class HabitCard extends StatelessWidget {
                   _buildActionControl(context, theme, habit, isCompleted, habitColor),
                 ],
               ),
+
+              // Compact auxiliary controls for numeric / slot targets
+              if (habit.targetType == HabitTargetType.numeric && !isCompleted) ...[
+                const SizedBox(height: 8),
+                NumericHabitControls(
+                  habit: habit,
+                  currentValue: habitWithProgress.currentValueOnDate,
+                  isCompleted: isCompleted,
+                  accentColor: habitColor,
+                  onValueChange: (newVal) => onValueChange?.call(newVal),
+                  onDeltaAdd: (delta) => onDeltaAdd?.call(delta),
+                ),
+              ] else if ((habit.frequencyType == HabitFrequencyType.subdayInterval ||
+                      habit.frequencyType == HabitFrequencyType.timesPerDay) &&
+                  !isCompleted) ...[
+                const SizedBox(height: 8),
+                SlotHabitControls(
+                  habit: habit,
+                  logsForDate: habitWithProgress.logsForDate,
+                  accentColor: habitColor,
+                  onToggleSlot: (slotIdx) => onToggleSlot?.call(slotIdx),
+                ),
+              ],
             ],
           ),
         ),
