@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-08-18
+
+### Added
+
+- Do Not Disturb (DND) mode toggle directly accessible in Focus Timer UI.
+- Split-ABI release packaging (`--split-per-abi`) producing optimized individual architecture APKs (`arm64-v8a`, `armeabi-v7a`, `x86_64`) and Android App Bundle (`.aab`).
+- Automated changelog extraction in CI/CD pipeline for GitHub Releases.
+
+### Changed
+
+- Enhanced timer session state management to preserve remaining duration on service pause/stop, enabling distinct reset and resume flows.
+- Makefile release targets expanded with `build-release` (split-ABI) and `build-appbundle`.
+
 ## [0.4.0] - 2026-08-18
 
 ### Added
