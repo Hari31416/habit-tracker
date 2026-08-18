@@ -233,6 +233,16 @@ class FakeHabitRepository implements HabitRepository {
     int? durationSeconds,
     int? intervalIndex,
     String? note,
+    int? energyLevel,
+    String? mood,
+  }) async {}
+  @override
+  Future<void> updateReflection({
+    required String habitId,
+    required DateTime date,
+    int? energyLevel,
+    String? mood,
+    String? note,
   }) async {}
   @override
   Future<void> deleteLogsForHabitAndDate(

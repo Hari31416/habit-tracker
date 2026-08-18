@@ -12,6 +12,8 @@ import '../../../domain/models/habit_target_type.dart';
 import '../../../domain/repositories/gamification_repository.dart';
 import '../../../domain/repositories/habit_repository.dart';
 
+import '../../../domain/engines/wellbeing_correlation_engine.dart';
+
 class HabitDetailUiState {
   final Habit? habit;
   final HabitCategory? category;
@@ -25,6 +27,7 @@ class HabitDetailUiState {
   final bool isShieldedOnSelectedDate;
   final double currentValueOnSelectedDate;
   final ShieldBankState? shieldBank;
+  final WellbeingSummary wellbeingSummary;
   final bool isLoading;
   final bool isDeleted;
 
@@ -46,6 +49,7 @@ class HabitDetailUiState {
     this.isShieldedOnSelectedDate = false,
     this.currentValueOnSelectedDate = 0.0,
     this.shieldBank,
+    this.wellbeingSummary = WellbeingSummary.empty,
     this.isLoading = true,
     this.isDeleted = false,
   })  : selectedDate = selectedDate ?? DateTime.now(),
@@ -65,6 +69,7 @@ class HabitDetailUiState {
     bool? isShieldedOnSelectedDate,
     double? currentValueOnSelectedDate,
     ShieldBankState? shieldBank,
+    WellbeingSummary? wellbeingSummary,
     bool? isLoading,
     bool? isDeleted,
     bool clearHabit = false,
@@ -85,6 +90,7 @@ class HabitDetailUiState {
       currentValueOnSelectedDate:
           currentValueOnSelectedDate ?? this.currentValueOnSelectedDate,
       shieldBank: shieldBank ?? this.shieldBank,
+      wellbeingSummary: wellbeingSummary ?? this.wellbeingSummary,
       isLoading: isLoading ?? this.isLoading,
       isDeleted: isDeleted ?? this.isDeleted,
     );
@@ -178,6 +184,13 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
       _currentShields,
     );
 
+    final wellbeingSummary = WellbeingCorrelationEngine.calculateCorrelation(
+      habits: [habit],
+      logs: _currentLogs,
+      referenceDate: DateTime.now(),
+      daysCount: 30,
+    );
+
     state = HabitDetailUiState(
       habit: habit,
       category: category,
@@ -191,6 +204,7 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
       isShieldedOnSelectedDate: isShielded,
       currentValueOnSelectedDate: currentValue,
       shieldBank: _currentShieldBank,
+      wellbeingSummary: wellbeingSummary,
       isLoading: false,
       isDeleted: false,
     );
@@ -295,6 +309,21 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
 
   Future<void> toggleCheckInForDate(DateTime date) async {
     await repository.toggleBooleanCheckIn(habitId, date);
+  }
+
+  Future<void> updateReflection({
+    required DateTime date,
+    int? energyLevel,
+    String? mood,
+    String? note,
+  }) async {
+    await repository.updateReflection(
+      habitId: habitId,
+      date: date,
+      energyLevel: energyLevel,
+      mood: mood,
+      note: note,
+    );
   }
 
   Future<void> toggleShieldForSelectedDate() async {

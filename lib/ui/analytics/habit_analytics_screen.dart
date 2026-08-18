@@ -11,6 +11,7 @@ import '../navigation/screen.dart';
 import 'controllers/analytics_controller.dart';
 import 'widgets/adherence_area_chart.dart';
 import 'widgets/monthly_heatmap_grid.dart';
+import 'widgets/wellbeing_correlation_card.dart';
 
 class HabitAnalyticsScreen extends ConsumerStatefulWidget {
   final VoidCallback? onNavigateToDaily;
@@ -126,7 +127,14 @@ class _HabitAnalyticsScreenState extends ConsumerState<HabitAnalyticsScreen> {
 
                           const SizedBox(height: 20),
 
-                          // 5. Monthly Activity Heatmap
+                          // 5. Wellbeing & Energy Correlation Section
+                          WellbeingCorrelationCard(
+                            summary: uiState.wellbeingSummary,
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // 6. Monthly Activity Heatmap
                           MonthlyHeatmapGrid(
                             month: uiState.heatmapMonth,
                             dayDataMap: uiState.heatmapData,

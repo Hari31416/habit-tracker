@@ -9,6 +9,7 @@ import '../form/habit_form_bottom_sheet.dart';
 import '../gamification/dialogs/shield_bank_bottom_sheet.dart';
 import '../navigation/habit_bottom_navigation.dart';
 import '../navigation/screen.dart';
+import '../reflection/reflection_bottom_sheet.dart';
 import 'controllers/daily_tracker_controller.dart';
 import 'widgets/habit_card.dart';
 import 'widgets/historical_banner.dart';
@@ -613,7 +614,34 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen> {
             widget.onNavigateToDetail?.call(id);
           },
           onToggleCheckIn: () {
+            final wasCompleted = habitWithProgress.isCompletedOnDate;
             controller.toggleCheckIn(habitWithProgress.habit);
+            if (!wasCompleted) {
+              Future.delayed(const Duration(milliseconds: 350), () {
+                if (context.mounted) {
+                  final log = habitWithProgress.logsForDate.firstOrNull;
+                  ReflectionBottomSheet.show(
+                    context,
+                    habit: habitWithProgress.habit,
+                    date: uiState.selectedDate,
+                    initialEnergyLevel: log?.energyLevel,
+                    initialMood: log?.mood,
+                    initialNote: log?.note,
+                  );
+                }
+              });
+            }
+          },
+          onReflect: () {
+            final log = habitWithProgress.logsForDate.firstOrNull;
+            ReflectionBottomSheet.show(
+              context,
+              habit: habitWithProgress.habit,
+              date: uiState.selectedDate,
+              initialEnergyLevel: log?.energyLevel,
+              initialMood: log?.mood,
+              initialNote: log?.note,
+            );
           },
           onToggleShield: () {
             controller.toggleShield(habitWithProgress.habit);

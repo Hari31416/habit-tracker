@@ -19,6 +19,7 @@ class HabitCard extends StatelessWidget {
   final ValueChanged<int>? onToggleSlot;
   final VoidCallback? onTogglePin;
   final VoidCallback? onStartFocus;
+  final VoidCallback? onReflect;
 
   const HabitCard({
     super.key,
@@ -31,6 +32,7 @@ class HabitCard extends StatelessWidget {
     this.onToggleSlot,
     this.onTogglePin,
     this.onStartFocus,
+    this.onReflect,
   });
 
   @override
@@ -73,6 +75,12 @@ class HabitCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () => onHabitClick(habit.id),
+        onLongPress: onReflect != null
+            ? () {
+                HapticsHelper.performLightHaptic();
+                onReflect?.call();
+              }
+            : null,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Column(

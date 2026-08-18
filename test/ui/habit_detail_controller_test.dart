@@ -241,6 +241,8 @@ class FakeHabitRepository implements HabitRepository {
     int? durationSeconds,
     int? intervalIndex,
     String? note,
+    int? energyLevel,
+    String? mood,
   }) async {
     final dateStr = StreakCalculator.dateFormatter.format(date);
     final now = DateTime.now();
@@ -255,10 +257,48 @@ class FakeHabitRepository implements HabitRepository {
       durationSeconds: durationSeconds,
       intervalIndex: intervalIndex,
       note: note,
+      energyLevel: energyLevel,
+      mood: mood,
       createdAt: now,
       updatedAt: now,
     ));
-    _notify();
+    _logsController.add(List.unmodifiable(_logs));
+  }
+
+  @override
+  Future<void> updateReflection({
+    required String habitId,
+    required DateTime date,
+    int? energyLevel,
+    String? mood,
+    String? note,
+  }) async {
+    final dateStr = StreakCalculator.dateFormatter.format(date);
+    final now = DateTime.now();
+    final existing = _logs.where((l) => l.habitId == habitId && l.date == dateStr).firstOrNull;
+    if (existing != null) {
+      _logs.removeWhere((l) => l.habitId == habitId && l.date == dateStr);
+      _logs.add(existing.copyWith(
+        energyLevel: energyLevel,
+        mood: mood,
+        note: note,
+        updatedAt: now,
+      ));
+    } else {
+      _logs.add(HabitLog(
+        id: 'log-${now.millisecondsSinceEpoch}',
+        habitId: habitId,
+        date: dateStr,
+        timestamp: now,
+        completed: true,
+        energyLevel: energyLevel,
+        mood: mood,
+        note: note,
+        createdAt: now,
+        updatedAt: now,
+      ));
+    }
+    _logsController.add(List.unmodifiable(_logs));
   }
   @override
   Future<void> deleteLogsForHabitAndDate(

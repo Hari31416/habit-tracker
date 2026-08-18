@@ -12,10 +12,13 @@ import '../daily/widgets/numeric_habit_controls.dart';
 import '../daily/widgets/slot_habit_controls.dart';
 import '../form/habit_form_bottom_sheet.dart';
 import '../gamification/dialogs/shield_bank_bottom_sheet.dart';
+import '../analytics/widgets/wellbeing_correlation_card.dart';
+import '../reflection/reflection_bottom_sheet.dart';
 import 'controllers/habit_detail_controller.dart';
 import 'widgets/circular_focus_timer.dart';
 import 'widgets/habit_monthly_calendar.dart';
 import 'widgets/motivation_card.dart';
+import 'widgets/reflection_history_timeline.dart';
 import 'widgets/stats_metric_strip.dart';
 import 'widgets/ten_dot_progress_bar.dart';
 
@@ -334,12 +337,24 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
                               onTap: () {
                                 if (!isCompleted) {
                                   HapticsHelper.performHeavyConfirmationHaptic();
+                                  controller.toggleCheckInForDate(
+                                    uiState.selectedDate,
+                                  );
+                                  Future.delayed(const Duration(milliseconds: 300), () {
+                                    if (context.mounted) {
+                                      ReflectionBottomSheet.show(
+                                        context,
+                                        habit: habit,
+                                        date: uiState.selectedDate,
+                                      );
+                                    }
+                                  });
                                 } else {
                                   HapticsHelper.performLightHaptic();
+                                  controller.toggleCheckInForDate(
+                                    uiState.selectedDate,
+                                  );
                                 }
-                                controller.toggleCheckInForDate(
-                                  uiState.selectedDate,
-                                );
                               },
                               child: Icon(
                                 isCompleted
@@ -658,7 +673,24 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
               onDateClick: controller.selectDate,
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
+
+            // 8. Reflections & Mood Timeline
+            ReflectionHistoryTimeline(
+              habit: habit,
+              logs: uiState.allLogs,
+              selectedDate: uiState.selectedDate,
+              accentColor: accentColor,
+            ),
+
+            const SizedBox(height: 14),
+
+            // 9. Habit Wellbeing & Energy Correlation
+            WellbeingCorrelationCard(
+              summary: uiState.wellbeingSummary,
+            ),
+
+            const SizedBox(height: 20),
           ],
         ),
       ),

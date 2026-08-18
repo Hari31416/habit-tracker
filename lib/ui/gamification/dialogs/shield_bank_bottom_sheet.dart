@@ -48,25 +48,25 @@ class _ShieldBankBottomSheetState extends ConsumerState<ShieldBankBottomSheet> {
         final progress = bankState?.progressToNextShield ?? 0.0;
         final autoConsume = bankState?.autoConsumeEnabled ?? true;
 
-        return Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.88,
-          ),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-            left: 20,
-            right: 20,
-            top: 12,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+        return Material(
+          color: theme.colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          clipBehavior: Clip.antiAlias,
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.88,
+            ),
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              left: 20,
+              right: 20,
+              top: 12,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 // Drag handle
                 Center(
                   child: Container(
@@ -341,6 +341,7 @@ class _ShieldBankBottomSheetState extends ConsumerState<ShieldBankBottomSheet> {
               ],
             ),
           ),
+        ),
         );
       },
     );

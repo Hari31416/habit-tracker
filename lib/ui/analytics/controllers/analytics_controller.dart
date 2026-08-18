@@ -9,6 +9,8 @@ import '../../../domain/models/habit_frequency_type.dart';
 import '../../../domain/models/habit_log.dart';
 import '../../../domain/repositories/habit_repository.dart';
 
+import '../../../domain/engines/wellbeing_correlation_engine.dart';
+
 class LeaderboardItem {
   final Habit habit;
   final HabitCategory? category;
@@ -122,6 +124,7 @@ class AnalyticsUiState {
   final List<AdherenceDataPoint> trendDataPoints;
   final DateTime heatmapMonth;
   final Map<DateTime, HeatmapDayData> heatmapData;
+  final WellbeingSummary wellbeingSummary;
   final bool isLoading;
 
   AnalyticsUiState({
@@ -137,6 +140,7 @@ class AnalyticsUiState {
     this.trendDataPoints = const [],
     DateTime? heatmapMonth,
     this.heatmapData = const {},
+    this.wellbeingSummary = WellbeingSummary.empty,
     this.isLoading = false,
   }) : heatmapMonth = heatmapMonth ??
             DateTime(DateTime.now().year, DateTime.now().month, 1);
@@ -154,6 +158,7 @@ class AnalyticsUiState {
     List<AdherenceDataPoint>? trendDataPoints,
     DateTime? heatmapMonth,
     Map<DateTime, HeatmapDayData>? heatmapData,
+    WellbeingSummary? wellbeingSummary,
     bool? isLoading,
   }) {
     return AnalyticsUiState(
@@ -171,6 +176,7 @@ class AnalyticsUiState {
       trendDataPoints: trendDataPoints ?? this.trendDataPoints,
       heatmapMonth: heatmapMonth ?? this.heatmapMonth,
       heatmapData: heatmapData ?? this.heatmapData,
+      wellbeingSummary: wellbeingSummary ?? this.wellbeingSummary,
       isLoading: isLoading ?? this.isLoading,
     );
   }
@@ -397,6 +403,14 @@ class AnalyticsController extends StateNotifier<AnalyticsUiState> {
       );
     }
 
+    // 5. Wellbeing & Energy Correlation Summary
+    final wellbeingSummary = WellbeingCorrelationEngine.calculateCorrelation(
+      habits: _habits,
+      logs: _logs,
+      referenceDate: today,
+      daysCount: 30,
+    );
+
     state = AnalyticsUiState(
       consistency30Days: consistency30,
       consistencyDelta30Days: delta30,
@@ -410,6 +424,7 @@ class AnalyticsController extends StateNotifier<AnalyticsUiState> {
       trendDataPoints: trendPoints,
       heatmapMonth: _heatmapMonth,
       heatmapData: heatmapData,
+      wellbeingSummary: wellbeingSummary,
       isLoading: false,
     );
   }
