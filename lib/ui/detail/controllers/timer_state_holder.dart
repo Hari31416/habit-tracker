@@ -85,6 +85,12 @@ class TimerStateHolderNotifier extends StateNotifier<TimerState> {
       targetEndTime: endTime,
     );
 
+    _callNativeTimer('startTimer', {
+      'habitId': habitId,
+      'habitTitle': habitTitle,
+      'durationMinutes': durationMinutes,
+    });
+
     _startTicker();
   }
 
@@ -96,6 +102,7 @@ class TimerStateHolderNotifier extends StateNotifier<TimerState> {
         status: TimerStatus.running,
         targetEndTime: endTime,
       );
+      _callNativeTimer('resumeTimer');
       _startTicker();
     }
   }
@@ -107,6 +114,7 @@ class TimerStateHolderNotifier extends StateNotifier<TimerState> {
         status: TimerStatus.paused,
         clearTargetEndTime: true,
       );
+      _callNativeTimer('pauseTimer');
     }
   }
 
@@ -117,11 +125,13 @@ class TimerStateHolderNotifier extends StateNotifier<TimerState> {
       status: TimerStatus.idle,
       clearTargetEndTime: true,
     );
+    _callNativeTimer('stopTimer');
   }
 
   void stop() {
     _ticker?.cancel();
     state = const TimerState();
+    _callNativeTimer('stopTimer');
   }
 
   void tick(int remainingSec) {
@@ -149,6 +159,8 @@ class TimerStateHolderNotifier extends StateNotifier<TimerState> {
         ? DateTime.now().add(Duration(seconds: newRemaining))
         : null;
 
+    _callNativeTimer('adjustTimer', {'deltaSeconds': deltaSeconds});
+
     if (newRemaining <= 0) {
       _ticker?.cancel();
       state = state.copyWith(
@@ -165,6 +177,13 @@ class TimerStateHolderNotifier extends StateNotifier<TimerState> {
         targetEndTime: newEndTime,
       );
     }
+  }
+
+  void _callNativeTimer(String method, [Map<String, dynamic>? args]) {
+    try {
+      const channel = MethodChannel('com.productivity.habits/focus_timer');
+      channel.invokeMethod(method, args).catchError((_) => null);
+    } catch (_) {}
   }
 
   void setRemainingMinutes(int minutes) {
@@ -289,6 +308,12 @@ class TimerStateHolder {
       targetEndTime: endTime,
     ));
 
+    _callNativeStaticTimer('startTimer', {
+      'habitId': habitId,
+      'habitTitle': habitTitle,
+      'durationMinutes': durationMinutes,
+    });
+
     _startTicker();
   }
 
@@ -300,6 +325,7 @@ class TimerStateHolder {
         status: TimerStatus.running,
         targetEndTime: endTime,
       ));
+      _callNativeStaticTimer('resumeTimer');
       _startTicker();
     }
   }
@@ -311,6 +337,7 @@ class TimerStateHolder {
         status: TimerStatus.paused,
         clearTargetEndTime: true,
       ));
+      _callNativeStaticTimer('pauseTimer');
     }
   }
 
@@ -321,11 +348,13 @@ class TimerStateHolder {
       status: TimerStatus.idle,
       clearTargetEndTime: true,
     ));
+    _callNativeStaticTimer('stopTimer');
   }
 
   static void stop() {
     _ticker?.cancel();
     _updateState(const TimerState());
+    _callNativeStaticTimer('stopTimer');
   }
 
   static void tick(int remainingSec) {
@@ -353,6 +382,8 @@ class TimerStateHolder {
         ? DateTime.now().add(Duration(seconds: newRemaining))
         : null;
 
+    _callNativeStaticTimer('adjustTimer', {'deltaSeconds': deltaSeconds});
+
     if (newRemaining <= 0) {
       _ticker?.cancel();
       _updateState(_state.copyWith(
@@ -369,6 +400,13 @@ class TimerStateHolder {
         targetEndTime: newEndTime,
       ));
     }
+  }
+
+  static void _callNativeStaticTimer(String method, [Map<String, dynamic>? args]) {
+    try {
+      const channel = MethodChannel('com.productivity.habits/focus_timer');
+      channel.invokeMethod(method, args).catchError((_) => null);
+    } catch (_) {}
   }
 
   static void setRemainingMinutes(int minutes) {

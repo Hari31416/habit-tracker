@@ -9,12 +9,14 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-    private val CHANNEL = "com.productivity.habits/widgets"
+    private val WIDGETS_CHANNEL = "com.productivity.habits/widgets"
+    private val TIMER_CHANNEL = "com.productivity.habits/focus_timer"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
+        // Widgets Method Channel
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, WIDGETS_CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
                 "updateWidgetData" -> {
                     val widgetType = call.argument<String>("widgetType")
@@ -36,6 +38,44 @@ class MainActivity : FlutterActivity() {
                     val pendingList = pendingSet?.toList() ?: emptyList<String>()
                     prefs.edit().remove("pending_toggled_habit_ids").apply()
                     result.success(pendingList)
+                }
+                "getPendingCompletedFocusSessions" -> {
+                    val prefs = getSharedPreferences("habit_widget_prefs", Context.MODE_PRIVATE)
+                    val pendingSet = prefs.getStringSet("pending_completed_focus_sessions", null)
+                    val pendingList = pendingSet?.toList() ?: emptyList<String>()
+                    prefs.edit().remove("pending_completed_focus_sessions").apply()
+                    result.success(pendingList)
+                }
+                else -> result.notImplemented()
+            }
+        }
+
+        // Focus Timer Method Channel
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, TIMER_CHANNEL).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "startTimer" -> {
+                    val habitId = call.argument<String>("habitId") ?: ""
+                    val habitTitle = call.argument<String>("habitTitle") ?: "Focus Session"
+                    val durationMinutes = call.argument<Double>("durationMinutes") ?: 25.0
+                    FocusTimerService.startTimer(applicationContext, habitId, habitTitle, durationMinutes)
+                    result.success(true)
+                }
+                "pauseTimer" -> {
+                    FocusTimerService.pauseTimer(applicationContext)
+                    result.success(true)
+                }
+                "resumeTimer" -> {
+                    FocusTimerService.resumeTimer(applicationContext)
+                    result.success(true)
+                }
+                "stopTimer" -> {
+                    FocusTimerService.stopTimer(applicationContext)
+                    result.success(true)
+                }
+                "adjustTimer" -> {
+                    val deltaSeconds = (call.argument<Number>("deltaSeconds")?.toLong()) ?: 0L
+                    FocusTimerService.adjustTimer(applicationContext, deltaSeconds)
+                    result.success(true)
                 }
                 else -> result.notImplemented()
             }
@@ -62,15 +102,7 @@ class MainActivity : FlutterActivity() {
                 DailyFocusWidgetReceiver().updateWidgets(context, appWidgetManager, dailyFocusIds)
             }
 
-            // 3. Focus Timer
-            val focusTimerIds = appWidgetManager.getAppWidgetIds(
-                ComponentName(context, FocusTimerWidgetReceiver::class.java)
-            )
-            if (focusTimerIds.isNotEmpty()) {
-                FocusTimerWidgetReceiver().updateWidgets(context, appWidgetManager, focusTimerIds)
-            }
-
-            // 4. Streaks
+            // 3. Streaks
             val streaksIds = appWidgetManager.getAppWidgetIds(
                 ComponentName(context, StreaksWidgetReceiver::class.java)
             )

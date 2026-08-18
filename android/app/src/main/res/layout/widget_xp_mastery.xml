@@ -5,11 +5,16 @@
     android:layout_height="match_parent"
     android:background="#162320"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:paddingLeft="12dp"
+    android:paddingTop="12dp"
+    android:paddingRight="12dp"
+    android:paddingBottom="12dp">
 
+    <!-- Header Row -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <TextView
@@ -17,38 +22,168 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:text="Lv.1 Novice"
             android:textColor="#F1F5F4"
             android:textSize="13sp"
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/tv_player_total_xp"
+            android:id="@+id/tv_player_badges_badge"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0 XP"
+            android:text="0/0 Badges"
+            android:textColor="#F59E0B"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- XP Progress Numbers -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tv_player_xp_ratio"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="0 / 100 XP"
             android:textColor="#10B981"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_player_xp_percent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0%"
+            android:textColor="#9EADA9"
             android:textSize="12sp"
             android:textStyle="bold" />
     </LinearLayout>
 
+    <!-- Progress Bar -->
     <ProgressBar
         android:id="@+id/pb_xp_progress"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
-        android:layout_height="5dp"
-        android:layout_marginTop="8dp"
+        android:layout_height="6dp"
+        android:layout_marginTop="4dp"
         android:max="100"
         android:progress="0"
         android:progressTint="#10B981" />
 
-    <TextView
-        android:id="@+id/tv_next_milestone"
-        android:layout_width="wrap_content"
+    <!-- 2-Card Bottom Dashboard (Shown only when expanded/resized) -->
+    <LinearLayout
+        android:id="@+id/ll_xp_cards"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:text="Next Level at 100 XP"
-        android:textColor="#9EADA9"
-        android:textSize="11sp" />
+        android:layout_marginTop="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <!-- Card 1: Next Badge -->
+        <LinearLayout
+            android:id="@+id/ll_card_next_badge"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="4dp"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:background="#20332E"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            android:paddingLeft="8dp"
+            android:paddingTop="8dp"
+            android:paddingRight="8dp"
+            android:paddingBottom="8dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="NEXT BADGE"
+                android:textColor="#9EADA9"
+                android:textSize="9sp" />
+
+            <TextView
+                android:id="@+id/tv_badge_card_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Next Badge"
+                android:textColor="#F1F5F4"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_badge_card_progress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="0 / 0"
+                android:textColor="#F59E0B"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- Card 2: Next Milestone & Multiplier -->
+        <LinearLayout
+            android:id="@+id/ll_card_next_level"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:background="#20332E"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            android:paddingLeft="8dp"
+            android:paddingTop="8dp"
+            android:paddingRight="8dp"
+            android:paddingBottom="8dp">
+
+            <TextView
+                android:id="@+id/tv_level_card_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="NEXT MILESTONE"
+                android:textColor="#9EADA9"
+                android:textSize="9sp" />
+
+            <TextView
+                android:id="@+id/tv_level_card_needed"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="100 XP needed"
+                android:textColor="#F1F5F4"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_level_card_multiplier"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="1.0x Streak Multiplier"
+                android:textColor="#10B981"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+    </LinearLayout>
 
 </LinearLayout>

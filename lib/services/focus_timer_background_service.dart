@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/services.dart';
 import '../domain/repositories/habit_repository.dart';
 import 'widget_sync_service.dart';
 
@@ -83,6 +84,12 @@ class FocusTimerBackgroundService {
     );
     _stateController.add(_state);
 
+    _callNativeTimer('startTimer', {
+      'habitId': habitId,
+      'habitTitle': habitTitle,
+      'durationMinutes': durationMinutes,
+    });
+
     _startTimerLoop();
     _syncWidget();
   }
@@ -92,6 +99,7 @@ class FocusTimerBackgroundService {
     if (_state.isRunning) {
       _state = _state.copyWith(status: BackgroundTimerStatus.paused);
       _stateController.add(_state);
+      _callNativeTimer('pauseTimer');
       _syncWidget();
     }
   }
@@ -100,6 +108,7 @@ class FocusTimerBackgroundService {
     if (_state.isPaused) {
       _state = _state.copyWith(status: BackgroundTimerStatus.running);
       _stateController.add(_state);
+      _callNativeTimer('resumeTimer');
       _startTimerLoop();
       _syncWidget();
     }
@@ -109,6 +118,7 @@ class FocusTimerBackgroundService {
     _countdownTimer?.cancel();
     _state = _state.copyWith(status: BackgroundTimerStatus.idle);
     _stateController.add(_state);
+    _callNativeTimer('stopTimer');
     _syncWidget();
   }
 
@@ -119,6 +129,7 @@ class FocusTimerBackgroundService {
       status: BackgroundTimerStatus.idle,
     );
     _stateController.add(_state);
+    _callNativeTimer('stopTimer');
     _syncWidget();
   }
 
@@ -127,7 +138,15 @@ class FocusTimerBackgroundService {
         (_state.remainingSeconds + deltaSeconds).clamp(0, _state.totalSeconds);
     _state = _state.copyWith(remainingSeconds: newRemaining);
     _stateController.add(_state);
+    _callNativeTimer('adjustTimer', {'deltaSeconds': deltaSeconds});
     _syncWidget();
+  }
+
+  void _callNativeTimer(String method, [Map<String, dynamic>? args]) {
+    try {
+      const channel = MethodChannel('com.productivity.habits/focus_timer');
+      channel.invokeMethod(method, args).catchError((_) => null);
+    } catch (_) {}
   }
 
   void _syncWidget() {

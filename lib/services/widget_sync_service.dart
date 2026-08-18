@@ -150,6 +150,8 @@ class FocusTimerWidgetSnapshot {
   final int remainingSeconds;
   final String status;
   final double progressFraction;
+  final int todayFocusMinutes;
+  final int currentStreak;
 
   const FocusTimerWidgetSnapshot({
     this.habitId,
@@ -158,6 +160,8 @@ class FocusTimerWidgetSnapshot {
     required this.remainingSeconds,
     required this.status,
     required this.progressFraction,
+    this.todayFocusMinutes = 0,
+    this.currentStreak = 0,
   });
 
   Map<String, dynamic> toJson() => {
@@ -167,6 +171,8 @@ class FocusTimerWidgetSnapshot {
         'remainingSeconds': remainingSeconds,
         'status': status,
         'progressFraction': progressFraction,
+        'todayFocusMinutes': todayFocusMinutes,
+        'currentStreak': currentStreak,
       };
 }
 
@@ -181,6 +187,10 @@ class XpMasteryWidgetSnapshot {
   final int xpNeededForNextLevel;
   final String? nextTitleDisplayName;
   final String? nextBadgeTitle;
+  final int nextBadgeProgress;
+  final int nextBadgeTarget;
+  final String nextBadgeUnit;
+  final double activeStreakMultiplier;
 
   const XpMasteryWidgetSnapshot({
     required this.level,
@@ -193,6 +203,10 @@ class XpMasteryWidgetSnapshot {
     required this.xpNeededForNextLevel,
     this.nextTitleDisplayName,
     this.nextBadgeTitle,
+    this.nextBadgeProgress = 0,
+    this.nextBadgeTarget = 10,
+    this.nextBadgeUnit = 'days',
+    this.activeStreakMultiplier = 1.0,
   });
 
   Map<String, dynamic> toJson() => {
@@ -206,6 +220,10 @@ class XpMasteryWidgetSnapshot {
         'xpNeededForNextLevel': xpNeededForNextLevel,
         'nextTitleDisplayName': nextTitleDisplayName,
         'nextBadgeTitle': nextBadgeTitle,
+        'nextBadgeProgress': nextBadgeProgress,
+        'nextBadgeTarget': nextBadgeTarget,
+        'nextBadgeUnit': nextBadgeUnit,
+        'activeStreakMultiplier': activeStreakMultiplier,
       };
 }
 
@@ -255,15 +273,44 @@ class WidgetSyncService {
   Future<void> consumePendingWidgetActions() async {
     try {
       const channel = MethodChannel('com.productivity.habits/widgets');
-      final dynamic res =
+      final dynamic checkIns =
           await channel.invokeMethod('getPendingWidgetCheckIns');
-      if (res is List && res.isNotEmpty) {
-        final now = DateTime.now();
-        for (final habitId in res) {
+      final now = DateTime.now();
+      if (checkIns is List && checkIns.isNotEmpty) {
+        for (final habitId in checkIns) {
           if (habitId is String && habitId.isNotEmpty) {
             await _repository.toggleBooleanCheckIn(habitId, now);
           }
         }
+      }
+
+      final dynamic sessions =
+          await channel.invokeMethod('getPendingCompletedFocusSessions');
+      if (sessions is List && sessions.isNotEmpty) {
+        for (final item in sessions) {
+          if (item is String && item.isNotEmpty) {
+            try {
+              final obj = jsonDecode(item) as Map<String, dynamic>;
+              final habitId = obj['habitId'] as String?;
+              final durationSeconds = (obj['durationSeconds'] as num?)?.toInt() ?? 1500;
+              final durationMinutes = durationSeconds / 60.0;
+              if (habitId != null && habitId.isNotEmpty) {
+                await _repository.logCheckIn(
+                  habitId: habitId,
+                  date: now,
+                  completed: true,
+                  value: durationMinutes,
+                  durationSeconds: durationSeconds,
+                  note: 'Completed focus timer session (${durationMinutes.toInt()} mins)',
+                );
+              }
+            } catch (_) {}
+          }
+        }
+      }
+
+      if ((checkIns is List && checkIns.isNotEmpty) ||
+          (sessions is List && sessions.isNotEmpty)) {
         await syncAllWidgets(now);
       }
     } catch (_) {}
@@ -459,6 +506,10 @@ class WidgetSyncService {
           xpNeededForNextLevel: xpNeeded,
           nextTitleDisplayName: nextTitle?.displayName,
           nextBadgeTitle: inProgressBadge?.definition.title,
+          nextBadgeProgress: inProgressBadge?.currentProgress ?? 0,
+          nextBadgeTarget: inProgressBadge?.definition.targetValue ?? 10,
+          nextBadgeUnit: inProgressBadge?.definition.unit ?? 'days',
+          activeStreakMultiplier: prog.activeStreakMultiplier,
         );
       } catch (_) {}
     }
@@ -474,6 +525,13 @@ class WidgetSyncService {
       if (timerHabit != null) {
         final targetMins = timerHabit.targetValue ?? 25.0;
         final totalSec = (targetMins * 60).round();
+        final habitLogs =
+            (allLogsByHabit[timerHabit.id] ?? const []).cast<dynamic>();
+        final streakResult = StreakCalculator.calculateStreak(
+          timerHabit,
+          habitLogs.cast(),
+          today,
+        );
         lastFocusTimer = FocusTimerWidgetSnapshot(
           habitId: timerHabit.id,
           habitTitle: timerHabit.title,
@@ -481,6 +539,8 @@ class WidgetSyncService {
           remainingSeconds: totalSec,
           status: 'Ready',
           progressFraction: 0.0,
+          todayFocusMinutes: (totalFocusSec / 60).toInt(),
+          currentStreak: streakResult.currentStreak,
         );
       }
     }

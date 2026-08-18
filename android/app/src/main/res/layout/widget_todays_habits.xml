@@ -5,7 +5,10 @@
     android:layout_height="match_parent"
     android:background="#162320"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:paddingLeft="8dp"
+    android:paddingTop="8dp"
+    android:paddingRight="8dp"
+    android:paddingBottom="8dp">
 
     <!-- Header (Tappable to launch app) -->
     <LinearLayout
@@ -19,9 +22,9 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Today\'s Habits"
+            android:text="Today's Habits"
             android:textColor="#F1F5F4"
-            android:textSize="14sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <TextView
@@ -30,194 +33,77 @@
             android:layout_height="wrap_content"
             android:text="0/0"
             android:textColor="#10B981"
-            android:textSize="13sp"
+            android:textSize="11sp"
             android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- Habit Rows (Interactive Toggles) -->
-    <LinearLayout
-        android:id="@+id/ll_habit_row_0"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:visibility="gone">
-
-        <TextView
-            android:id="@+id/tv_habit_check_0"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:gravity="center"
-            android:text="○"
-            android:textColor="#9EADA9"
-            android:textSize="16sp" />
-
-        <TextView
-            android:id="@+id/tv_habit_title_0"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_weight="1"
-            android:text="Habit 1"
-            android:textColor="#F1F5F4"
-            android:textSize="13sp" />
-
-        <TextView
-            android:id="@+id/tv_habit_streak_0"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🔥 0d"
-            android:textColor="#F59E0B"
-            android:textSize="11sp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/ll_habit_row_1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:visibility="gone">
-
-        <TextView
-            android:id="@+id/tv_habit_check_1"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:gravity="center"
-            android:text="○"
-            android:textColor="#9EADA9"
-            android:textSize="16sp" />
-
-        <TextView
-            android:id="@+id/tv_habit_title_1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_weight="1"
-            android:text="Habit 2"
-            android:textColor="#F1F5F4"
-            android:textSize="13sp" />
-
-        <TextView
-            android:id="@+id/tv_habit_streak_1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🔥 0d"
-            android:textColor="#F59E0B"
-            android:textSize="11sp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/ll_habit_row_2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:visibility="gone">
-
-        <TextView
-            android:id="@+id/tv_habit_check_2"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:gravity="center"
-            android:text="○"
-            android:textColor="#9EADA9"
-            android:textSize="16sp" />
-
-        <TextView
-            android:id="@+id/tv_habit_title_2"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_weight="1"
-            android:text="Habit 3"
-            android:textColor="#F1F5F4"
-            android:textSize="13sp" />
-
-        <TextView
-            android:id="@+id/tv_habit_streak_2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🔥 0d"
-            android:textColor="#F59E0B"
-            android:textSize="11sp" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/ll_habit_row_3"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:visibility="gone">
-
-        <TextView
-            android:id="@+id/tv_habit_check_3"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:gravity="center"
-            android:text="○"
-            android:textColor="#9EADA9"
-            android:textSize="16sp" />
-
-        <TextView
-            android:id="@+id/tv_habit_title_3"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_weight="1"
-            android:text="Habit 4"
-            android:textColor="#F1F5F4"
-            android:textSize="13sp" />
-
-        <TextView
-            android:id="@+id/tv_habit_streak_3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🔥 0d"
-            android:textColor="#F59E0B"
-            android:textSize="11sp" />
-    </LinearLayout>
-
+    <!-- Empty State -->
     <TextView
         android:id="@+id/tv_empty_habits"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:gravity="center"
-        android:text="No habits scheduled for today"
+        android:text="No habits scheduled for today\nTap to add habits"
         android:textColor="#9EADA9"
-        android:textSize="12sp"
+        android:textSize="11sp"
         android:visibility="gone" />
 
-    <!-- Bottom Metrics -->
+    <!-- Dynamic Container for Habit Rows -->
     <LinearLayout
+        android:id="@+id/ll_habits_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="3dp"
+        android:layout_weight="1"
+        android:orientation="vertical" />
+
+    <!-- Bottom Metrics / Summary Bar -->
+    <LinearLayout
+        android:id="@+id/ll_todays_habits_footer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:orientation="horizontal">
+        android:layout_marginTop="4dp"
+        android:background="#20332E"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingLeft="6dp"
+        android:paddingTop="3dp"
+        android:paddingRight="6dp"
+        android:paddingBottom="3dp">
 
         <TextView
             android:id="@+id/tv_bottom_streak"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Top Streak: 0d"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="1d streak"
             android:textColor="#F59E0B"
-            android:textSize="11sp"
+            android:textSize="9sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tv_bottom_xp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:text="+0 XP"
             android:textColor="#10B981"
-            android:textSize="11sp"
+            android:textSize="9sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_bottom_add"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="6dp"
+            android:layout_marginStart="6dp"
+            android:text="+ Add"
+            android:textColor="#F1F5F4"
+            android:textSize="9sp"
             android:textStyle="bold" />
     </LinearLayout>
 

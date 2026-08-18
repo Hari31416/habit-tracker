@@ -5,11 +5,17 @@
     android:layout_height="match_parent"
     android:background="#162320"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:paddingLeft="10dp"
+    android:paddingTop="10dp"
+    android:paddingRight="10dp"
+    android:paddingBottom="10dp">
 
+    <!-- Header -->
     <LinearLayout
+        android:id="@+id/ll_streaks_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <TextView
@@ -22,32 +28,58 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/tv_best_streak_badge"
+            android:id="@+id/tv_active_streaks_badge"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0d Best"
+            android:text="0 Active"
             android:textColor="#F59E0B"
-            android:textSize="12sp"
+            android:textSize="11sp"
             android:textStyle="bold" />
     </LinearLayout>
 
+    <!-- Empty State -->
     <TextView
-        android:id="@+id/tv_streak_lead"
-        android:layout_width="wrap_content"
+        android:id="@+id/tv_empty_streaks"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="No active streaks yet\nBuild consistency today"
+        android:textColor="#9EADA9"
+        android:textSize="11sp"
+        android:visibility="gone" />
+
+    <!-- Dynamic Container for Streak Habits -->
+    <LinearLayout
+        android:id="@+id/ll_streaks_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="4dp"
+        android:layout_weight="1"
+        android:orientation="vertical" />
+
+    <!-- Bottom Metrics -->
+    <LinearLayout
+        android:id="@+id/ll_streaks_footer"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
-        android:text="Keep streaks alive today"
-        android:textColor="#F1F5F4"
-        android:textSize="13sp"
-        android:textStyle="bold" />
+        android:background="#20332E"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingLeft="8dp"
+        android:paddingTop="4dp"
+        android:paddingRight="8dp"
+        android:paddingBottom="4dp">
 
-    <TextView
-        android:id="@+id/tv_streak_sub"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="0 active streaks"
-        android:textColor="#9EADA9"
-        android:textSize="11sp" />
+        <TextView
+            android:id="@+id/tv_bottom_overall_streak"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Top overall streak: 0 days"
+            android:textColor="#F59E0B"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
 </LinearLayout>
