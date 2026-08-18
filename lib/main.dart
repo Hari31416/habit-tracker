@@ -37,6 +37,17 @@ void main() async {
   await NotificationService.requestPermission();
 
   final container = ProviderContainer();
+  NotificationService.bindActionHandler(({
+    required String action,
+    required String habitId,
+    double? delta,
+  }) {
+    return container.read(notificationActionHandlerProvider).handleAction(
+          action: action,
+          habitId: habitId,
+          delta: delta,
+        );
+  });
   // Trigger initial background sync and consume any pending widget actions
   Future.microtask(() async {
     await container.read(widgetSyncServiceProvider).consumePendingWidgetActions();
@@ -81,7 +92,6 @@ class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       ref.read(widgetSyncServiceProvider).consumePendingWidgetActions();
-      ref.read(habitReminderSchedulerProvider).rescheduleAll();
       ref.read(timerStateHolderProvider.notifier).syncFromNative();
       _handlePendingDeepLink();
     }

@@ -25,7 +25,7 @@ class FlutterHabitReminderScheduler implements HabitReminderScheduler {
   FlutterHabitReminderScheduler(this._habitDao);
 
   @override
-  Future<void> schedule(Habit habit) async {
+  Future<void> schedule(Habit habit, {bool catchUpIfDue = false}) async {
     // Cancel existing notifications for this habit first
     await cancel(habit.id);
 
@@ -38,7 +38,9 @@ class FlutterHabitReminderScheduler implements HabitReminderScheduler {
     if (!hasPermission) return;
 
     final now = DateTime.now();
-    final location = tz.local;
+    // On app resume/startup, skip a reminder whose minute has already begun
+    // so catch-up does not fire a second copy of a notification just shown.
+    final reference = catchUpIfDue ? now : now.add(const Duration(minutes: 1));
 
     for (int index = 0; index < habit.reminderTimes.length; index++) {
       final timeStr = habit.reminderTimes[index];
@@ -48,21 +50,15 @@ class FlutterHabitReminderScheduler implements HabitReminderScheduler {
       final nextDateTime = _calculateNextOccurrence(
         habit,
         parsedTime,
-        now,
+        reference,
       );
 
-      final scheduledDate = tz.TZDateTime(
-        location,
-        nextDateTime.year,
-        nextDateTime.month,
-        nextDateTime.day,
-        nextDateTime.hour,
-        nextDateTime.minute,
-      );
-
-      // Ensure the scheduled time is in the future
-      final tzNow = tz.TZDateTime.now(location);
-      if (scheduledDate.isBefore(tzNow)) continue;
+      var scheduledDate = tz.TZDateTime.from(nextDateTime, tz.local);
+      final tzNow = tz.TZDateTime.now(tz.local);
+      if (!scheduledDate.isAfter(tzNow)) {
+        if (!catchUpIfDue) continue;
+        scheduledDate = tzNow.add(const Duration(seconds: 1));
+      }
 
       final requestCode = _generateRequestCode(habit.id, index);
 
@@ -134,7 +130,8 @@ class FlutterHabitReminderScheduler implements HabitReminderScheduler {
     final refTimeInMinutes = ref.hour * 60 + ref.minute;
     final remTimeInMinutes = reminderTime.hour * 60 + reminderTime.minute;
 
-    if (refTimeInMinutes >= remTimeInMinutes) {
+    // Same-minute reminders still fire today (Kotlin uses LocalTime.isAfter).
+    if (refTimeInMinutes > remTimeInMinutes) {
       candidateDate = candidateDate.add(const Duration(days: 1));
     }
 
@@ -188,6 +185,6 @@ class FlutterHabitReminderScheduler implements HabitReminderScheduler {
   }
 
   int _generateRequestCode(String habitId, int reminderIndex) {
-    return ((habitId.hashCode * 31) + reminderIndex).abs();
+    return NotificationPayload.requestCodeFor(habitId, reminderIndex);
   }
 }

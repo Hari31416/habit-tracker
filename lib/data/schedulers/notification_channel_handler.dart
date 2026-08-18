@@ -43,12 +43,17 @@ class NotificationPayload {
     required this.actions,
   });
 
+  /// Android notification IDs must fit in a signed 32-bit int, and the plugin
+  /// multiplies the id by 16 for action request codes.
+  static int requestCodeFor(String habitId, int reminderIndex) {
+    return ((habitId.hashCode * 31) + reminderIndex).toSigned(32) & 0x0FFFFFFF;
+  }
+
   static NotificationPayload buildNotification(
     Habit habit,
     int reminderIndex,
   ) {
-    final notificationId =
-        ((habit.id.hashCode * 31) + reminderIndex).abs();
+    final notificationId = requestCodeFor(habit.id, reminderIndex);
     final deepLinkUri = 'app://habits/detail/${habit.id}';
     final actions = <NotificationActionPayload>[];
     String bodyText;

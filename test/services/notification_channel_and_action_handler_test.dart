@@ -108,4 +108,20 @@ void main() {
     expect(logs.isNotEmpty, isTrue);
     expect(logs.first.value, 250.0);
   });
+
+  test('requestCodeFor always fits in a signed 32-bit integer', () {
+    final ids = [
+      'active_1',
+      'current_minute_1',
+      'a-uuid-style-id-550e8400-e29b-41d4-a716-446655440000',
+      boolHabit.id,
+      numHabit.id,
+      timerHabit.id,
+    ];
+    for (final id in ids) {
+      final code = NotificationPayload.requestCodeFor(id, 0);
+      expect(code, inInclusiveRange(0, 0x0FFFFFFF));
+      expect(code, ((id.hashCode * 31)).toSigned(32) & 0x0FFFFFFF);
+    }
+  });
 }

@@ -144,7 +144,7 @@ class HabitRepositoryImpl implements HabitRepository {
   @override
   Future<void> upsertHabit(Habit habit) async {
     await habitDao.upsertHabit(_habitDomainToCompanion(habit));
-    await reminderScheduler.schedule(habit);
+    await reminderScheduler.schedule(habit, catchUpIfDue: true);
   }
 
   @override
@@ -166,7 +166,7 @@ class HabitRepositoryImpl implements HabitRepository {
     } else {
       final habit = await getHabitByIdOnce(id);
       if (habit != null) {
-        await reminderScheduler.schedule(habit);
+        await reminderScheduler.schedule(habit, catchUpIfDue: true);
       }
     }
   }

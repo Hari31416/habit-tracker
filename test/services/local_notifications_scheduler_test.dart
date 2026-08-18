@@ -75,6 +75,21 @@ void main() {
   });
 
   test(
+      'calculateNextOccurrence keeps today when reminder is the current minute',
+      () {
+    final refTime = DateTime(2026, 8, 17, 7, 30, 45);
+    final reminderTime = DateTime(2026, 8, 17, 7, 30);
+
+    final next = scheduler.calculateNextOccurrence(habit1, reminderTime, refTime);
+
+    expect(next.year, 2026);
+    expect(next.month, 8);
+    expect(next.day, 17);
+    expect(next.hour, 7);
+    expect(next.minute, 30);
+  });
+
+  test(
       'calculateNextOccurrence for customDays habit skips non-scheduled days',
       () {
     // Reference: Monday, August 17, 2026 (weekday=1)

@@ -5,7 +5,7 @@ class NoOpHabitReminderScheduler implements HabitReminderScheduler {
   const NoOpHabitReminderScheduler();
 
   @override
-  Future<void> schedule(Habit habit) async {
+  Future<void> schedule(Habit habit, {bool catchUpIfDue = false}) async {
     // No-op for Phases 1-4. Wired to Local Notifications & WorkManager in Phase 5.
   }
 

@@ -235,7 +235,25 @@ class FakeHabitRepository implements HabitRepository {
     int? durationSeconds,
     int? intervalIndex,
     String? note,
-  }) async {}
+  }) async {
+    final dateStr = StreakCalculator.dateFormatter.format(date);
+    final now = DateTime.now();
+    _logs.removeWhere((l) => l.habitId == habitId && l.date == dateStr);
+    _logs.add(HabitLog(
+      id: 'log-${now.millisecondsSinceEpoch}',
+      habitId: habitId,
+      date: dateStr,
+      timestamp: now,
+      completed: completed,
+      value: value,
+      durationSeconds: durationSeconds,
+      intervalIndex: intervalIndex,
+      note: note,
+      createdAt: now,
+      updatedAt: now,
+    ));
+    _notify();
+  }
   @override
   Future<void> deleteLogsForHabitAndDate(
       String habitId, DateTime date) async {}

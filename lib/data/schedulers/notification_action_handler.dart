@@ -30,7 +30,11 @@ class NotificationActionHandler {
         if (habit != null) {
           switch (habit.targetType) {
             case HabitTargetType.boolean:
-              await _repository.toggleBooleanCheckIn(habitId, today);
+              await _repository.logCheckIn(
+                habitId: habitId,
+                date: today,
+                completed: true,
+              );
               break;
             case HabitTargetType.numeric:
             case HabitTargetType.timer:
@@ -42,7 +46,11 @@ class NotificationActionHandler {
               break;
           }
         } else {
-          await _repository.toggleBooleanCheckIn(habitId, today);
+          await _repository.logCheckIn(
+            habitId: habitId,
+            date: today,
+            completed: true,
+          );
         }
         break;
 

@@ -2,6 +2,7 @@ import 'package:intl/intl.dart';
 import '../../domain/engines/streak_calculator.dart';
 import '../../domain/models/habit.dart';
 import '../../domain/repositories/habit_repository.dart';
+import 'notification_channel_handler.dart';
 
 class ScheduledNotificationItem {
   final String habitId;
@@ -109,7 +110,7 @@ class LocalNotificationsScheduler {
     final refTimeInMinutes = ref.hour * 60 + ref.minute;
     final remTimeInMinutes = reminderTime.hour * 60 + reminderTime.minute;
 
-    if (refTimeInMinutes >= remTimeInMinutes) {
+    if (refTimeInMinutes > remTimeInMinutes) {
       candidateDate = candidateDate.add(const Duration(days: 1));
     }
 
@@ -150,6 +151,6 @@ class LocalNotificationsScheduler {
   }
 
   int generateRequestCode(String habitId, int reminderIndex) {
-    return ((habitId.hashCode * 31) + reminderIndex).abs();
+    return NotificationPayload.requestCodeFor(habitId, reminderIndex);
   }
 }

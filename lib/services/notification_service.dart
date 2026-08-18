@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
@@ -10,51 +12,17 @@ import '../data/schedulers/no_op_habit_reminder_scheduler.dart';
 import '../data/schedulers/notification_action_handler.dart';
 import '../data/schedulers/notification_channel_handler.dart';
 
+typedef NotificationActionCallback = Future<void> Function({
+  required String action,
+  required String habitId,
+  double? delta,
+});
+
 /// Top-level callback for notification action buttons pressed in background.
 /// Must be a top-level function for isolate compatibility.
 @pragma('vm:entry-point')
 void onNotificationActionBackground(NotificationResponse response) {
-  // Parse the action payload
-  final payload = response.payload;
-  if (payload == null || payload.isEmpty) return;
-
-  try {
-    final data = jsonDecode(payload) as Map<String, dynamic>;
-    final action = response.actionId ?? '';
-    final habitId = data['habitId'] as String? ?? '';
-
-    if (habitId.isEmpty) return;
-    if (action != NotificationPayload.actionMarkDone &&
-        action != NotificationPayload.actionAddDelta) {
-      return;
-    }
-
-    final delta = data['delta'] as double?;
-
-    // Create a background DB instance for this isolate
-    final db = AppDatabase.backgroundInstance();
-    final habitDao = db.habitDao;
-    final habitLogDao = db.habitLogDao;
-    final habitCategoryDao = db.habitCategoryDao;
-    const noOpScheduler = NoOpHabitReminderScheduler();
-    final repo = HabitRepositoryImpl(
-      habitDao: habitDao,
-      habitLogDao: habitLogDao,
-      habitCategoryDao: habitCategoryDao,
-      reminderScheduler: noOpScheduler,
-    );
-    final handler = NotificationActionHandler(repo);
-
-    handler.handleAction(
-      action: action,
-      habitId: habitId,
-      delta: delta,
-    ).then((_) {
-      db.close();
-    });
-  } catch (_) {
-    // Silently handle parse errors in background
-  }
+  NotificationService.dispatchAction(response);
 }
 
 class NotificationService {
@@ -67,6 +35,11 @@ class NotificationService {
   /// Stored so the app can read which habit to navigate to.
   static String? pendingDeepLink;
 
+  /// Main-isolate handler so check-in/log writes hit the same Drift database
+  /// the UI is watching.
+  static NotificationActionCallback? actionCallback;
+  static NotificationResponse? _pendingActionResponse;
+
   /// Test mode flags and recorded calls for unit testing
   static bool mockMode = false;
   static bool mockHasPermission = true;
@@ -77,6 +50,15 @@ class NotificationService {
     mockCancelledIds.clear();
     mockScheduledNotifications.clear();
     mockHasPermission = true;
+  }
+
+  static void bindActionHandler(NotificationActionCallback callback) {
+    actionCallback = callback;
+    final pending = _pendingActionResponse;
+    _pendingActionResponse = null;
+    if (pending != null) {
+      dispatchAction(pending);
+    }
   }
 
   /// Initialize the notification plugin and create channels.
@@ -111,8 +93,16 @@ class NotificationService {
             description: NotificationPayload.channelDescription,
             importance: Importance.high,
             enableVibration: true,
+            playSound: true,
           ),
         );
+      }
+
+      final launchDetails = await _plugin.getNotificationAppLaunchDetails();
+      final launchResponse = launchDetails?.notificationResponse;
+      if (launchDetails?.didNotificationLaunchApp == true &&
+          launchResponse != null) {
+        _onForegroundNotificationResponse(launchResponse);
       }
     } catch (_) {
       // Graceful fallback for test/headless environments
@@ -176,8 +166,9 @@ class NotificationService {
         return AndroidNotificationAction(
           action.actionId,
           action.label,
-          showsUserInterface:
-              action.actionId == NotificationPayload.actionViewHabit,
+          cancelNotification: true,
+          // Route through the main isolate so Drift streams (and the UI) update.
+          showsUserInterface: true,
         );
       }).toList();
 
@@ -199,6 +190,8 @@ class NotificationService {
         priority: Priority.high,
         autoCancel: true,
         enableVibration: true,
+        playSound: true,
+        category: AndroidNotificationCategory.reminder,
         actions: androidActions,
       );
 
@@ -215,11 +208,17 @@ class NotificationService {
         }
       }
 
+      var triggerDate = scheduledDate;
+      final now = tz.TZDateTime.now(triggerDate.location);
+      if (!triggerDate.isAfter(now)) {
+        triggerDate = now.add(const Duration(seconds: 1));
+      }
+
       await _plugin.zonedSchedule(
         id: id,
         title: payload.title,
         body: payload.body,
-        scheduledDate: scheduledDate,
+        scheduledDate: triggerDate,
         notificationDetails: details,
         payload: actionPayloadJson,
         androidScheduleMode: scheduleMode,
@@ -261,23 +260,99 @@ class NotificationService {
   /// Handle foreground notification tap -- store deep link for navigation.
   static void _onForegroundNotificationResponse(
       NotificationResponse response) {
-    final payload = response.payload;
-    if (payload != null && payload.isNotEmpty) {
-      try {
-        final data = jsonDecode(payload) as Map<String, dynamic>;
-        final habitId = data['habitId'] as String?;
-        if (habitId != null && habitId.isNotEmpty) {
-          pendingDeepLink = 'detail/$habitId';
-        }
-      } catch (_) {
-        // Ignore parse errors
-      }
-    }
-
-    // If it's an action button press in the foreground, handle it
     if (response.notificationResponseType ==
         NotificationResponseType.selectedNotificationAction) {
-      onNotificationActionBackground(response);
+      final actionId = response.actionId ?? '';
+      if (actionId == NotificationPayload.actionViewHabit) {
+        _storeDeepLink(response.payload);
+        return;
+      }
+      dispatchAction(response);
+      return;
+    }
+
+    _storeDeepLink(response.payload);
+  }
+
+  static void _storeDeepLink(String? payload) {
+    if (payload == null || payload.isEmpty) return;
+    try {
+      final data = jsonDecode(payload) as Map<String, dynamic>;
+      final habitId = data['habitId'] as String?;
+      if (habitId != null && habitId.isNotEmpty) {
+        pendingDeepLink = 'detail/$habitId';
+      }
+    } catch (_) {
+      // Ignore parse errors
+    }
+  }
+
+  static void dispatchAction(NotificationResponse response) {
+    final payload = response.payload;
+    if (payload == null || payload.isEmpty) return;
+
+    try {
+      final data = jsonDecode(payload) as Map<String, dynamic>;
+      final action = response.actionId ?? '';
+      final habitId = data['habitId'] as String? ?? '';
+      if (habitId.isEmpty) return;
+      if (action != NotificationPayload.actionMarkDone &&
+          action != NotificationPayload.actionAddDelta) {
+        return;
+      }
+
+      final delta = _asDouble(data['delta']);
+
+      if (actionCallback != null) {
+        actionCallback!(
+          action: action,
+          habitId: habitId,
+          delta: delta,
+        );
+        return;
+      }
+
+      _pendingActionResponse = response;
+      _handleActionInBackgroundIsolate(
+        action: action,
+        habitId: habitId,
+        delta: delta,
+      );
+    } catch (e) {
+      debugPrint('Failed to handle notification action: $e');
+    }
+  }
+
+  static double? _asDouble(dynamic value) {
+    if (value is num) return value.toDouble();
+    return null;
+  }
+
+  static Future<void> _handleActionInBackgroundIsolate({
+    required String action,
+    required String habitId,
+    double? delta,
+  }) async {
+    try {
+      WidgetsFlutterBinding.ensureInitialized();
+      DartPluginRegistrant.ensureInitialized();
+
+      final db = AppDatabase.backgroundInstance();
+      final repo = HabitRepositoryImpl(
+        habitDao: db.habitDao,
+        habitLogDao: db.habitLogDao,
+        habitCategoryDao: db.habitCategoryDao,
+        reminderScheduler: const NoOpHabitReminderScheduler(),
+      );
+      final handler = NotificationActionHandler(repo);
+      await handler.handleAction(
+        action: action,
+        habitId: habitId,
+        delta: delta,
+      );
+      await db.close();
+    } catch (e) {
+      debugPrint('Background notification action failed: $e');
     }
   }
 }

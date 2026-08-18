@@ -7,6 +7,7 @@ import 'package:habit_tracker/domain/models/habit_frequency_type.dart';
 import 'package:habit_tracker/domain/models/habit_target_type.dart';
 import 'package:habit_tracker/services/notification_service.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
+import 'package:timezone/timezone.dart' as tz;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -80,6 +81,30 @@ void main() {
     expect(NotificationService.mockCancelledIds.length, 10);
     expect(NotificationService.mockScheduledNotifications.length, 1);
     expect(NotificationService.mockScheduledNotifications.first['id'], isNotNull);
+  });
+
+  test('FlutterHabitReminderScheduler schedules current-minute reminders', () async {
+    final now = DateTime.now();
+    final timeStr =
+        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+    final activeHabit = Habit(
+      id: 'current_minute_1',
+      title: 'Deep Work Session',
+      color: '#3B82F6',
+      frequencyType: HabitFrequencyType.daily,
+      targetType: HabitTargetType.timer,
+      reminderTimes: [timeStr],
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+
+    await scheduler.schedule(activeHabit, catchUpIfDue: true);
+
+    expect(NotificationService.mockScheduledNotifications.length, 1);
+    final scheduledDate =
+        NotificationService.mockScheduledNotifications.first['scheduledDate']
+            as tz.TZDateTime;
+    expect(scheduledDate.isAfter(tz.TZDateTime.now(tz.local).subtract(const Duration(seconds: 2))), isTrue);
   });
 
   test('FlutterHabitReminderScheduler cancel completes successfully', () async {
