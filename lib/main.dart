@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:timezone/data/latest_all.dart' as tz_data;
+import 'package:timezone/timezone.dart' as tz;
+
 import 'data/preferences/theme_mode.dart';
 import 'data/preferences/theme_preferences.dart';
+import 'di/providers.dart';
+import 'services/notification_service.dart';
 import 'ui/analytics/habit_analytics_screen.dart';
 import 'ui/daily/daily_tracker_screen.dart';
 import 'ui/detail/focus_timer_screen.dart';
@@ -10,15 +16,31 @@ import 'ui/gamification/badges_showcase_screen.dart';
 import 'ui/matrix/habit_week_matrix_screen.dart';
 import 'ui/navigation/screen.dart';
 import 'ui/theme/app_theme.dart';
-import 'di/providers.dart';
+
+final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize time zones and local location
+  tz_data.initializeTimeZones();
+  try {
+    final timeZoneName = await FlutterTimezone.getLocalTimezone();
+    tz.setLocalLocation(tz.getLocation(timeZoneName));
+  } catch (_) {
+    // Fallback to default
+  }
+
+  // Initialize notification service & channels
+  await NotificationService.init();
+  await NotificationService.requestPermission();
+
   final container = ProviderContainer();
   // Trigger initial background sync and consume any pending widget actions
   Future.microtask(() async {
     await container.read(widgetSyncServiceProvider).consumePendingWidgetActions();
     await container.read(widgetSyncServiceProvider).syncAllWidgets();
+    await container.read(habitReminderSchedulerProvider).rescheduleAll();
   });
 
   runApp(
@@ -42,6 +64,9 @@ class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _handlePendingDeepLink();
+    });
   }
 
   @override
@@ -54,6 +79,16 @@ class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       ref.read(widgetSyncServiceProvider).consumePendingWidgetActions();
+      ref.read(habitReminderSchedulerProvider).rescheduleAll();
+      _handlePendingDeepLink();
+    }
+  }
+
+  void _handlePendingDeepLink() {
+    final deepLink = NotificationService.pendingDeepLink;
+    if (deepLink != null) {
+      NotificationService.pendingDeepLink = null;
+      appNavigatorKey.currentState?.pushNamed(deepLink);
     }
   }
 
@@ -75,6 +110,7 @@ class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
     }
 
     return MaterialApp(
+      navigatorKey: appNavigatorKey,
       title: 'Habit Tracker',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,

@@ -28,6 +28,12 @@ part 'app_database.g.dart';
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());
 
+  /// Creates a database instance for use in background isolates
+  /// (e.g., notification action handlers). Points to the same SQLite file.
+  static AppDatabase backgroundInstance() {
+    return AppDatabase(_openConnection());
+  }
+
   @override
   int get schemaVersion => 1;
 

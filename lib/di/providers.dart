@@ -7,8 +7,8 @@ import '../data/local/daos/habit_dao.dart';
 import '../data/local/daos/habit_log_dao.dart';
 import '../data/repositories/gamification_repository_impl.dart';
 import '../data/repositories/habit_repository_impl.dart';
+import '../data/schedulers/flutter_habit_reminder_scheduler.dart';
 import '../data/schedulers/local_notifications_scheduler.dart';
-import '../data/schedulers/no_op_habit_reminder_scheduler.dart';
 import '../data/schedulers/notification_action_handler.dart';
 import '../domain/repositories/gamification_repository.dart';
 import '../domain/repositories/habit_repository.dart';
@@ -40,7 +40,8 @@ final gamificationDaoProvider = Provider<GamificationDao>((ref) {
 });
 
 final habitReminderSchedulerProvider = Provider<HabitReminderScheduler>((ref) {
-  return const NoOpHabitReminderScheduler();
+  final habitDao = ref.watch(habitDaoProvider);
+  return FlutterHabitReminderScheduler(habitDao);
 });
 
 final habitRepositoryProvider = Provider<HabitRepository>((ref) {
@@ -77,7 +78,8 @@ final notificationActionHandlerProvider =
     Provider<NotificationActionHandler>((ref) {
   final habitRepo = ref.watch(habitRepositoryProvider);
   final widgetSync = ref.watch(widgetSyncServiceProvider);
-  return NotificationActionHandler(habitRepo, widgetSync);
+  final reminderScheduler = ref.watch(habitReminderSchedulerProvider);
+  return NotificationActionHandler(habitRepo, widgetSync, reminderScheduler);
 });
 
 final dayRolloverTaskProvider = Provider<DayRolloverTask>((ref) {

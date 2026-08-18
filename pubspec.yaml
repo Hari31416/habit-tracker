@@ -25,6 +25,11 @@ dependencies:
   uuid: ^4.5.1
   shared_preferences: ^2.3.2
 
+  # Notifications & Timezones
+  flutter_local_notifications: ^22.3.0
+  flutter_timezone: ^3.0.1
+  timezone: ^0.11.0
+
   # Icons
   cupertino_icons: ^1.0.8
   material_design_icons_flutter: ^7.0.7296
