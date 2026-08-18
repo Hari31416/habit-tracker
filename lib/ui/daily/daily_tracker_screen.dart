@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../data/preferences/theme_preferences.dart';
 import '../common/haptics_helper.dart';
 import '../common/theme_toggle_button.dart';
+import '../form/habit_form_bottom_sheet.dart';
 import '../navigation/habit_bottom_navigation.dart';
 import '../navigation/screen.dart';
 import 'controllers/daily_tracker_controller.dart';
@@ -116,81 +117,6 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen> {
     if (picked != null) {
       ref.read(dailyTrackerControllerProvider.notifier).selectDate(picked);
     }
-  }
-
-  void _showQuickAddDialog() {
-    final titleController = TextEditingController();
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
-            top: 20,
-            left: 20,
-            right: 20,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Quick Add Habit',
-                style: Theme.of(ctx).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: titleController,
-                autofocus: true,
-                decoration: InputDecoration(
-                  hintText: 'e.g. Read 20 pages, Drink Water...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onSubmitted: (val) {
-                  if (val.trim().isNotEmpty) {
-                    ref
-                        .read(dailyTrackerControllerProvider.notifier)
-                        .quickAddHabit(val, null);
-                    Navigator.of(ctx).pop();
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.of(ctx).pop(),
-                    child: const Text('Cancel'),
-                  ),
-                  const SizedBox(width: 8),
-                  FilledButton(
-                    onPressed: () {
-                      final val = titleController.text.trim();
-                      if (val.isNotEmpty) {
-                        ref
-                            .read(dailyTrackerControllerProvider.notifier)
-                            .quickAddHabit(val, null);
-                        Navigator.of(ctx).pop();
-                      }
-                    },
-                    child: const Text('Add Habit'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
   }
 
   @override
@@ -511,7 +437,7 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen> {
           if (widget.onOpenAddHabit != null) {
             widget.onOpenAddHabit!();
           } else {
-            _showQuickAddDialog();
+            HabitFormBottomSheet.show(context);
           }
         },
       ),
