@@ -2,7 +2,7 @@ name: habit_tracker
 description: "A standalone Habit Tracker application with 100% parity to the Kotlin Habit Tracker."
 publish_to: 'none'
 
-version: 0.6.1+7
+version: 0.7.0+8
 
 environment:
   sdk: ^3.13.0

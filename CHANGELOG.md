@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-08-18
+
+### Added
+
+- Post-check-in reflection with optional energy rating (1-5), mood tags, and a short micro-note.
+- Reflection history timeline on the habit detail screen.
+- Wellbeing correlation summary comparing energy on completed vs missed days.
+- Habit log energy and mood fields with a schema v3 database migration.
+
+### Fixed
+
+- Shield bank and reflection bottom sheets wrap in Material so ink and theming render correctly.
+
 ## [0.6.1] - 2026-08-18
 
 ### Changed
