@@ -2,23 +2,29 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../di/providers.dart';
+import '../../../domain/engines/shield_banking_engine.dart';
 import '../../../domain/engines/streak_calculator.dart';
 import '../../../domain/models/habit.dart';
 import '../../../domain/models/habit_category.dart';
 import '../../../domain/models/habit_log.dart';
+import '../../../domain/models/habit_shield.dart';
 import '../../../domain/models/habit_target_type.dart';
+import '../../../domain/repositories/gamification_repository.dart';
 import '../../../domain/repositories/habit_repository.dart';
 
 class HabitDetailUiState {
   final Habit? habit;
   final HabitCategory? category;
   final List<HabitLog> allLogs;
+  final List<HabitShield> allShields;
   final List<HabitLog> logsForSelectedDate;
   final DateTime selectedDate;
   final DateTime currentMonth;
   final StreakResult streak;
   final bool isCompletedOnSelectedDate;
+  final bool isShieldedOnSelectedDate;
   final double currentValueOnSelectedDate;
+  final ShieldBankState? shieldBank;
   final bool isLoading;
   final bool isDeleted;
 
@@ -26,6 +32,7 @@ class HabitDetailUiState {
     this.habit,
     this.category,
     this.allLogs = const [],
+    this.allShields = const [],
     this.logsForSelectedDate = const [],
     DateTime? selectedDate,
     DateTime? currentMonth,
@@ -36,7 +43,9 @@ class HabitDetailUiState {
       totalCompletions: 0,
     ),
     this.isCompletedOnSelectedDate = false,
+    this.isShieldedOnSelectedDate = false,
     this.currentValueOnSelectedDate = 0.0,
+    this.shieldBank,
     this.isLoading = true,
     this.isDeleted = false,
   })  : selectedDate = selectedDate ?? DateTime.now(),
@@ -47,12 +56,15 @@ class HabitDetailUiState {
     Habit? habit,
     HabitCategory? category,
     List<HabitLog>? allLogs,
+    List<HabitShield>? allShields,
     List<HabitLog>? logsForSelectedDate,
     DateTime? selectedDate,
     DateTime? currentMonth,
     StreakResult? streak,
     bool? isCompletedOnSelectedDate,
+    bool? isShieldedOnSelectedDate,
     double? currentValueOnSelectedDate,
+    ShieldBankState? shieldBank,
     bool? isLoading,
     bool? isDeleted,
     bool clearHabit = false,
@@ -61,14 +73,18 @@ class HabitDetailUiState {
       habit: clearHabit ? null : (habit ?? this.habit),
       category: category ?? this.category,
       allLogs: allLogs ?? this.allLogs,
+      allShields: allShields ?? this.allShields,
       logsForSelectedDate: logsForSelectedDate ?? this.logsForSelectedDate,
       selectedDate: selectedDate ?? this.selectedDate,
       currentMonth: currentMonth ?? this.currentMonth,
       streak: streak ?? this.streak,
       isCompletedOnSelectedDate:
           isCompletedOnSelectedDate ?? this.isCompletedOnSelectedDate,
+      isShieldedOnSelectedDate:
+          isShieldedOnSelectedDate ?? this.isShieldedOnSelectedDate,
       currentValueOnSelectedDate:
           currentValueOnSelectedDate ?? this.currentValueOnSelectedDate,
+      shieldBank: shieldBank ?? this.shieldBank,
       isLoading: isLoading ?? this.isLoading,
       isDeleted: isDeleted ?? this.isDeleted,
     );
@@ -78,15 +94,20 @@ class HabitDetailUiState {
 class HabitDetailController extends StateNotifier<HabitDetailUiState> {
   final String habitId;
   final HabitRepository repository;
+  final GamificationRepository? gamificationRepository;
   final DateFormat _dateFormatter = DateFormat('yyyy-MM-dd');
 
   StreamSubscription? _habitSubscription;
   StreamSubscription? _logsSubscription;
+  StreamSubscription? _shieldsSubscription;
   StreamSubscription? _categoriesSubscription;
+  StreamSubscription? _shieldBankSubscription;
 
   Habit? _currentHabit;
   List<HabitLog> _currentLogs = [];
+  List<HabitShield> _currentShields = [];
   List<HabitCategory> _currentCategories = [];
+  ShieldBankState? _currentShieldBank;
 
   final StreamController<void> _navigateBackController =
       StreamController<void>.broadcast();
@@ -95,6 +116,7 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
   HabitDetailController({
     required this.habitId,
     required this.repository,
+    this.gamificationRepository,
   }) : super(HabitDetailUiState(isLoading: true)) {
     _initSubscriptions();
   }
@@ -105,15 +127,23 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
       _recomputeState();
     });
 
-    _logsSubscription =
-        repository.getLogsForHabit(habitId).listen((logs) {
+    _logsSubscription = repository.getLogsForHabit(habitId).listen((logs) {
       _currentLogs = logs;
       _recomputeState();
     });
 
-    _categoriesSubscription =
-        repository.getAllCategories().listen((categories) {
+    _shieldsSubscription = repository.getShieldsForHabit(habitId).listen((shields) {
+      _currentShields = shields;
+      _recomputeState();
+    });
+
+    _categoriesSubscription = repository.getAllCategories().listen((categories) {
       _currentCategories = categories;
+      _recomputeState();
+    });
+
+    _shieldBankSubscription = gamificationRepository?.getShieldBankState().listen((bank) {
+      _currentShieldBank = bank;
       _recomputeState();
     });
   }
@@ -138,21 +168,29 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
         _currentLogs.where((log) => log.date == dateStr).toList();
     final isCompleted =
         StreakCalculator.isHabitCompletedOnDate(habit, logsOnDate);
+    final isShielded = _currentShields.any((s) => s.date == dateStr);
 
     final currentValue = _calculateCurrentValue(habit, logsOnDate, isCompleted);
-    final streak =
-        StreakCalculator.calculateStreak(habit, _currentLogs, DateTime.now());
+    final streak = StreakCalculator.calculateStreak(
+      habit,
+      _currentLogs,
+      DateTime.now(),
+      _currentShields,
+    );
 
     state = HabitDetailUiState(
       habit: habit,
       category: category,
       allLogs: _currentLogs,
+      allShields: _currentShields,
       logsForSelectedDate: logsOnDate,
       selectedDate: state.selectedDate,
       currentMonth: state.currentMonth,
       streak: streak,
       isCompletedOnSelectedDate: isCompleted,
+      isShieldedOnSelectedDate: isShielded,
       currentValueOnSelectedDate: currentValue,
+      shieldBank: _currentShieldBank,
       isLoading: false,
       isDeleted: false,
     );
@@ -259,6 +297,10 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
     await repository.toggleBooleanCheckIn(habitId, date);
   }
 
+  Future<void> toggleShieldForSelectedDate() async {
+    await repository.toggleShield(habitId, state.selectedDate);
+  }
+
   Future<void> toggleReminder(String time) async {
     final habit = await repository.getHabitByIdOnce(habitId);
     if (habit == null) return;
@@ -277,7 +319,9 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
   void dispose() {
     _habitSubscription?.cancel();
     _logsSubscription?.cancel();
+    _shieldsSubscription?.cancel();
     _categoriesSubscription?.cancel();
+    _shieldBankSubscription?.cancel();
     _navigateBackController.close();
     super.dispose();
   }
@@ -286,8 +330,10 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
 final habitDetailControllerProvider = StateNotifierProvider.autoDispose
     .family<HabitDetailController, HabitDetailUiState, String>((ref, habitId) {
   final repo = ref.watch(habitRepositoryProvider);
+  final gamificationRepo = ref.watch(gamificationRepositoryProvider);
   return HabitDetailController(
     habitId: habitId,
     repository: repo,
+    gamificationRepository: gamificationRepo,
   );
 });

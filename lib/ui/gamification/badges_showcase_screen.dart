@@ -10,6 +10,7 @@ import '../navigation/habit_bottom_navigation.dart';
 import '../navigation/screen.dart';
 import 'controllers/gamification_controller.dart';
 import 'dialogs/level_up_celebration_dialog.dart';
+import 'widgets/shield_bank_status_card.dart';
 
 class BadgesShowcaseScreen extends ConsumerStatefulWidget {
   final VoidCallback? onNavigateToDaily;
@@ -114,9 +115,14 @@ class _BadgesShowcaseScreenState extends ConsumerState<BadgesShowcaseScreen> {
                                 uiState.progression,
                               ),
 
+                              const SizedBox(height: 12),
+
+                              // 3. Shield Bank Status Card
+                              const ShieldBankStatusCard(),
+
                               const SizedBox(height: 14),
 
-                              // 3. Category Filter Chips
+                              // 4. Category Filter Chips
                               SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
                                 child: Row(

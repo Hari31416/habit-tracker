@@ -7,10 +7,10 @@ import '../../../domain/models/habit.dart';
 import '../../../domain/models/habit_category.dart';
 import '../../../domain/models/habit_frequency_type.dart';
 import '../../../domain/models/habit_log.dart';
+import '../../../domain/models/habit_shield.dart';
 import '../../../domain/models/habit_target_type.dart';
 import '../../../domain/models/habit_with_progress.dart';
 import '../../../domain/repositories/habit_repository.dart';
-
 import '../../../services/widget_sync_service.dart';
 
 enum HabitSortOption {
@@ -35,6 +35,7 @@ class DailyTrackerUiState {
   final Map<DateTime, int> weekLogs;
   final int totalScheduledForSelectedDate;
   final int totalCompletedForSelectedDate;
+  final int totalShieldedForSelectedDate;
   final bool isLoading;
 
   const DailyTrackerUiState({
@@ -49,6 +50,7 @@ class DailyTrackerUiState {
     this.weekLogs = const {},
     this.totalScheduledForSelectedDate = 0,
     this.totalCompletedForSelectedDate = 0,
+    this.totalShieldedForSelectedDate = 0,
     this.isLoading = false,
   });
 
@@ -65,6 +67,7 @@ class DailyTrackerUiState {
     Map<DateTime, int>? weekLogs,
     int? totalScheduledForSelectedDate,
     int? totalCompletedForSelectedDate,
+    int? totalShieldedForSelectedDate,
     bool? isLoading,
   }) {
     return DailyTrackerUiState(
@@ -83,6 +86,8 @@ class DailyTrackerUiState {
           totalScheduledForSelectedDate ?? this.totalScheduledForSelectedDate,
       totalCompletedForSelectedDate:
           totalCompletedForSelectedDate ?? this.totalCompletedForSelectedDate,
+      totalShieldedForSelectedDate:
+          totalShieldedForSelectedDate ?? this.totalShieldedForSelectedDate,
       isLoading: isLoading ?? this.isLoading,
     );
   }
@@ -93,10 +98,12 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
   final WidgetSyncService? _widgetSyncService;
   StreamSubscription<List<Habit>>? _habitsSubscription;
   StreamSubscription<List<HabitLog>>? _logsSubscription;
+  StreamSubscription<List<HabitShield>>? _shieldsSubscription;
   StreamSubscription<List<HabitCategory>>? _categoriesSubscription;
 
   List<Habit> _allHabits = [];
   List<HabitLog> _allLogs = [];
+  List<HabitShield> _allShields = [];
   List<HabitCategory> _allCategories = [];
 
   DailyTrackerController(
@@ -128,6 +135,11 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
       _allLogs = logs;
       _recomputeState();
     });
+
+    _shieldsSubscription = _repository.getAllShields().listen((shields) {
+      _allShields = shields;
+      _recomputeState();
+    });
   }
 
   void _recomputeState() {
@@ -142,6 +154,11 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
     final logsByHabit = <String, List<HabitLog>>{};
     for (final log in _allLogs) {
       logsByHabit.putIfAbsent(log.habitId, () => []).add(log);
+    }
+
+    final shieldsByHabit = <String, List<HabitShield>>{};
+    for (final s in _allShields) {
+      shieldsByHabit.putIfAbsent(s.habitId, () => []).add(s);
     }
 
     final filteredHabits = _allHabits.where((habit) {
@@ -160,9 +177,11 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
 
     final habitsWithProgress = filteredHabits.map((habit) {
       final habitLogs = logsByHabit[habit.id] ?? const [];
+      final habitShields = shieldsByHabit[habit.id] ?? const [];
       final logsOnDate = habitLogs.where((l) => l.date == dateStr).toList();
       final isCompleted =
           StreakCalculator.isHabitCompletedOnDate(habit, logsOnDate);
+      final isShielded = habitShields.any((s) => s.date == dateStr);
 
       double currentValue;
       switch (habit.targetType) {
@@ -198,13 +217,19 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
             (log.durationSeconds ?? (((log.value ?? 0.0) * 60).round())),
       );
 
-      final streak = StreakCalculator.calculateStreak(habit, habitLogs, date);
+      final streak = StreakCalculator.calculateStreak(
+        habit,
+        habitLogs,
+        date,
+        habitShields,
+      );
 
       return HabitWithProgress(
         habit: habit,
         category: habit.categoryId != null ? categoryMap[habit.categoryId] : null,
         logsForDate: logsOnDate,
         isCompletedOnDate: isCompleted,
+        isShieldedOnDate: isShielded,
         currentValueOnDate: currentValue,
         currentDurationSecondsOnDate: currentDurationSeconds,
         streak: streak,
@@ -261,6 +286,8 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
     final totalScheduled = habitsWithProgress.length;
     final totalCompleted =
         habitsWithProgress.where((h) => h.isCompletedOnDate).length;
+    final totalShielded =
+        habitsWithProgress.where((h) => h.isShieldedOnDate).length;
 
     state = state.copyWith(
       selectedDate: date,
@@ -270,6 +297,7 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
       weekLogs: weekLogsMap,
       totalScheduledForSelectedDate: totalScheduled,
       totalCompletedForSelectedDate: totalCompleted,
+      totalShieldedForSelectedDate: totalShielded,
       isLoading: false,
     );
   }
@@ -322,6 +350,11 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
     await _widgetSyncService?.syncAllWidgets(state.selectedDate);
   }
 
+  Future<void> toggleShield(Habit habit) async {
+    await _repository.toggleShield(habit.id, state.selectedDate);
+    await _widgetSyncService?.syncAllWidgets(state.selectedDate);
+  }
+
   Future<void> updateNumericValue(String habitId, double value) async {
     await _repository.updateNumericValue(habitId, state.selectedDate, value);
     await _widgetSyncService?.syncAllWidgets(state.selectedDate);
@@ -365,6 +398,7 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
   void dispose() {
     _habitsSubscription?.cancel();
     _logsSubscription?.cancel();
+    _shieldsSubscription?.cancel();
     _categoriesSubscription?.cancel();
     super.dispose();
   }

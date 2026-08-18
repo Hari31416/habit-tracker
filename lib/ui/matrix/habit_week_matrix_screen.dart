@@ -5,6 +5,7 @@ import '../../data/preferences/theme_preferences.dart';
 import '../common/haptics_helper.dart';
 import '../common/theme_toggle_button.dart';
 import '../form/habit_form_bottom_sheet.dart';
+import '../gamification/dialogs/shield_bank_bottom_sheet.dart';
 import '../navigation/habit_bottom_navigation.dart';
 import '../navigation/screen.dart';
 import 'controllers/week_matrix_controller.dart';
@@ -77,13 +78,26 @@ class _HabitWeekMatrixScreenState extends ConsumerState<HabitWeekMatrixScreen> {
                         color: theme.colorScheme.onSurface,
                       ),
                     ),
-                    ThemeToggleButton(
-                      currentTheme: themeMode,
-                      onThemeSelected: (mode) {
-                        ref
-                            .read(themeModeProvider.notifier)
-                            .setThemeMode(mode);
-                      },
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.shield_outlined),
+                          tooltip: 'Habit Shields Bank',
+                          onPressed: () {
+                            HapticsHelper.performLightHaptic();
+                            ShieldBankBottomSheet.show(context);
+                          },
+                        ),
+                        ThemeToggleButton(
+                          currentTheme: themeMode,
+                          onThemeSelected: (mode) {
+                            ref
+                                .read(themeModeProvider.notifier)
+                                .setThemeMode(mode);
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -104,7 +118,7 @@ class _HabitWeekMatrixScreenState extends ConsumerState<HabitWeekMatrixScreen> {
 
                           const SizedBox(height: 14),
 
-                          // 2. Weekly Adherence Summary Strip (3 Columns)
+                          // 2. Weekly Adherence Summary Strip
                           _buildAdherenceSummaryStrip(context, uiState),
 
                           const SizedBox(height: 14),
@@ -114,6 +128,9 @@ class _HabitWeekMatrixScreenState extends ConsumerState<HabitWeekMatrixScreen> {
                             rows: uiState.rows,
                             onToggleCell: (habitId, date) {
                               controller.toggleCell(habitId, date);
+                            },
+                            onToggleShieldCell: (habitId, date) {
+                              controller.toggleShieldCell(habitId, date);
                             },
                             onHabitClick: (habitId) {
                               widget.onNavigateToDetail?.call(habitId);
@@ -144,7 +161,6 @@ class _HabitWeekMatrixScreenState extends ConsumerState<HabitWeekMatrixScreen> {
     WeekMatrixUiState uiState,
     WeekMatrixController controller,
   ) {
-    final theme = Theme.of(context);
     final startStr = DateFormat('MMM d').format(uiState.weekStart);
     final endStr = DateFormat('MMM d, yyyy').format(uiState.weekEnd);
 
@@ -152,10 +168,10 @@ class _HabitWeekMatrixScreenState extends ConsumerState<HabitWeekMatrixScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
         side: BorderSide(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.4),
         ),
       ),
-      color: theme.colorScheme.surface,
+      color: Theme.of(context).colorScheme.surface,
       elevation: 0,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -172,7 +188,7 @@ class _HabitWeekMatrixScreenState extends ConsumerState<HabitWeekMatrixScreen> {
             ),
             Text(
               '$startStr - $endStr',
-              style: theme.textTheme.titleMedium?.copyWith(
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -188,7 +204,7 @@ class _HabitWeekMatrixScreenState extends ConsumerState<HabitWeekMatrixScreen> {
                       'This Week',
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.primary,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                   ),
@@ -265,14 +281,18 @@ class _HabitWeekMatrixScreenState extends ConsumerState<HabitWeekMatrixScreen> {
             Column(
               children: [
                 Text(
-                  '${uiState.rows.length}',
+                  uiState.totalShielded > 0
+                      ? '${uiState.totalShielded} 🛡️'
+                      : '${uiState.rows.length}',
                   style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onSurface,
+                    color: uiState.totalShielded > 0
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.onSurface,
                   ),
                 ),
                 Text(
-                  'Active Habits',
+                  uiState.totalShielded > 0 ? 'Protected' : 'Active Habits',
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),

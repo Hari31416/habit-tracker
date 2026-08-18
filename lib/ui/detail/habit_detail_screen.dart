@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import '../../domain/engines/streak_calculator.dart';
 import '../../domain/models/habit_frequency_type.dart';
 import '../../domain/models/habit_target_type.dart';
 import '../common/color_utils.dart';
@@ -9,6 +11,7 @@ import '../common/haptics_helper.dart';
 import '../daily/widgets/numeric_habit_controls.dart';
 import '../daily/widgets/slot_habit_controls.dart';
 import '../form/habit_form_bottom_sheet.dart';
+import '../gamification/dialogs/shield_bank_bottom_sheet.dart';
 import 'controllers/habit_detail_controller.dart';
 import 'widgets/circular_focus_timer.dart';
 import 'widgets/habit_monthly_calendar.dart';
@@ -136,6 +139,17 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
     final isWeekly = habit.frequencyType == HabitFrequencyType.weekly;
     final streakUnit = isWeekly ? 'weeks' : 'days';
     final isCompleted = uiState.isCompletedOnSelectedDate;
+    final isShielded = uiState.isShieldedOnSelectedDate;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final selectedClean = DateTime(
+      uiState.selectedDate.year,
+      uiState.selectedDate.month,
+      uiState.selectedDate.day,
+    );
+    final isPast = selectedClean.isBefore(today);
+    final isScheduled = StreakCalculator.isHabitScheduledOnDate(habit, selectedClean);
 
     return Scaffold(
       appBar: AppBar(
@@ -151,6 +165,14 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
           onPressed: widget.onBack,
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.shield_outlined),
+            tooltip: 'Habit Shields Bank',
+            onPressed: () {
+              HapticsHelper.performLightHaptic();
+              ShieldBankBottomSheet.show(context);
+            },
+          ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
             tooltip: 'More Options',
@@ -301,7 +323,9 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
                             shape: BoxShape.circle,
                             color: isCompleted
                                 ? accentColor
-                                : theme.colorScheme.surfaceContainerHighest,
+                                : isShielded
+                                    ? theme.colorScheme.primaryContainer
+                                    : theme.colorScheme.surfaceContainerHighest,
                           ),
                           child: Material(
                             color: Colors.transparent,
@@ -318,11 +342,17 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
                                 );
                               },
                               child: Icon(
-                                Icons.check,
+                                isCompleted
+                                    ? Icons.check
+                                    : isShielded
+                                        ? Icons.shield
+                                        : Icons.check,
                                 size: 20,
                                 color: isCompleted
                                     ? Colors.white
-                                    : theme.colorScheme.onSurfaceVariant,
+                                    : isShielded
+                                        ? theme.colorScheme.primary
+                                        : theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ),
@@ -365,6 +395,122 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
             ),
 
             const SizedBox(height: 14),
+
+            // Shield Protection Status/Action Banner for selected date
+            if (isShielded) ...[
+              Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  side: BorderSide(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.5),
+                  ),
+                ),
+                color: theme.colorScheme.primaryContainer.withValues(alpha: 0.35),
+                elevation: 0,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.shield,
+                        color: theme.colorScheme.primary,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Streak Freeze Active',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
+                            Text(
+                              'This day is protected by a shield. Streak is safe!',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          HapticsHelper.performLightHaptic();
+                          controller.toggleShieldForSelectedDate();
+                        },
+                        child: const Text('Remove'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+            ] else if (isPast && isScheduled && !isCompleted) ...[
+              Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  side: BorderSide(
+                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  ),
+                ),
+                color: theme.colorScheme.surface,
+                elevation: 0,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.shield_outlined,
+                        color: theme.colorScheme.primary,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Missed Date (${DateFormat('MMM d').format(uiState.selectedDate)})',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              'Bank: ${uiState.shieldBank?.availableShields ?? 0}/${uiState.shieldBank?.maxCapacity ?? 3} shields available',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.shield, size: 16),
+                        label: const Text('Protect'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                        ),
+                        onPressed: (uiState.shieldBank?.availableShields ?? 0) > 0
+                            ? () {
+                                HapticsHelper.performHeavyConfirmationHaptic();
+                                controller.toggleShieldForSelectedDate();
+                              }
+                            : () {
+                                HapticsHelper.performLightHaptic();
+                                ShieldBankBottomSheet.show(context);
+                              },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+            ],
 
             // 2. Compact 3-Metric Stats Strip
             StatsMetricStrip(
@@ -503,6 +649,7 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
             HabitMonthlyCalendar(
               habit: habit,
               logs: uiState.allLogs,
+              shields: uiState.allShields,
               currentMonth: uiState.currentMonth,
               selectedDate: uiState.selectedDate,
               accentColor: accentColor,

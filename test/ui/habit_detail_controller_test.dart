@@ -5,6 +5,7 @@ import 'package:habit_tracker/domain/models/habit.dart';
 import 'package:habit_tracker/domain/models/habit_category.dart';
 import 'package:habit_tracker/domain/models/habit_frequency_type.dart';
 import 'package:habit_tracker/domain/models/habit_log.dart';
+import 'package:habit_tracker/domain/models/habit_shield.dart';
 import 'package:habit_tracker/domain/models/habit_target_type.dart';
 import 'package:habit_tracker/domain/repositories/habit_repository.dart';
 import 'package:habit_tracker/ui/detail/controllers/habit_detail_controller.dart';
@@ -12,26 +13,31 @@ import 'package:habit_tracker/ui/detail/controllers/habit_detail_controller.dart
 class FakeHabitRepository implements HabitRepository {
   final List<Habit> _habits = [];
   final List<HabitLog> _logs = [];
+  final List<HabitShield> _shields = [];
   final List<HabitCategory> _categories = [];
 
   final _habitsController = StreamController<List<Habit>>.broadcast();
   final _logsController = StreamController<List<HabitLog>>.broadcast();
+  final _shieldsController = StreamController<List<HabitShield>>.broadcast();
   final _categoriesController =
       StreamController<List<HabitCategory>>.broadcast();
 
   FakeHabitRepository({
     List<Habit>? initialHabits,
     List<HabitLog>? initialLogs,
+    List<HabitShield>? initialShields,
     List<HabitCategory>? initialCategories,
   }) {
     if (initialHabits != null) _habits.addAll(initialHabits);
     if (initialLogs != null) _logs.addAll(initialLogs);
+    if (initialShields != null) _shields.addAll(initialShields);
     if (initialCategories != null) _categories.addAll(initialCategories);
   }
 
   void _notify() {
     _habitsController.add(List.unmodifiable(_habits));
     _logsController.add(List.unmodifiable(_logs));
+    _shieldsController.add(List.unmodifiable(_shields));
     _categoriesController.add(List.unmodifiable(_categories));
   }
 
@@ -263,6 +269,89 @@ class FakeHabitRepository implements HabitRepository {
   Future<void> upsertCategory(HabitCategory category) async {}
   @override
   Future<void> deleteCategory(HabitCategory category) async {}
+
+  @override
+  Stream<List<HabitShield>> getAllShields() {
+    Future.microtask(() => _shieldsController.add(List.unmodifiable(_shields)));
+    return _shieldsController.stream;
+  }
+
+  @override
+  Future<List<HabitShield>> getAllShieldsOnce() async => _shields;
+
+  @override
+  Stream<List<HabitShield>> getShieldsForHabit(String habitId) =>
+      getAllShields().map((s) => s.where((item) => item.habitId == habitId).toList());
+
+  @override
+  Future<List<HabitShield>> getShieldsForHabitOnce(String habitId) async =>
+      _shields.where((item) => item.habitId == habitId).toList();
+
+  @override
+  Stream<List<HabitShield>> getShieldsForDate(DateTime date) {
+    final dateStr = StreakCalculator.dateFormatter.format(date);
+    return getAllShields().map((s) => s.where((item) => item.date == dateStr).toList());
+  }
+
+  @override
+  Future<List<HabitShield>> getShieldsForDateOnce(DateTime date) async {
+    final dateStr = StreakCalculator.dateFormatter.format(date);
+    return _shields.where((item) => item.date == dateStr).toList();
+  }
+
+  @override
+  Stream<List<HabitShield>> getShieldsForDateRange(DateTime startDate, DateTime endDate) =>
+      getAllShields();
+
+  @override
+  Future<List<HabitShield>> getShieldsForDateRangeOnce(DateTime startDate, DateTime endDate) async =>
+      _shields;
+
+  @override
+  Future<void> applyShield({
+    required String habitId,
+    required DateTime date,
+    bool autoApplied = false,
+  }) async {
+    final dateStr = StreakCalculator.dateFormatter.format(date);
+    _shields.removeWhere((s) => s.habitId == habitId && s.date == dateStr);
+    _shields.add(HabitShield(
+      id: 'shield-${DateTime.now().millisecondsSinceEpoch}',
+      habitId: habitId,
+      date: dateStr,
+      autoApplied: autoApplied,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    ));
+    _notify();
+  }
+
+  @override
+  Future<void> removeShield(String habitId, DateTime date) async {
+    final dateStr = StreakCalculator.dateFormatter.format(date);
+    _shields.removeWhere((s) => s.habitId == habitId && s.date == dateStr);
+    _notify();
+  }
+
+  @override
+  Future<void> toggleShield(String habitId, DateTime date) async {
+    final dateStr = StreakCalculator.dateFormatter.format(date);
+    final exists = _shields.any((s) => s.habitId == habitId && s.date == dateStr);
+    if (exists) {
+      await removeShield(habitId, date);
+    } else {
+      await applyShield(habitId: habitId, date: date);
+    }
+  }
+
+  @override
+  Future<bool> isDateShielded(String habitId, DateTime date) async {
+    final dateStr = StreakCalculator.dateFormatter.format(date);
+    return _shields.any((s) => s.habitId == habitId && s.date == dateStr);
+  }
+
+  @override
+  Future<int> autoProtectMissedDays(DateTime date) async => 0;
 }
 
 void main() {

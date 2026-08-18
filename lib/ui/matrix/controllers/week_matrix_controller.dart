@@ -7,10 +7,12 @@ import '../../../domain/models/habit.dart';
 import '../../../domain/models/habit_category.dart';
 import '../../../domain/models/habit_frequency_type.dart';
 import '../../../domain/models/habit_log.dart';
+import '../../../domain/models/habit_shield.dart';
 import '../../../domain/repositories/habit_repository.dart';
 
 enum MatrixCellStatus {
   completed,
+  shielded,
   scheduledIncomplete,
   notScheduled,
 }
@@ -44,6 +46,7 @@ class MatrixRow {
   final HabitCategory? category;
   final List<MatrixCell> cells;
   final int completedCountThisWeek;
+  final int shieldedCountThisWeek;
   final int targetCountThisWeek;
 
   const MatrixRow({
@@ -51,6 +54,7 @@ class MatrixRow {
     this.category,
     required this.cells,
     required this.completedCountThisWeek,
+    this.shieldedCountThisWeek = 0,
     required this.targetCountThisWeek,
   });
 
@@ -62,6 +66,7 @@ class MatrixRow {
           habit == other.habit &&
           category == other.category &&
           completedCountThisWeek == other.completedCountThisWeek &&
+          shieldedCountThisWeek == other.shieldedCountThisWeek &&
           targetCountThisWeek == other.targetCountThisWeek;
 
   @override
@@ -69,6 +74,7 @@ class MatrixRow {
       habit.hashCode ^
       category.hashCode ^
       completedCountThisWeek.hashCode ^
+      shieldedCountThisWeek.hashCode ^
       targetCountThisWeek.hashCode;
 }
 
@@ -76,12 +82,14 @@ class DailyCompletionStat {
   final DateTime date;
   final String dayLabel;
   final int completedCount;
+  final int shieldedCount;
   final int scheduledCount;
 
   const DailyCompletionStat({
     required this.date,
     required this.dayLabel,
     required this.completedCount,
+    this.shieldedCount = 0,
     required this.scheduledCount,
   });
 
@@ -93,6 +101,7 @@ class DailyCompletionStat {
           date == other.date &&
           dayLabel == other.dayLabel &&
           completedCount == other.completedCount &&
+          shieldedCount == other.shieldedCount &&
           scheduledCount == other.scheduledCount;
 
   @override
@@ -100,6 +109,7 @@ class DailyCompletionStat {
       date.hashCode ^
       dayLabel.hashCode ^
       completedCount.hashCode ^
+      shieldedCount.hashCode ^
       scheduledCount.hashCode;
 }
 
@@ -110,6 +120,7 @@ class WeekMatrixUiState {
   final List<MatrixRow> rows;
   final List<DailyCompletionStat> dailyStats;
   final int totalCompleted;
+  final int totalShielded;
   final int totalScheduled;
   final int adherencePercentage;
   final bool isLoading;
@@ -121,6 +132,7 @@ class WeekMatrixUiState {
     this.rows = const [],
     this.dailyStats = const [],
     this.totalCompleted = 0,
+    this.totalShielded = 0,
     this.totalScheduled = 0,
     this.adherencePercentage = 0,
     this.isLoading = false,
@@ -137,6 +149,7 @@ class WeekMatrixUiState {
     List<MatrixRow>? rows,
     List<DailyCompletionStat>? dailyStats,
     int? totalCompleted,
+    int? totalShielded,
     int? totalScheduled,
     int? adherencePercentage,
     bool? isLoading,
@@ -148,6 +161,7 @@ class WeekMatrixUiState {
       rows: rows ?? this.rows,
       dailyStats: dailyStats ?? this.dailyStats,
       totalCompleted: totalCompleted ?? this.totalCompleted,
+      totalShielded: totalShielded ?? this.totalShielded,
       totalScheduled: totalScheduled ?? this.totalScheduled,
       adherencePercentage: adherencePercentage ?? this.adherencePercentage,
       isLoading: isLoading ?? this.isLoading,
@@ -167,10 +181,12 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
   DateTime _weekStart = StreakCalculator.isoWeekStart(DateTime.now());
   List<Habit> _habits = [];
   List<HabitLog> _logs = [];
+  List<HabitShield> _shields = [];
   List<HabitCategory> _categories = [];
 
   StreamSubscription? _habitsSub;
   StreamSubscription? _logsSub;
+  StreamSubscription? _shieldsSub;
   StreamSubscription? _categoriesSub;
 
   final DateFormat _dateFormatter = DateFormat('yyyy-MM-dd');
@@ -188,6 +204,11 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
 
     _logsSub = _repository.getAllLogs().listen((logs) {
       _logs = logs;
+      _recalculate();
+    });
+
+    _shieldsSub = _repository.getAllShields().listen((shields) {
+      _shields = shields;
       _recalculate();
     });
 
@@ -216,16 +237,25 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
       logsByHabit.putIfAbsent(log.habitId, () => []).add(log);
     }
 
+    final shieldsByHabit = <String, List<HabitShield>>{};
+    for (final s in _shields) {
+      shieldsByHabit.putIfAbsent(s.habitId, () => []).add(s);
+    }
+
     final weekDays = List.generate(7, (i) => start.add(Duration(days: i)));
 
     final rows = _habits.map((habit) {
       final habitLogs = logsByHabit[habit.id] ?? const [];
+      final habitShields = shieldsByHabit[habit.id] ?? const [];
       final logsByDate = <String, List<HabitLog>>{};
       for (final log in habitLogs) {
         logsByDate.putIfAbsent(log.date, () => []).add(log);
       }
 
+      final shieldedDates = {for (final s in habitShields) s.date};
+
       int completedDaysCount = 0;
+      int shieldedDaysCount = 0;
       final cells = weekDays.map((date) {
         final isToday =
             date.year == today.year &&
@@ -236,12 +266,19 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
         final dayLogs = logsByDate[dateStr] ?? const [];
         final isCompleted =
             StreakCalculator.isHabitCompletedOnDate(habit, dayLogs);
+        final isShielded = shieldedDates.contains(dateStr);
 
-        if (isCompleted) completedDaysCount++;
+        if (isCompleted) {
+          completedDaysCount++;
+        } else if (isShielded) {
+          shieldedDaysCount++;
+        }
 
         final MatrixCellStatus status;
         if (isCompleted) {
           status = MatrixCellStatus.completed;
+        } else if (isShielded) {
+          status = MatrixCellStatus.shielded;
         } else if (isScheduled) {
           status = MatrixCellStatus.scheduledIncomplete;
         } else {
@@ -273,6 +310,7 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
         category: habit.categoryId != null ? categoryMap[habit.categoryId] : null,
         cells: cells,
         completedCountThisWeek: completedDaysCount,
+        shieldedCountThisWeek: shieldedDaysCount,
         targetCountThisWeek: targetCountThisWeek,
       );
     }).toList();
@@ -292,6 +330,7 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
 
       int scheduled = 0;
       int completed = 0;
+      int shielded = 0;
 
       for (final habit in _habits) {
         final isScheduled = StreakCalculator.isHabitScheduledOnDate(habit, date);
@@ -301,6 +340,11 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
           final dayLogs = habitLogs.where((l) => l.date == dateStr).toList();
           if (StreakCalculator.isHabitCompletedOnDate(habit, dayLogs)) {
             completed++;
+          } else {
+            final habitShields = shieldsByHabit[habit.id] ?? const [];
+            if (habitShields.any((s) => s.date == dateStr)) {
+              shielded++;
+            }
           }
         }
       }
@@ -309,6 +353,7 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
         date: date,
         dayLabel: dayLabel,
         completedCount: completed,
+        shieldedCount: shielded,
         scheduledCount: scheduled,
       );
     }).toList();
@@ -325,6 +370,10 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
               ? row.completedCountThisWeek
               : row.targetCountThisWeek),
     );
+    final totalShielded = rows.fold<int>(
+      0,
+      (sum, row) => sum + row.shieldedCountThisWeek,
+    );
 
     final adherence = totalScheduled > 0
         ? ((totalCompleted / totalScheduled) * 100).round()
@@ -337,6 +386,7 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
       rows: rows,
       dailyStats: dailyStats,
       totalCompleted: totalCompleted,
+      totalShielded: totalShielded,
       totalScheduled: totalScheduled,
       adherencePercentage: adherence,
       isLoading: false,
@@ -362,10 +412,15 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
     await _repository.toggleBooleanCheckIn(habitId, date);
   }
 
+  Future<void> toggleShieldCell(String habitId, DateTime date) async {
+    await _repository.toggleShield(habitId, date);
+  }
+
   @override
   void dispose() {
     _habitsSub?.cancel();
     _logsSub?.cancel();
+    _shieldsSub?.cancel();
     _categoriesSub?.cancel();
     super.dispose();
   }

@@ -13,6 +13,7 @@ class HabitCard extends StatelessWidget {
   final HabitWithProgress habitWithProgress;
   final ValueChanged<String> onHabitClick;
   final VoidCallback onToggleCheckIn;
+  final VoidCallback? onToggleShield;
   final ValueChanged<double>? onValueChange;
   final ValueChanged<double>? onDeltaAdd;
   final ValueChanged<int>? onToggleSlot;
@@ -24,6 +25,7 @@ class HabitCard extends StatelessWidget {
     required this.habitWithProgress,
     required this.onHabitClick,
     required this.onToggleCheckIn,
+    this.onToggleShield,
     this.onValueChange,
     this.onDeltaAdd,
     this.onToggleSlot,
@@ -37,6 +39,7 @@ class HabitCard extends StatelessWidget {
     final habit = habitWithProgress.habit;
     final category = habitWithProgress.category;
     final isCompleted = habitWithProgress.isCompletedOnDate;
+    final isShielded = habitWithProgress.isShieldedOnDate;
     final streak = habitWithProgress.streak;
 
     final habitColor = ColorUtils.parseHexColor(habit.color);
@@ -49,11 +52,15 @@ class HabitCard extends StatelessWidget {
 
     final containerColor = isCompleted
         ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4)
-        : theme.colorScheme.surface;
+        : isShielded
+            ? theme.colorScheme.primaryContainer.withValues(alpha: 0.25)
+            : theme.colorScheme.surface;
 
-    final borderColor = habit.pinned
-        ? theme.colorScheme.primary.withValues(alpha: 0.3)
-        : outlineVariant.withValues(alpha: 0.35);
+    final borderColor = isShielded
+        ? theme.colorScheme.primary.withValues(alpha: 0.5)
+        : habit.pinned
+            ? theme.colorScheme.primary.withValues(alpha: 0.3)
+            : outlineVariant.withValues(alpha: 0.35);
 
     return Card(
       elevation: isCompleted ? 0.5 : 1.5,
@@ -124,14 +131,14 @@ class HabitCard extends StatelessWidget {
                         const SizedBox(height: 2),
 
                         // Streak or target status
-                        _buildStreakOrStatus(theme, habit, streak, streakLabel),
+                        _buildStreakOrStatus(theme, habit, streak, streakLabel, isShielded),
                       ],
                     ),
                   ),
                   const SizedBox(width: 8),
 
                   // Right Completion Control / Focus Action (Touch target >= 48dp)
-                  _buildActionControl(context, theme, habit, isCompleted, habitColor),
+                  _buildActionControl(context, theme, habit, isCompleted, isShielded, habitColor),
                 ],
               ),
 
@@ -189,7 +196,29 @@ class HabitCard extends StatelessWidget {
     dynamic habit,
     StreakResult streak,
     String streakLabel,
+    bool isShielded,
   ) {
+    if (isShielded) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.shield,
+            size: 13,
+            color: theme.colorScheme.primary,
+          ),
+          const SizedBox(width: 3),
+          Text(
+            'Shielded • $streakLabel',
+            style: theme.textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+        ],
+      );
+    }
+
     if (streak.currentStreak > 0) {
       return Row(
         mainAxisSize: MainAxisSize.min,
@@ -237,6 +266,7 @@ class HabitCard extends StatelessWidget {
     ThemeData theme,
     dynamic habit,
     bool isCompleted,
+    bool isShielded,
     Color habitColor,
   ) {
     if (habit.targetType == HabitTargetType.timer && !isCompleted) {
@@ -295,8 +325,12 @@ class HabitCard extends StatelessWidget {
             height: 34,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: isCompleted ? habitColor : Colors.transparent,
-              border: isCompleted
+              color: isCompleted
+                  ? habitColor
+                  : isShielded
+                      ? theme.colorScheme.primaryContainer
+                      : Colors.transparent,
+              border: (isCompleted || isShielded)
                   ? null
                   : Border.all(
                       color: theme.colorScheme.outlineVariant,
@@ -309,7 +343,13 @@ class HabitCard extends StatelessWidget {
                     color: Colors.white,
                     size: 20,
                   )
-                : null,
+                : isShielded
+                    ? Icon(
+                        Icons.shield,
+                        color: theme.colorScheme.primary,
+                        size: 18,
+                      )
+                    : null,
           ),
         ),
       ),

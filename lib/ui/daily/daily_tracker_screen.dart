@@ -6,6 +6,7 @@ import '../../data/preferences/theme_preferences.dart';
 import '../common/haptics_helper.dart';
 import '../common/theme_toggle_button.dart';
 import '../form/habit_form_bottom_sheet.dart';
+import '../gamification/dialogs/shield_bank_bottom_sheet.dart';
 import '../navigation/habit_bottom_navigation.dart';
 import '../navigation/screen.dart';
 import 'controllers/daily_tracker_controller.dart';
@@ -182,10 +183,18 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen> {
                       ),
                     ),
 
-                    // Actions: Theme toggle, Search icon, Sort menu
+                    // Actions: Shield bank, Theme toggle, Search icon, Sort menu
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        IconButton(
+                          icon: const Icon(Icons.shield_outlined),
+                          tooltip: 'Streak Shields Bank',
+                          onPressed: () {
+                            HapticsHelper.performLightHaptic();
+                            ShieldBankBottomSheet.show(context);
+                          },
+                        ),
                         ThemeToggleButton(
                           currentTheme: currentThemeMode,
                           onThemeSelected: (mode) {
@@ -605,6 +614,9 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen> {
           },
           onToggleCheckIn: () {
             controller.toggleCheckIn(habitWithProgress.habit);
+          },
+          onToggleShield: () {
+            controller.toggleShield(habitWithProgress.habit);
           },
           onValueChange: (val) {
             controller.updateNumericValue(habitWithProgress.habit.id, val);

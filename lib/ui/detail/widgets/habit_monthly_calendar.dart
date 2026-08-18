@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../../domain/engines/streak_calculator.dart';
 import '../../../domain/models/habit.dart';
 import '../../../domain/models/habit_log.dart';
+import '../../../domain/models/habit_shield.dart';
 import '../../../domain/models/habit_target_type.dart';
 import '../../common/haptics_helper.dart';
 
@@ -11,6 +12,7 @@ class MonthlyStats {
   final int completedCount;
   final int scheduledCount;
   final int bestStreakInMonth;
+  final int shieldedCount;
   final double totalLoggedValue;
 
   const MonthlyStats({
@@ -18,6 +20,7 @@ class MonthlyStats {
     required this.completedCount,
     required this.scheduledCount,
     required this.bestStreakInMonth,
+    this.shieldedCount = 0,
     required this.totalLoggedValue,
   });
 }
@@ -25,6 +28,7 @@ class MonthlyStats {
 class HabitMonthlyCalendar extends StatelessWidget {
   final Habit habit;
   final List<HabitLog> logs;
+  final List<HabitShield> shields;
   final DateTime currentMonth;
   final DateTime? selectedDate;
   final Color accentColor;
@@ -36,6 +40,7 @@ class HabitMonthlyCalendar extends StatelessWidget {
     super.key,
     required this.habit,
     required this.logs,
+    this.shields = const [],
     required this.currentMonth,
     required this.selectedDate,
     required this.accentColor,
@@ -55,6 +60,8 @@ class HabitMonthlyCalendar extends StatelessWidget {
       logsByDate.putIfAbsent(log.date, () => []).add(log);
     }
 
+    final shieldedDates = {for (final s in shields) s.date};
+
     final year = currentMonth.year;
     final month = currentMonth.month;
     final daysInMonth = DateTime(year, month + 1, 0).day;
@@ -65,22 +72,30 @@ class HabitMonthlyCalendar extends StatelessWidget {
     // Calculate Monthly Stats
     var scheduledDays = 0;
     var completedDays = 0;
+    var shieldedDays = 0;
     var currentStreakMonth = 0;
     var bestStreakMonth = 0;
     var totalValue = 0.0;
 
     for (var day = 1; day <= daysInMonth; day++) {
       final d = DateTime(year, month, day);
+      final dateStr = formatter.format(d);
       final isScheduled = StreakCalculator.isHabitScheduledOnDate(habit, d);
-      final dayLogs = logsByDate[formatter.format(d)] ?? const [];
-      final isCompleted =
-          StreakCalculator.isHabitCompletedOnDate(habit, dayLogs);
+      final dayLogs = logsByDate[dateStr] ?? const [];
+      final isCompleted = StreakCalculator.isHabitCompletedOnDate(habit, dayLogs);
+      final isShielded = shieldedDates.contains(dateStr);
 
       if (isScheduled) {
         scheduledDays++;
         if (isCompleted) {
           completedDays++;
           currentStreakMonth++;
+          if (currentStreakMonth > bestStreakMonth) {
+            bestStreakMonth = currentStreakMonth;
+          }
+        } else if (isShielded) {
+          shieldedDays++;
+          // Streak chain is preserved across shielded days
           if (currentStreakMonth > bestStreakMonth) {
             bestStreakMonth = currentStreakMonth;
           }
@@ -107,6 +122,7 @@ class HabitMonthlyCalendar extends StatelessWidget {
       completedCount: completedDays,
       scheduledCount: scheduledDays,
       bestStreakInMonth: bestStreakMonth,
+      shieldedCount: shieldedDays,
       totalLoggedValue: totalValue,
     );
 
@@ -214,14 +230,16 @@ class HabitMonthlyCalendar extends StatelessWidget {
 
                       if (dayNumber >= 1 && dayNumber <= daysInMonth) {
                         final cellDate = DateTime(year, month, dayNumber);
+                        final dateStr = formatter.format(cellDate);
                         final isScheduled =
                             StreakCalculator.isHabitScheduledOnDate(
                                 habit, cellDate);
                         final dayLogs =
-                            logsByDate[formatter.format(cellDate)] ?? const [];
+                            logsByDate[dateStr] ?? const [];
                         final isCompleted =
                             StreakCalculator.isHabitCompletedOnDate(
                                 habit, dayLogs);
+                        final isShielded = shieldedDates.contains(dateStr);
 
                         final isSelected = selectedDate != null &&
                             selectedDate!.year == cellDate.year &&
@@ -234,6 +252,7 @@ class HabitMonthlyCalendar extends StatelessWidget {
                           child: _CalendarDayCell(
                             dayNumber: dayNumber,
                             isCompleted: isCompleted,
+                            isShielded: isShielded,
                             isScheduled: isScheduled,
                             isSelected: isSelected,
                             isPast: isPast,
@@ -282,12 +301,19 @@ class HabitMonthlyCalendar extends StatelessWidget {
                       label: 'Best Streak',
                       value: '${monthlyStats.bestStreakInMonth}d',
                     ),
-                    _MetricItem(
-                      label: 'Total',
-                      value:
-                          '${monthlyStats.totalLoggedValue.round()} ${habit.unit ?? (habit.targetType == HabitTargetType.timer ? "m" : "")}'
-                              .trim(),
-                    ),
+                    if (monthlyStats.shieldedCount > 0)
+                      _MetricItem(
+                        label: 'Protected',
+                        value: '${monthlyStats.shieldedCount} 🛡️',
+                        valueColor: theme.colorScheme.primary,
+                      )
+                    else
+                      _MetricItem(
+                        label: 'Total',
+                        value:
+                            '${monthlyStats.totalLoggedValue.round()} ${habit.unit ?? (habit.targetType == HabitTargetType.timer ? "m" : "")}'
+                                .trim(),
+                      ),
                   ],
                 ),
               ),
@@ -302,6 +328,7 @@ class HabitMonthlyCalendar extends StatelessWidget {
 class _CalendarDayCell extends StatelessWidget {
   final int dayNumber;
   final bool isCompleted;
+  final bool isShielded;
   final bool isScheduled;
   final bool isSelected;
   final bool isPast;
@@ -311,6 +338,7 @@ class _CalendarDayCell extends StatelessWidget {
   const _CalendarDayCell({
     required this.dayNumber,
     required this.isCompleted,
+    this.isShielded = false,
     required this.isScheduled,
     required this.isSelected,
     required this.isPast,
@@ -324,27 +352,33 @@ class _CalendarDayCell extends StatelessWidget {
 
     final backgroundColor = switch (isCompleted) {
       true => accentColor,
-      false => isSelected
-          ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
-          : Colors.transparent,
+      false => isShielded
+          ? theme.colorScheme.primaryContainer.withValues(alpha: 0.85)
+          : isSelected
+              ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
+              : Colors.transparent,
     };
 
     final textColor = switch (isCompleted) {
       true => Colors.white,
-      false => !isScheduled
-          ? theme.colorScheme.outlineVariant
-          : isSelected
-              ? theme.colorScheme.primary
-              : isPast
-                  ? theme.colorScheme.onSurfaceVariant
-                  : theme.colorScheme.onSurface,
+      false => isShielded
+          ? theme.colorScheme.onPrimaryContainer
+          : !isScheduled
+              ? theme.colorScheme.outlineVariant
+              : isSelected
+                  ? theme.colorScheme.primary
+                  : isPast
+                      ? theme.colorScheme.onSurfaceVariant
+                      : theme.colorScheme.onSurface,
     };
 
     final Border? border = switch (isSelected) {
       true => Border.all(color: theme.colorScheme.primary, width: 2),
-      false => (isScheduled && !isCompleted && isPast)
-          ? Border.all(color: theme.colorScheme.outlineVariant, width: 1)
-          : null,
+      false => isShielded
+          ? Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.6), width: 1.5)
+          : (isScheduled && !isCompleted && isPast)
+              ? Border.all(color: theme.colorScheme.outlineVariant, width: 1)
+              : null,
     };
 
     return AspectRatio(
@@ -371,15 +405,21 @@ class _CalendarDayCell extends StatelessWidget {
                       color: Colors.white,
                       size: 16,
                     )
-                  : Text(
-                      '$dayNumber',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        fontWeight: (isSelected || isCompleted)
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                        color: textColor,
-                      ),
-                    ),
+                  : isShielded
+                      ? Icon(
+                          Icons.shield,
+                          color: theme.colorScheme.primary,
+                          size: 15,
+                        )
+                      : Text(
+                          '$dayNumber',
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            fontWeight: (isSelected || isCompleted || isShielded)
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: textColor,
+                          ),
+                        ),
             ),
           ),
         ),

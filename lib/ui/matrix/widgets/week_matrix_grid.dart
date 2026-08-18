@@ -9,12 +9,14 @@ import '../controllers/week_matrix_controller.dart';
 class WeekMatrixGrid extends StatelessWidget {
   final List<MatrixRow> rows;
   final void Function(String habitId, DateTime date) onToggleCell;
+  final void Function(String habitId, DateTime date)? onToggleShieldCell;
   final ValueChanged<String> onHabitClick;
 
   const WeekMatrixGrid({
     super.key,
     required this.rows,
     required this.onToggleCell,
+    this.onToggleShieldCell,
     required this.onHabitClick,
   });
 
@@ -193,7 +195,7 @@ class WeekMatrixGrid extends StatelessWidget {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     Text(
-                                      '${row.completedCountThisWeek}/${row.targetCountThisWeek} • $freqBadge',
+                                      '${row.completedCountThisWeek}/${row.targetCountThisWeek}${row.shieldedCountThisWeek > 0 ? " • ${row.shieldedCountThisWeek}🛡️" : ""} • $freqBadge',
                                       style: theme.textTheme.labelSmall
                                           ?.copyWith(
                                         fontSize: 10,
@@ -219,12 +221,17 @@ class WeekMatrixGrid extends StatelessWidget {
                         children: row.cells.map((cell) {
                           final isDone =
                               cell.status == MatrixCellStatus.completed;
+                          final isShielded =
+                              cell.status == MatrixCellStatus.shielded;
                           final isScheduled = cell.status ==
                               MatrixCellStatus.scheduledIncomplete;
 
                           final Color cellColor;
                           if (isDone) {
                             cellColor = accentColor;
+                          } else if (isShielded) {
+                            cellColor = theme.colorScheme.primaryContainer
+                                .withValues(alpha: 0.85);
                           } else if (cell.isToday) {
                             cellColor = theme.colorScheme.primaryContainer
                                 .withValues(alpha: 0.4);
@@ -233,7 +240,12 @@ class WeekMatrixGrid extends StatelessWidget {
                           }
 
                           final Border? border;
-                          if (cell.isToday && !isDone) {
+                          if (isShielded) {
+                            border = Border.all(
+                              color: theme.colorScheme.primary.withValues(alpha: 0.7),
+                              width: 1.2,
+                            );
+                          } else if (cell.isToday && !isDone) {
                             border = Border.all(
                               color: theme.colorScheme.primary,
                               width: 1.5,
@@ -249,12 +261,16 @@ class WeekMatrixGrid extends StatelessWidget {
 
                           return GestureDetector(
                             onTap: () {
-                              if (!isDone) {
+                              if (!isDone && !isShielded) {
                                 HapticsHelper.performHeavyConfirmationHaptic();
                               } else {
                                 HapticsHelper.performLightHaptic();
                               }
                               onToggleCell(habit.id, cell.date);
+                            },
+                            onLongPress: () {
+                              HapticsHelper.performLightHaptic();
+                              onToggleShieldCell?.call(habit.id, cell.date);
                             },
                             child: Container(
                               width: 24,
@@ -271,20 +287,26 @@ class WeekMatrixGrid extends StatelessWidget {
                                         size: 14,
                                         color: Colors.white,
                                       )
-                                    : (!isScheduled &&
-                                            cell.status ==
-                                                MatrixCellStatus.notScheduled)
-                                        ? Container(
-                                            width: 3,
-                                            height: 3,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: theme
-                                                  .colorScheme.outlineVariant
-                                                  .withValues(alpha: 0.6),
-                                            ),
+                                    : isShielded
+                                        ? Icon(
+                                            Icons.shield,
+                                            size: 13,
+                                            color: theme.colorScheme.primary,
                                           )
-                                        : null,
+                                        : (!isScheduled &&
+                                                cell.status ==
+                                                    MatrixCellStatus.notScheduled)
+                                            ? Container(
+                                                width: 3,
+                                                height: 3,
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  color: theme
+                                                      .colorScheme.outlineVariant
+                                                      .withValues(alpha: 0.6),
+                                                ),
+                                              )
+                                            : null,
                               ),
                             ),
                           );

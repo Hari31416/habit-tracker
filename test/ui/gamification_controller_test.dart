@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:habit_tracker/domain/engines/shield_banking_engine.dart';
 import 'package:habit_tracker/domain/gamification/gamification_models.dart';
 import 'package:habit_tracker/domain/gamification/player_title.dart';
 import 'package:habit_tracker/domain/repositories/gamification_repository.dart';
@@ -54,6 +55,25 @@ class FakeGamificationRepository implements GamificationRepository {
     celebration = null;
     _celebrationController.add(null);
   }
+
+  @override
+  Stream<ShieldBankState> getShieldBankState() => Stream.value(
+        const ShieldBankState(
+          totalShieldsEarned: 1,
+          usedShieldsCount: 0,
+          availableShields: 1,
+          maxCapacity: 3,
+          daysToNextShield: 14,
+          progressToNextShield: 0.0,
+          autoConsumeEnabled: true,
+        ),
+      );
+
+  @override
+  Future<void> updateShieldSettings({
+    required int maxCapacity,
+    required bool autoConsume,
+  }) async {}
 
   void updateProgression(PlayerProgression newProgression) {
     progression = newProgression;
