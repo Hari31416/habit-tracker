@@ -7,14 +7,15 @@ MAIN_ACTIVITY := $(PACKAGE_NAME).MainActivity
 DEFAULT_AVD := $(shell $(EMULATOR) -list-avds 2>/dev/null | head -n 1)
 AVD ?= $(DEFAULT_AVD)
 
-.PHONY: help build build-release test lint clean install uninstall emulator-list emulator-start emulator-stop emulator-wait start stop restart run debug logcat flutter-run flutter-run-android flutter-build-apk flutter-test flutter-analyze flutter-codegen codegen kotlin-build kotlin-build-release kotlin-test kotlin-lint kotlin-clean kotlin-install kotlin-run
+.PHONY: help build build-release build-release-universal build-appbundle test lint clean install uninstall emulator-list emulator-start emulator-stop emulator-wait start stop restart run debug logcat flutter-run flutter-run-android flutter-build-apk flutter-build-release flutter-build-appbundle flutter-test flutter-analyze flutter-codegen codegen kotlin-build kotlin-build-release kotlin-test kotlin-lint kotlin-clean kotlin-install kotlin-run
 
 help: ## Show this help message
 	@echo "Usage: make [target] [AVD=avd_name]"
 	@echo ""
 	@echo "Default Android (Flutter):"
 	@echo "  make build           - Build the debug APK via Flutter"
-	@echo "  make build-release   - Build the release APK via Flutter"
+	@echo "  make build-release   - Build release split-ABI APKs via Flutter"
+	@echo "  make build-appbundle - Build release Android App Bundle (.aab) via Flutter"
 	@echo "  make test            - Run all Flutter unit and widget tests"
 	@echo "  make lint            - Run Flutter code analysis"
 	@echo "  make clean           - Clean Flutter and Gradle build artifacts"
@@ -24,6 +25,8 @@ help: ## Show this help message
 	@echo "Flutter Aliases:"
 	@echo "  make flutter-run     - Ensure emulator, then run Flutter app on Android"
 	@echo "  make flutter-build-apk - Build debug APK via Flutter"
+	@echo "  make flutter-build-release - Build release split-ABI APKs via Flutter"
+	@echo "  make flutter-build-appbundle - Build release Android App Bundle (.aab)"
 	@echo "  make flutter-test    - Run all Flutter unit and widget tests"
 	@echo "  make flutter-analyze - Run Flutter code analysis"
 	@echo "  make flutter-codegen - Run build_runner for Drift/Riverpod codegen"
@@ -56,8 +59,14 @@ help: ## Show this help message
 build: ## Build Flutter debug APK
 	flutter build apk --debug --android-skip-build-dependency-validation
 
-build-release: ## Build Flutter release APK
+build-release: ## Build Flutter release split-ABI APKs
+	flutter build apk --release --split-per-abi --android-skip-build-dependency-validation
+
+build-release-universal: ## Build Flutter release universal APK
 	flutter build apk --release --android-skip-build-dependency-validation
+
+build-appbundle: ## Build Flutter release Android App Bundle (.aab)
+	flutter build appbundle --release --android-skip-build-dependency-validation
 
 test: ## Run Flutter unit and widget tests
 	flutter test
@@ -135,6 +144,10 @@ flutter-run: run ## Ensure emulator and run Flutter app on Android
 flutter-run-android: run ## Alias for flutter-run
 
 flutter-build-apk: build ## Build debug APK with Flutter
+
+flutter-build-release: build-release ## Build release split-ABI APKs with Flutter
+
+flutter-build-appbundle: build-appbundle ## Build release App Bundle with Flutter
 
 flutter-test: test ## Run Flutter unit and widget tests
 

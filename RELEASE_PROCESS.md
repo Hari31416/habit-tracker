@@ -57,7 +57,10 @@ Verify that Drift code generation, ProGuard/R8 rules, and Release APK assembly c
 make build-release
 ```
 
-Ensure the release binary is generated at `build/app/outputs/flutter-apk/app-release.apk`.
+Ensure the release binaries are generated at:
+- `build/app/outputs/flutter-apk/app-arm64-v8a-release.apk`
+- `build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk`
+- `build/app/outputs/flutter-apk/app-x86_64-release.apk`
 
 ### 5. Stage and Commit Changes
 
@@ -92,9 +95,11 @@ git push origin v1.1.0
    - Checkout code
    - Setup Java JDK 17 & Flutter SDK
    - Run unit & widget tests (`flutter test`)
-   - Assemble release APK (`flutter build apk --release`)
-   - Upload `habit-tracker-release-apk` artifact
-   - Publish a formal **GitHub Release** with the attached `app-release.apk` and auto-generated release notes.
+   - Assemble release split APKs (`flutter build apk --release --split-per-abi`)
+   - Assemble release App Bundle (`flutter build appbundle --release`)
+   - Upload individual release artifacts (`app-arm64-v8a-release-apk`, `app-armeabi-v7a-release-apk`, `app-x86_64-release-apk`, `app-release-aab`)
+   - Extract corresponding version release notes from `CHANGELOG.md`
+   - Publish a formal **GitHub Release** with all release assets attached and the extracted changelog notes.
 
 ## Release Verification Checklist
 
@@ -106,6 +111,6 @@ Before tagging and publishing a release, verify each of the following items:
 - [ ] Unit and widget tests pass cleanly (`make test`)
 - [ ] Code analysis passes cleanly (`make lint`)
 - [ ] Release APK compiles cleanly (`make build-release`)
-- [ ] Release APK artifact verified at `build/app/outputs/flutter-apk/app-release.apk`
+- [ ] Release APK artifacts verified under `build/app/outputs/flutter-apk/`
 - [ ] Release commit follows conventional commit style
 - [ ] Git tag created with format `vX.Y.Z`

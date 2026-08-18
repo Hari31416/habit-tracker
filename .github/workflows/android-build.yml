@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-apk:
-    name: Build Flutter Android Release APK
+    name: Build Flutter Android Release Artifacts
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -36,19 +36,73 @@ jobs:
       - name: Run Unit & Widget Tests
         run: flutter test
 
-      - name: Build Android Release APK
-        run: flutter build apk --release --android-skip-build-dependency-validation
+      - name: Build Android Release Split APKs
+        run: flutter build apk --release --split-per-abi --android-skip-build-dependency-validation
 
-      - name: Upload Release APK Artifact
+      - name: Build Android Release App Bundle
+        run: flutter build appbundle --release --android-skip-build-dependency-validation
+
+      - name: Upload arm64-v8a Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: habit-tracker-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: app-arm64-v8a-release-apk
+          path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
           retention-days: 14
 
-      - name: Publish APK to GitHub Release
+      - name: Upload armeabi-v7a Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-armeabi-v7a-release-apk
+          path: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+          retention-days: 14
+
+      - name: Upload x86_64 Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-x86_64-release-apk
+          path: build/app/outputs/flutter-apk/app-x86_64-release.apk
+          retention-days: 14
+
+      - name: Upload Release App Bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 14
+
+      - name: Extract Changelog Section
+        id: extract_changelog
+        run: |
+          python3 -c '
+          import re
+          from pathlib import Path
+
+          changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")
+          tag = "${{ github.ref_name }}".lstrip("v")
+          pattern = rf"##\s+\[{re.escape(tag)}\][\s\S]*?(?=\n##\s+\[|\Z)"
+          match = re.search(pattern, changelog)
+          if match:
+              content = match.group(0).strip()
+              content_lines = content.split("\n")[1:]
+              body = "\n".join(content_lines).strip()
+              with open(Path("${{ github.output }}"), "a", encoding="utf-8") as f:
+                  f.write("body<<EOF\n")
+                  f.write(body + "\n")
+                  f.write("EOF\n")
+          else:
+              with open(Path("${{ github.output }}"), "a", encoding="utf-8") as f:
+                  f.write("body=No changelog entry found for this version.\n")
+          '
+
+      - name: Publish Release to GitHub
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: build/app/outputs/flutter-apk/app-release.apk
-          generate_release_notes: true
+          files: |
+            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+            build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+            build/app/outputs/flutter-apk/app-x86_64-release.apk
+            build/app/outputs/bundle/release/app-release.aab
+          body: ${{ steps.extract_changelog.outputs.body }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

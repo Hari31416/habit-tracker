@@ -79,10 +79,16 @@ To build the debug APK:
 flutter build apk --debug --android-skip-build-dependency-validation
 ```
 
-To build the release APK:
+To build release split-ABI APKs:
 
 ```bash
-flutter build apk --release --android-skip-build-dependency-validation
+flutter build apk --release --split-per-abi --android-skip-build-dependency-validation
+```
+
+To build the release Android App Bundle (AAB):
+
+```bash
+flutter build appbundle --release --android-skip-build-dependency-validation
 ```
 
 ### Running Unit & Widget Tests
