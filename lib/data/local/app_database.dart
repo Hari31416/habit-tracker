@@ -28,7 +28,7 @@ part 'app_database.g.dart';
 class AppDatabase extends _$AppDatabase {
   static AppDatabase? _sharedInstance;
 
-  AppDatabase._(QueryExecutor e) : super(e);
+  AppDatabase._(super.e);
 
   /// Default connection used by the running app. Reuses one instance per
   /// isolate so notification actions and Riverpod share the same database.

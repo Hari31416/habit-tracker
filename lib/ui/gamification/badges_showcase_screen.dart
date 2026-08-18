@@ -29,8 +29,6 @@ class BadgesShowcaseScreen extends ConsumerStatefulWidget {
 }
 
 class _BadgesShowcaseScreenState extends ConsumerState<BadgesShowcaseScreen> {
-  bool _showAddForm = false;
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -53,9 +51,7 @@ class _BadgesShowcaseScreenState extends ConsumerState<BadgesShowcaseScreen> {
           }
         },
         onAddHabitClick: () {
-          setState(() {
-            _showAddForm = true;
-          });
+          HabitFormBottomSheet.show(context);
         },
       ),
       body: SafeArea(

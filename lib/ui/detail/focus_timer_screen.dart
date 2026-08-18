@@ -2,7 +2,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/preferences/theme_preferences.dart';
 import '../common/haptics_helper.dart';
 import 'controllers/timer_state_holder.dart';
 

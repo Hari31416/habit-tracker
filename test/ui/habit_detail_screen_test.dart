@@ -6,7 +6,6 @@ import 'package:habit_tracker/domain/engines/streak_calculator.dart';
 import 'package:habit_tracker/domain/models/habit.dart';
 import 'package:habit_tracker/domain/models/habit_category.dart';
 import 'package:habit_tracker/domain/models/habit_frequency_type.dart';
-import 'package:habit_tracker/domain/models/habit_log.dart';
 import 'package:habit_tracker/domain/models/habit_target_type.dart';
 import 'package:habit_tracker/ui/detail/controllers/timer_state_holder.dart';
 import 'package:habit_tracker/ui/detail/focus_timer_screen.dart';
@@ -42,21 +41,6 @@ void main() {
     unit: 'pages',
     reminderTimes: const ['08:00', '20:00'],
     motivationNotes: 'Reading makes you wiser',
-    createdAt: now,
-    updatedAt: now,
-  );
-
-  final timerHabit = Habit(
-    id: 'habit-timer',
-    title: 'Deep Coding',
-    description: 'Focus timer session',
-    color: '#10B981',
-    icon: 'laptop',
-    categoryId: 'cat-work',
-    frequencyType: HabitFrequencyType.daily,
-    targetType: HabitTargetType.timer,
-    targetValue: 25.0,
-    unit: 'mins',
     createdAt: now,
     updatedAt: now,
   );

@@ -1,4 +1,3 @@
-import 'package:intl/intl.dart';
 import '../../domain/engines/streak_calculator.dart';
 import '../../domain/models/habit.dart';
 import '../../domain/repositories/habit_repository.dart';
@@ -39,7 +38,6 @@ class ScheduledNotificationItem {
 
 class LocalNotificationsScheduler {
   final HabitRepository _repository;
-  final DateFormat _timeFormatter = DateFormat('HH:mm');
 
   // In-memory registry of scheduled notifications for testability and platform bridging
   final Map<String, List<ScheduledNotificationItem>> _scheduledItems = {};

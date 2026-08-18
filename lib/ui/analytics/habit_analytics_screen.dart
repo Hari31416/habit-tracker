@@ -32,8 +32,6 @@ class HabitAnalyticsScreen extends ConsumerStatefulWidget {
 }
 
 class _HabitAnalyticsScreenState extends ConsumerState<HabitAnalyticsScreen> {
-  bool _showAddForm = false;
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -56,9 +54,7 @@ class _HabitAnalyticsScreenState extends ConsumerState<HabitAnalyticsScreen> {
           }
         },
         onAddHabitClick: () {
-          setState(() {
-            _showAddForm = true;
-          });
+          HabitFormBottomSheet.show(context);
         },
       ),
       body: SafeArea(

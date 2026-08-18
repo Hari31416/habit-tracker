@@ -13,63 +13,61 @@ class FakeGamificationRepository implements GamificationRepository {
   final _celebrationController =
       StreamController<LevelUpCelebration?>.broadcast();
 
-  PlayerProgression _progression;
-  List<AchievementStatus> _achievements;
-  LevelUpCelebration? _celebration;
+  PlayerProgression progression;
+  List<AchievementStatus> achievements;
+  LevelUpCelebration? celebration;
 
   int? dismissedLevel;
 
   FakeGamificationRepository({
-    PlayerProgression progression = const PlayerProgression(
+    this.progression = const PlayerProgression(
       totalXp: 150,
       level: 2,
       title: PlayerTitle.novice,
       nextLevelTargetXp: 200,
     ),
-    List<AchievementStatus> achievements = const [],
-    LevelUpCelebration? celebration,
-  })  : _progression = progression,
-        _achievements = achievements,
-        _celebration = celebration;
+    this.achievements = const [],
+    this.celebration,
+  });
 
   @override
   Stream<PlayerProgression> getPlayerProgression() async* {
-    yield _progression;
+    yield progression;
     yield* _progressionController.stream;
   }
 
   @override
   Stream<List<AchievementStatus>> getAchievements() async* {
-    yield _achievements;
+    yield achievements;
     yield* _achievementsController.stream;
   }
 
   @override
   Stream<LevelUpCelebration?> getPendingCelebration() async* {
-    yield _celebration;
+    yield celebration;
     yield* _celebrationController.stream;
   }
 
   @override
   Future<void> dismissCelebration(int level) async {
     dismissedLevel = level;
-    _celebration = null;
+    celebration = null;
     _celebrationController.add(null);
   }
 
-  void updateProgression(PlayerProgression progression) {
-    _progression = progression;
-    _progressionController.add(progression);
+  void updateProgression(PlayerProgression newProgression) {
+    progression = newProgression;
+    _progressionController.add(newProgression);
   }
 
-  void updateAchievements(List<AchievementStatus> achievements) {
-    _achievements = achievements;
-    _achievementsController.add(achievements);
+  void updateAchievements(List<AchievementStatus> newAchievements) {
+    achievements = newAchievements;
+    _achievementsController.add(newAchievements);
   }
 
-  void setCelebration(LevelUpCelebration? celebration) {
-    _celebration = celebration;
-    _celebrationController.add(celebration);
+  void setCelebration(LevelUpCelebration? newCelebration) {
+    celebration = newCelebration;
+    _celebrationController.add(newCelebration);
   }
 }
 

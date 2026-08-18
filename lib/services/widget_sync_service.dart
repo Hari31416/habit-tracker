@@ -5,7 +5,6 @@ import '../domain/engines/streak_calculator.dart';
 import '../domain/gamification/gamification_engine.dart';
 import '../domain/gamification/gamification_models.dart';
 import '../domain/gamification/player_title.dart';
-import '../domain/models/habit.dart';
 import '../domain/models/habit_target_type.dart';
 import '../domain/repositories/gamification_repository.dart';
 import '../domain/repositories/habit_repository.dart';

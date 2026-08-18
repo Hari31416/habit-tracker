@@ -30,8 +30,6 @@ class HabitWeekMatrixScreen extends ConsumerStatefulWidget {
 }
 
 class _HabitWeekMatrixScreenState extends ConsumerState<HabitWeekMatrixScreen> {
-  bool _showAddForm = false;
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -54,9 +52,7 @@ class _HabitWeekMatrixScreenState extends ConsumerState<HabitWeekMatrixScreen> {
           }
         },
         onAddHabitClick: () {
-          setState(() {
-            _showAddForm = true;
-          });
+          HabitFormBottomSheet.show(context);
         },
       ),
       body: SafeArea(

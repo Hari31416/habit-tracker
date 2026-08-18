@@ -77,7 +77,7 @@ class HabitDetailUiState {
 
 class HabitDetailController extends StateNotifier<HabitDetailUiState> {
   final String habitId;
-  final HabitRepository _repository;
+  final HabitRepository repository;
   final DateFormat _dateFormatter = DateFormat('yyyy-MM-dd');
 
   StreamSubscription? _habitSubscription;
@@ -94,26 +94,25 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
 
   HabitDetailController({
     required this.habitId,
-    required HabitRepository repository,
-  })  : _repository = repository,
-        super(HabitDetailUiState(isLoading: true)) {
+    required this.repository,
+  }) : super(HabitDetailUiState(isLoading: true)) {
     _initSubscriptions();
   }
 
   void _initSubscriptions() {
-    _habitSubscription = _repository.getHabitById(habitId).listen((habit) {
+    _habitSubscription = repository.getHabitById(habitId).listen((habit) {
       _currentHabit = habit;
       _recomputeState();
     });
 
     _logsSubscription =
-        _repository.getLogsForHabit(habitId).listen((logs) {
+        repository.getLogsForHabit(habitId).listen((logs) {
       _currentLogs = logs;
       _recomputeState();
     });
 
     _categoriesSubscription =
-        _repository.getAllCategories().listen((categories) {
+        repository.getAllCategories().listen((categories) {
       _currentCategories = categories;
       _recomputeState();
     });
@@ -209,23 +208,23 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
   }
 
   Future<void> setPinned(bool pinned) async {
-    await _repository.setPinned(habitId, pinned);
+    await repository.setPinned(habitId, pinned);
   }
 
   Future<void> setArchived(bool archived) async {
-    await _repository.setArchived(habitId, archived);
+    await repository.setArchived(habitId, archived);
   }
 
   Future<void> deleteHabit() async {
-    final habit = await _repository.getHabitByIdOnce(habitId);
+    final habit = await repository.getHabitByIdOnce(habitId);
     if (habit != null) {
-      await _repository.deleteHabit(habit);
+      await repository.deleteHabit(habit);
       _navigateBackController.add(null);
     }
   }
 
   Future<void> set10DotProgress(double targetValueForDot) async {
-    await _repository.updateNumericValue(
+    await repository.updateNumericValue(
       habitId,
       state.selectedDate,
       targetValueForDot,
@@ -233,7 +232,7 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
   }
 
   Future<void> addNumericDelta(double delta) async {
-    await _repository.addNumericDelta(
+    await repository.addNumericDelta(
       habitId,
       state.selectedDate,
       delta,
@@ -241,7 +240,7 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
   }
 
   Future<void> updateNumericValue(double value) async {
-    await _repository.updateNumericValue(
+    await repository.updateNumericValue(
       habitId,
       state.selectedDate,
       value,
@@ -249,7 +248,7 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
   }
 
   Future<void> toggleSlot(int slotIndex) async {
-    await _repository.toggleSlotCheckIn(
+    await repository.toggleSlotCheckIn(
       habitId,
       state.selectedDate,
       slotIndex,
@@ -257,11 +256,11 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
   }
 
   Future<void> toggleCheckInForDate(DateTime date) async {
-    await _repository.toggleBooleanCheckIn(habitId, date);
+    await repository.toggleBooleanCheckIn(habitId, date);
   }
 
   Future<void> toggleReminder(String time) async {
-    final habit = await _repository.getHabitByIdOnce(habitId);
+    final habit = await repository.getHabitByIdOnce(habitId);
     if (habit == null) return;
 
     final updatedReminders = habit.reminderTimes.contains(time)
@@ -269,7 +268,7 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
         : [...habit.reminderTimes, time]
       ..sort();
 
-    await _repository.upsertHabit(
+    await repository.upsertHabit(
       habit.copyWith(reminderTimes: updatedReminders),
     );
   }
