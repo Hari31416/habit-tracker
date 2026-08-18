@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Habit Tracker</string>
+
+    <!-- Widget 1: Today's Habits -->
+    <string name="todays_habits_widget_name">Today\'s Habits</string>
+    <string name="todays_habits_widget_description">View and complete today\'s habits with quick check-in.</string>
+
+    <!-- Widget 2: Daily Focus -->
+    <string name="daily_focus_widget_name">Daily Focus</string>
+    <string name="daily_focus_widget_description">Track your daily adherence, completed habits, and stats.</string>
+
+    <!-- Widget 3: Focus Timer -->
+    <string name="focus_timer_widget_name">Focus Timer</string>
+    <string name="focus_timer_widget_description">Start, pause, and adjust your active focus timer session.</string>
+
+    <!-- Widget 4: Streaks -->
+    <string name="streaks_widget_name">Streaks</string>
+    <string name="streaks_widget_description">Monitor active streaks and protect your daily consistency.</string>
+
+    <!-- Widget 5: XP / Mastery -->
+    <string name="xp_mastery_widget_name">XP / Mastery</string>
+    <string name="xp_mastery_widget_description">Track your level progression, XP milestones, and badge unlocks.</string>
+</resources>
