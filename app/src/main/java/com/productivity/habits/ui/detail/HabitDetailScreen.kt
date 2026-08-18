@@ -73,6 +73,8 @@ import com.productivity.habits.data.local.preferences.ThemePreferences
 import com.productivity.habits.ui.common.ColorUtils
 import com.productivity.habits.ui.common.HabitIconRegistry
 import com.productivity.habits.ui.common.HapticsHelper
+import com.productivity.habits.ui.daily.NumericHabitControls
+import com.productivity.habits.ui.daily.SlotHabitControls
 import com.productivity.habits.ui.form.HabitFormBottomSheet
 import com.productivity.habits.ui.form.HabitFormViewModel
 import java.time.ZoneId
@@ -235,7 +237,7 @@ fun HabitDetailScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // 1. Compact Hero Header with Icon, Title, Category, and Mark as Done
+            // 1. Hero Header with Icon, Title, Category, Mark as Done, and Partial Progress Controls
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(14.dp),
@@ -246,7 +248,7 @@ fun HabitDetailScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(12.dp)
+                        .padding(14.dp)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -319,6 +321,27 @@ fun HabitDetailScreen(
                                 )
                             }
                         }
+                    }
+
+                    // Partial progress controls for numeric / slot targets (consistent with list view)
+                    if (habit.targetType == HabitTargetType.NUMERIC) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        NumericHabitControls(
+                            habit = habit,
+                            currentValue = uiState.currentValueOnSelectedDate,
+                            isCompleted = isCompleted,
+                            accentColor = accentColor,
+                            onValueChange = viewModel::updateNumericValue,
+                            onDeltaAdd = viewModel::addNumericDelta
+                        )
+                    } else if (habit.frequencyType == HabitFrequencyType.SUBDAY_INTERVAL || habit.frequencyType == HabitFrequencyType.TIMES_PER_DAY) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        SlotHabitControls(
+                            habit = habit,
+                            logsForDate = uiState.logsForSelectedDate,
+                            accentColor = accentColor,
+                            onToggleSlot = viewModel::toggleSlot
+                        )
                     }
                 }
             }

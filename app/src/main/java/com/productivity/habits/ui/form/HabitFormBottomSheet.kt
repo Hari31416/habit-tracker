@@ -31,6 +31,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -594,7 +596,8 @@ fun HabitFormBottomSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 reminderPresets.forEach { (label, time) ->
                     val isAdded = formState.reminderTimes.contains(time)
@@ -609,7 +612,7 @@ fun HabitFormBottomSheet(
                 }
 
                 // Custom Time Button
-                OutlinedButton(
+                AssistChip(
                     onClick = {
                         val timePicker = TimePickerDialog(
                             context,
@@ -621,16 +624,23 @@ fun HabitFormBottomSheet(
                         )
                         timePicker.show()
                     },
-                    modifier = Modifier.height(32.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Add custom reminder",
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Custom", style = MaterialTheme.typography.labelMedium)
-                }
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add custom reminder",
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    label = {
+                        Text(
+                            text = "Custom",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                )
             }
 
             // Reminders List

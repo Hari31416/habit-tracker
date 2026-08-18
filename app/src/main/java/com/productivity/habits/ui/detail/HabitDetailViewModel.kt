@@ -31,6 +31,7 @@ data class HabitDetailUiState(
     val habit: HabitEntity? = null,
     val category: HabitCategoryEntity? = null,
     val allLogs: List<HabitLogEntity> = emptyList(),
+    val logsForSelectedDate: List<HabitLogEntity> = emptyList(),
     val selectedDate: LocalDate = LocalDate.now(),
     val currentMonth: YearMonth = YearMonth.now(),
     val streak: StreakResult = StreakResult(0, 0, 0, 0),
@@ -90,6 +91,7 @@ class HabitDetailViewModel @Inject constructor(
                 habit = habit,
                 category = category,
                 allLogs = logs,
+                logsForSelectedDate = logsOnDate,
                 selectedDate = date,
                 currentMonth = month,
                 streak = streak,
@@ -154,6 +156,12 @@ class HabitDetailViewModel @Inject constructor(
     fun updateNumericValue(value: Double) {
         viewModelScope.launch {
             repository.updateNumericValue(habitId, _selectedDate.value, value)
+        }
+    }
+
+    fun toggleSlot(slotIndex: Int) {
+        viewModelScope.launch {
+            repository.toggleSlotCheckIn(habitId, _selectedDate.value, slotIndex)
         }
     }
 
