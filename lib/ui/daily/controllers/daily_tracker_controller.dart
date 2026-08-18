@@ -272,8 +272,6 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
       totalCompletedForSelectedDate: totalCompleted,
       isLoading: false,
     );
-
-    _widgetSyncService?.syncAllWidgets(date);
   }
 
   void selectDate(DateTime date) {
@@ -321,22 +319,27 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
 
   Future<void> toggleCheckIn(Habit habit) async {
     await _repository.toggleBooleanCheckIn(habit.id, state.selectedDate);
+    await _widgetSyncService?.syncAllWidgets(state.selectedDate);
   }
 
   Future<void> updateNumericValue(String habitId, double value) async {
     await _repository.updateNumericValue(habitId, state.selectedDate, value);
+    await _widgetSyncService?.syncAllWidgets(state.selectedDate);
   }
 
   Future<void> addNumericDelta(String habitId, double delta) async {
     await _repository.addNumericDelta(habitId, state.selectedDate, delta);
+    await _widgetSyncService?.syncAllWidgets(state.selectedDate);
   }
 
   Future<void> toggleSlot(String habitId, int slotIndex) async {
     await _repository.toggleSlotCheckIn(habitId, state.selectedDate, slotIndex);
+    await _widgetSyncService?.syncAllWidgets(state.selectedDate);
   }
 
   Future<void> togglePinned(Habit habit) async {
     await _repository.setPinned(habit.id, !habit.pinned);
+    await _widgetSyncService?.syncAllWidgets(state.selectedDate);
   }
 
   Future<void> quickAddHabit(String title, String? categoryId) async {
@@ -355,6 +358,7 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
       updatedAt: now,
     );
     await _repository.upsertHabit(habit);
+    await _widgetSyncService?.syncAllWidgets(state.selectedDate);
   }
 
   @override
