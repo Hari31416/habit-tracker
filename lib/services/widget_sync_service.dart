@@ -446,6 +446,28 @@ class WidgetSyncService {
       } catch (_) {}
     }
 
+    // 5. Focus Timer
+    if (lastFocusTimer == null ||
+        lastFocusTimer!.status == 'Ready' ||
+        lastFocusTimer!.status == 'idle') {
+      final timerHabit = activeHabits
+              .where((h) => h.targetType == HabitTargetType.timer)
+              .firstOrNull ??
+          activeHabits.firstOrNull;
+      if (timerHabit != null) {
+        final targetMins = timerHabit.targetValue ?? 25.0;
+        final totalSec = (targetMins * 60).round();
+        lastFocusTimer = FocusTimerWidgetSnapshot(
+          habitId: timerHabit.id,
+          habitTitle: timerHabit.title,
+          totalSeconds: totalSec,
+          remainingSeconds: totalSec,
+          status: 'Ready',
+          progressFraction: 0.0,
+        );
+      }
+    }
+
     // Platform sync via MethodChannel
     try {
       const channel = MethodChannel('com.productivity.habits/widgets');
@@ -471,6 +493,12 @@ class WidgetSyncService {
         await channel.invokeMethod('updateWidgetData', {
           'widgetType': 'xp_mastery',
           'jsonData': jsonEncode(lastXpMastery!.toJson()),
+        });
+      }
+      if (lastFocusTimer != null) {
+        await channel.invokeMethod('updateWidgetData', {
+          'widgetType': 'focus_timer',
+          'jsonData': jsonEncode(lastFocusTimer!.toJson()),
         });
       }
       await channel.invokeMethod('updateAllWidgets');
