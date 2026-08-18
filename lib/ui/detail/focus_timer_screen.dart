@@ -174,7 +174,7 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen> {
                             customBorder: const CircleBorder(),
                             onTap: () {
                               HapticsHelper.performLightHaptic();
-                              timerNotifier.stop();
+                              timerNotifier.reset();
                             },
                             child: const SizedBox(
                               width: 56,
@@ -206,7 +206,9 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen> {
                             label: Text(
                               status == TimerStatus.running
                                   ? 'Pause'
-                                  : 'Start',
+                                  : (status == TimerStatus.paused
+                                      ? 'Resume'
+                                      : 'Start'),
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,

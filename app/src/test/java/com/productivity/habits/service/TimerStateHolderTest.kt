@@ -8,7 +8,7 @@ class TimerStateHolderTest {
 
     @Before
     fun setup() {
-        TimerStateHolder.stop()
+        TimerStateHolder.reset()
     }
 
     @Test
@@ -111,8 +111,23 @@ class TimerStateHolderTest {
         TimerStateHolder.tick(0L)
         assertThat(TimerStateHolder.timerState.value.focusModeActive).isFalse()
 
-        // After stop
-        TimerStateHolder.stop()
+        // After reset
+        TimerStateHolder.reset()
         assertThat(TimerStateHolder.timerState.value.focusModeActive).isFalse()
+    }
+
+    @Test
+    fun `stop preserves remaining seconds while reset restores full duration`() {
+        TimerStateHolder.start("habit_1", "Focus Work", 25.0)
+        TimerStateHolder.tick(1234L)
+
+        TimerStateHolder.stop()
+        assertThat(TimerStateHolder.timerState.value.remainingSeconds).isEqualTo(1234L)
+        assertThat(TimerStateHolder.timerState.value.status).isEqualTo(TimerStatus.PAUSED)
+        assertThat(TimerStateHolder.timerState.value.isPaused).isTrue()
+
+        TimerStateHolder.reset()
+        assertThat(TimerStateHolder.timerState.value.remainingSeconds).isEqualTo(25 * 60L)
+        assertThat(TimerStateHolder.timerState.value.status).isEqualTo(TimerStatus.IDLE)
     }
 }

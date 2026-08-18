@@ -116,7 +116,7 @@ class FocusTimerBackgroundService {
 
   void stop() {
     _countdownTimer?.cancel();
-    _state = _state.copyWith(status: BackgroundTimerStatus.idle);
+    _state = _state.copyWith(status: BackgroundTimerStatus.paused);
     _stateController.add(_state);
     _callNativeTimer('stopTimer');
     _syncWidget();
@@ -129,7 +129,7 @@ class FocusTimerBackgroundService {
       status: BackgroundTimerStatus.idle,
     );
     _stateController.add(_state);
-    _callNativeTimer('stopTimer');
+    _callNativeTimer('resetTimer');
     _syncWidget();
   }
 

@@ -54,6 +54,11 @@ void main() {
     expect(service.currentState.remainingSeconds, 1200);
 
     service.stop();
+    expect(service.currentState.isPaused, isTrue);
+    expect(service.currentState.remainingSeconds, 1200);
+
+    service.reset();
     expect(service.currentState.isIdle, isTrue);
+    expect(service.currentState.remainingSeconds, 1500);
   });
 }

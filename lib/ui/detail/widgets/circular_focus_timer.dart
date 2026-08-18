@@ -267,7 +267,7 @@ class _CircularFocusTimerState extends ConsumerState<CircularFocusTimer> {
                   customBorder: const CircleBorder(),
                   onTap: () {
                     HapticsHelper.performLightHaptic();
-                    timerNotifier.stop();
+                    timerNotifier.reset();
                   },
                   child: const SizedBox(
                     width: 48,
@@ -297,7 +297,9 @@ class _CircularFocusTimerState extends ConsumerState<CircularFocusTimer> {
                     size: 20,
                   ),
                   label: Text(
-                    status == TimerStatus.running ? 'Pause' : 'Start',
+                    status == TimerStatus.running
+                        ? 'Pause'
+                        : (status == TimerStatus.paused ? 'Resume' : 'Start'),
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Colors.white,

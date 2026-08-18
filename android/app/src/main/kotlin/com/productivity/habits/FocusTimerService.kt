@@ -44,6 +44,7 @@ class FocusTimerService : Service() {
         const val ACTION_PAUSE = "com.productivity.habits.ACTION_PAUSE"
         const val ACTION_RESUME = "com.productivity.habits.ACTION_RESUME"
         const val ACTION_STOP = "com.productivity.habits.ACTION_STOP"
+        const val ACTION_RESET = "com.productivity.habits.ACTION_RESET"
         const val ACTION_ADJUST = "com.productivity.habits.ACTION_ADJUST"
 
         const val EXTRA_HABIT_ID = "extra_habit_id"
@@ -76,12 +77,23 @@ class FocusTimerService : Service() {
             val intent = Intent(context, FocusTimerService::class.java).apply {
                 action = ACTION_RESUME
             }
-            context.startService(intent)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
         }
 
         fun stopTimer(context: Context) {
             val intent = Intent(context, FocusTimerService::class.java).apply {
                 action = ACTION_STOP
+            }
+            context.startService(intent)
+        }
+
+        fun resetTimer(context: Context) {
+            val intent = Intent(context, FocusTimerService::class.java).apply {
+                action = ACTION_RESET
             }
             context.startService(intent)
         }
@@ -132,22 +144,62 @@ class FocusTimerService : Service() {
                 }
             }
             ACTION_RESUME -> {
-                if (isPaused) {
-                    isRunning = true
-                    isPaused = false
-                    targetEndTimeMillis = System.currentTimeMillis() + (remainingSeconds * 1000)
-                    saveStateToPreferences("Running")
-                    emitStateToFlutter()
-                    startCountdown()
-                    updateNotification()
-                    MainActivity.updateAllAppWidgets(applicationContext)
+                if (!isRunning) {
+                    if (habitId.isEmpty()) {
+                        val prefs = getSharedPreferences("habit_widget_prefs", Context.MODE_PRIVATE)
+                        val savedJson = prefs.getString("focus_timer", null)
+                        if (savedJson != null) {
+                            try {
+                                val obj = JSONObject(savedJson)
+                                habitId = obj.optString("habitId", "")
+                                habitTitle = obj.optString("habitTitle", "Focus Session")
+                                totalSeconds = obj.optLong("totalSeconds", 1500L)
+                                remainingSeconds = obj.optLong("remainingSeconds", totalSeconds)
+                            } catch (_: Exception) {}
+                        }
+                    }
+                    if (remainingSeconds > 0) {
+                        isRunning = true
+                        isPaused = false
+                        targetEndTimeMillis = System.currentTimeMillis() + (remainingSeconds * 1000)
+                        saveStateToPreferences("Running")
+                        emitStateToFlutter()
+                        startForegroundWithNotification(buildNotification())
+                        activateDnd()
+                        startCountdown()
+                        MainActivity.updateAllAppWidgets(applicationContext)
+                    }
                 }
             }
             ACTION_STOP -> {
                 stopCountdown()
                 deactivateDnd()
                 isRunning = false
+                isPaused = true
+                // Keep remainingSeconds saved without resetting to totalSeconds
+                saveStateToPreferences("Paused")
+                emitStateToFlutter()
+                stopForeground(STOP_FOREGROUND_REMOVE)
+                MainActivity.updateAllAppWidgets(applicationContext)
+                stopSelf()
+            }
+            ACTION_RESET -> {
+                stopCountdown()
+                deactivateDnd()
+                isRunning = false
                 isPaused = false
+                if (habitId.isEmpty()) {
+                    val prefs = getSharedPreferences("habit_widget_prefs", Context.MODE_PRIVATE)
+                    val savedJson = prefs.getString("focus_timer", null)
+                    if (savedJson != null) {
+                        try {
+                            val obj = JSONObject(savedJson)
+                            habitId = obj.optString("habitId", "")
+                            habitTitle = obj.optString("habitTitle", "Focus Session")
+                            totalSeconds = obj.optLong("totalSeconds", 1500L)
+                        } catch (_: Exception) {}
+                    }
+                }
                 remainingSeconds = totalSeconds
                 saveStateToPreferences("Ready")
                 emitStateToFlutter()

@@ -103,14 +103,6 @@ class TimerStateHolderNotifier extends StateNotifier<TimerState> {
 
     _applyingNativeEvent = true;
     try {
-      if (mapped == TimerStatus.idle) {
-        if (state.focusModeActive || state.isCompleted) {
-          _ticker?.cancel();
-          state = const TimerState();
-        }
-        return;
-      }
-
       _ticker?.cancel();
 
       final remaining = remainingSeconds ?? state.remainingSeconds;
@@ -206,13 +198,16 @@ class TimerStateHolderNotifier extends StateNotifier<TimerState> {
       clearTargetEndTime: true,
     );
     if (!_applyingNativeEvent) {
-      _callNativeTimer('stopTimer');
+      _callNativeTimer('resetTimer');
     }
   }
 
   void stop() {
     _ticker?.cancel();
-    state = const TimerState();
+    state = state.copyWith(
+      status: TimerStatus.paused,
+      clearTargetEndTime: true,
+    );
     if (!_applyingNativeEvent) {
       _callNativeTimer('stopTimer');
     }
@@ -432,12 +427,15 @@ class TimerStateHolder {
       status: TimerStatus.idle,
       clearTargetEndTime: true,
     ));
-    _callNativeStaticTimer('stopTimer');
+    _callNativeStaticTimer('resetTimer');
   }
 
   static void stop() {
     _ticker?.cancel();
-    _updateState(const TimerState());
+    _updateState(_state.copyWith(
+      status: TimerStatus.paused,
+      clearTargetEndTime: true,
+    ));
     _callNativeStaticTimer('stopTimer');
   }
 
@@ -499,14 +497,6 @@ class TimerStateHolder {
       'Done' => TimerStatus.completed,
       _ => TimerStatus.idle,
     };
-
-    if (mapped == TimerStatus.idle) {
-      if (_state.focusModeActive || _state.isCompleted) {
-        _ticker?.cancel();
-        _updateState(const TimerState());
-      }
-      return;
-    }
 
     _ticker?.cancel();
 

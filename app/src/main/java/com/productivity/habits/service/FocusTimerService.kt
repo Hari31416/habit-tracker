@@ -53,6 +53,7 @@ class FocusTimerService : Service() {
         const val ACTION_PAUSE = "com.productivity.habits.ACTION_PAUSE"
         const val ACTION_RESUME = "com.productivity.habits.ACTION_RESUME"
         const val ACTION_STOP = "com.productivity.habits.ACTION_STOP"
+        const val ACTION_RESET = "com.productivity.habits.ACTION_RESET"
         const val ACTION_ADJUST = "com.productivity.habits.ACTION_ADJUST"
 
         const val EXTRA_HABIT_ID = "extra_habit_id"
@@ -91,6 +92,13 @@ class FocusTimerService : Service() {
         fun stopTimer(context: Context) {
             val intent = Intent(context, FocusTimerService::class.java).apply {
                 action = ACTION_STOP
+            }
+            context.startService(intent)
+        }
+
+        fun resetTimer(context: Context) {
+            val intent = Intent(context, FocusTimerService::class.java).apply {
+                action = ACTION_RESET
             }
             context.startService(intent)
         }
@@ -139,6 +147,14 @@ class FocusTimerService : Service() {
                 timerJob?.cancel()
                 deactivateDnd()
                 TimerStateHolder.stop()
+                stopForeground(STOP_FOREGROUND_REMOVE)
+                serviceScope.launch { try { com.productivity.habits.widget.FocusTimerWidget().updateAll(applicationContext) } catch (_: Exception) {} }
+                stopSelf()
+            }
+            ACTION_RESET -> {
+                timerJob?.cancel()
+                deactivateDnd()
+                TimerStateHolder.reset()
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 serviceScope.launch { try { com.productivity.habits.widget.FocusTimerWidget().updateAll(applicationContext) } catch (_: Exception) {} }
                 stopSelf()

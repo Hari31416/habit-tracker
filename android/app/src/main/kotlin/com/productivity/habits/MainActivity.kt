@@ -77,6 +77,10 @@ class MainActivity : FlutterActivity() {
                     FocusTimerService.stopTimer(applicationContext)
                     result.success(true)
                 }
+                "resetTimer" -> {
+                    FocusTimerService.resetTimer(applicationContext)
+                    result.success(true)
+                }
                 "adjustTimer" -> {
                     val deltaSeconds = (call.argument<Number>("deltaSeconds")?.toLong()) ?: 0L
                     FocusTimerService.adjustTimer(applicationContext, deltaSeconds)

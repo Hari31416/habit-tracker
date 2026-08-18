@@ -281,8 +281,8 @@ fun CircularFocusTimer(
                     .clip(CircleShape)
                     .clickable {
                         HapticsHelper.performLightHaptic(haptic)
-                        FocusTimerService.stopTimer(context)
-                        TimerStateHolder.stop()
+                        FocusTimerService.resetTimer(context)
+                        TimerStateHolder.reset()
                     },
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.surfaceVariant

@@ -70,7 +70,9 @@ object TimerStateHolder {
     }
 
     fun stop() {
-        _timerState.value = TimerState()
+        _timerState.update { current ->
+            current.copy(status = TimerStatus.PAUSED)
+        }
     }
 
     fun tick(remainingSec: Long) {

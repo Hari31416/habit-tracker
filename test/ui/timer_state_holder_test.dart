@@ -5,7 +5,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() {
-    TimerStateHolder.stop();
+    TimerStateHolder.reset();
   });
 
   test('start initializes timer state with running status', () {
@@ -100,9 +100,23 @@ void main() {
     TimerStateHolder.tick(0);
     expect(TimerStateHolder.timerState.focusModeActive, isFalse);
 
-    // After stop
-    TimerStateHolder.stop();
+    // After reset
+    TimerStateHolder.reset();
     expect(TimerStateHolder.timerState.focusModeActive, isFalse);
+  });
+
+  test('stop preserves remaining seconds while reset restores full duration', () {
+    TimerStateHolder.start('habit_1', 'Focus Work', 25.0);
+    TimerStateHolder.tick(1234);
+
+    TimerStateHolder.stop();
+    expect(TimerStateHolder.timerState.remainingSeconds, 1234);
+    expect(TimerStateHolder.timerState.status, TimerStatus.paused);
+    expect(TimerStateHolder.timerState.isPaused, isTrue);
+
+    TimerStateHolder.reset();
+    expect(TimerStateHolder.timerState.remainingSeconds, 25 * 60);
+    expect(TimerStateHolder.timerState.status, TimerStatus.idle);
   });
 
   test('native pause/stop events update timer state to match notification actions',
