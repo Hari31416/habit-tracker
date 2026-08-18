@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'data/preferences/theme_mode.dart';
 import 'data/preferences/theme_preferences.dart';
 import 'ui/daily/daily_tracker_screen.dart';
+import 'ui/detail/focus_timer_screen.dart';
+import 'ui/detail/habit_detail_screen.dart';
+import 'ui/navigation/screen.dart';
 import 'ui/theme/app_theme.dart';
 
 void main() {
@@ -35,7 +38,51 @@ class HabitTrackerApp extends ConsumerWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: flutterThemeMode,
-      home: const DailyTrackerScreen(),
+      initialRoute: Screen.daily,
+      onGenerateRoute: (settings) {
+        final name = settings.name ?? Screen.daily;
+
+        if (name == Screen.daily) {
+          return MaterialPageRoute(
+            builder: (ctx) => DailyTrackerScreen(
+              onNavigateToDetail: (habitId) {
+                Navigator.of(ctx).pushNamed(Screen.detailRoute(habitId));
+              },
+            ),
+          );
+        }
+
+        if (name.startsWith('detail/')) {
+          final habitId = name.replaceFirst('detail/', '');
+          return MaterialPageRoute(
+            builder: (ctx) => HabitDetailScreen(
+              habitId: habitId,
+              onBack: () => Navigator.of(ctx).pop(),
+              onNavigateToFocusScreen: (id) {
+                Navigator.of(ctx).pushNamed(Screen.focusTimerRoute(id));
+              },
+            ),
+          );
+        }
+
+        if (name.startsWith('focus_timer/')) {
+          final habitId = name.replaceFirst('focus_timer/', '');
+          return MaterialPageRoute(
+            builder: (ctx) => FocusTimerScreen(
+              habitId: habitId,
+              onBack: () => Navigator.of(ctx).pop(),
+            ),
+          );
+        }
+
+        return MaterialPageRoute(
+          builder: (ctx) => DailyTrackerScreen(
+            onNavigateToDetail: (habitId) {
+              Navigator.of(ctx).pushNamed(Screen.detailRoute(habitId));
+            },
+          ),
+        );
+      },
     );
   }
 }
