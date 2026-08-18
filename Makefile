@@ -7,17 +7,25 @@ MAIN_ACTIVITY := $(PACKAGE_NAME).MainActivity
 DEFAULT_AVD := $(shell $(EMULATOR) -list-avds 2>/dev/null | head -n 1)
 AVD ?= $(DEFAULT_AVD)
 
-.PHONY: help build build-release test lint clean install uninstall emulator-list emulator-start emulator-stop emulator-wait start stop restart run debug logcat
+.PHONY: help build build-release test lint clean install uninstall emulator-list emulator-start emulator-stop emulator-wait start stop restart run debug logcat flutter-run flutter-run-android flutter-build-apk flutter-test flutter-analyze flutter-codegen
 
 help: ## Show this help message
 	@echo "Usage: make [target] [AVD=avd_name]"
 	@echo ""
-	@echo "Build & Test:"
+	@echo "Native Android (Kotlin):"
 	@echo "  make build           - Build the debug APK (assembleDebug)"
 	@echo "  make build-release   - Build the release APK (assembleRelease)"
 	@echo "  make test            - Run all unit tests"
 	@echo "  make lint            - Run Android lint check"
 	@echo "  make clean           - Clean build artifacts"
+	@echo "  make run             - Complete pipeline: ensure emulator, build, install & launch Kotlin app"
+	@echo ""
+	@echo "Flutter Android:"
+	@echo "  make flutter-run     - Ensure emulator, then run Flutter app on Android (alias: flutter-run-android)"
+	@echo "  make flutter-build-apk - Build debug APK via Flutter"
+	@echo "  make flutter-test    - Run all Flutter unit and widget tests"
+	@echo "  make flutter-analyze - Run Flutter code analysis"
+	@echo "  make flutter-codegen - Run build_runner for Drift/Riverpod codegen"
 	@echo ""
 	@echo "Emulator & Device:"
 	@echo "  make emulator-list   - List all available Android Virtual Devices (AVDs)"
@@ -30,10 +38,10 @@ help: ## Show this help message
 	@echo "  make start           - Launch the app on running device/emulator"
 	@echo "  make stop            - Force-stop the app process"
 	@echo "  make restart         - Force-stop and restart the app"
-	@echo "  make run             - Complete pipeline: ensure emulator, build, install & launch"
 	@echo "  make debug           - Alias for make run"
 	@echo "  make logcat          - Stream logs for the application"
 	@echo "  make uninstall       - Uninstall the app from connected device/emulator"
+	@echo ""
 
 build: ## Build debug APK
 	./gradlew assembleDebug
@@ -103,3 +111,27 @@ debug: run ## Alias for run
 
 logcat: ## Stream app logs
 	$(ADB) logcat -v color --pid=$$($(ADB) shell pidof -s $(PACKAGE_NAME)) || $(ADB) logcat | grep --color=auto $(PACKAGE_NAME)
+
+flutter-run: ## Ensure emulator and run Flutter app on Android
+	@DEVICES=$$($(ADB) devices | grep -v "List" | grep "device" | wc -l | tr -d ' '); \
+	if [ "$$DEVICES" -eq "0" ]; then \
+		echo "No active Android device/emulator detected."; \
+		$(MAKE) emulator-start; \
+		$(MAKE) emulator-wait; \
+	fi
+	flutter run -d android
+
+flutter-run-android: flutter-run ## Alias for flutter-run
+
+flutter-build-apk: ## Build debug APK with Flutter
+	flutter build apk --debug
+
+flutter-test: ## Run Flutter unit and widget tests
+	flutter test
+
+flutter-analyze: ## Run Flutter analyzer
+	flutter analyze
+
+flutter-codegen: ## Run build_runner for code generation
+	dart run build_runner build --delete-conflicting-outputs
+
