@@ -122,15 +122,15 @@ flutter-run: ## Ensure emulator and run Flutter app on Android
 	ANDROID_DEVICE=$$($(ADB) devices | grep -v "List" | grep "device" | head -n 1 | awk '{print $$1}'); \
 	if [ -n "$$ANDROID_DEVICE" ]; then \
 		echo "Running Flutter app on Android device: $$ANDROID_DEVICE"; \
-		flutter run -d "$$ANDROID_DEVICE"; \
+		flutter run -d "$$ANDROID_DEVICE" --android-skip-build-dependency-validation; \
 	else \
-		flutter run -d android-arm64; \
+		flutter run -d android-arm64 --android-skip-build-dependency-validation; \
 	fi
 
 flutter-run-android: flutter-run ## Alias for flutter-run
 
 flutter-build-apk: ## Build debug APK with Flutter
-	flutter build apk --debug
+	flutter build apk --debug --android-skip-build-dependency-validation
 
 flutter-test: ## Run Flutter unit and widget tests
 	flutter test
