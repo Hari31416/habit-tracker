@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../domain/engines/streak_calculator.dart';
 import '../domain/gamification/gamification_engine.dart';
@@ -141,6 +143,33 @@ class StreaksWidgetSnapshot {
       };
 }
 
+class FocusTimerWidgetSnapshot {
+  final String? habitId;
+  final String habitTitle;
+  final int totalSeconds;
+  final int remainingSeconds;
+  final String status;
+  final double progressFraction;
+
+  const FocusTimerWidgetSnapshot({
+    this.habitId,
+    required this.habitTitle,
+    required this.totalSeconds,
+    required this.remainingSeconds,
+    required this.status,
+    required this.progressFraction,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'habitId': habitId,
+        'habitTitle': habitTitle,
+        'totalSeconds': totalSeconds,
+        'remainingSeconds': remainingSeconds,
+        'status': status,
+        'progressFraction': progressFraction,
+      };
+}
+
 class XpMasteryWidgetSnapshot {
   final int level;
   final String titleDisplayName;
@@ -190,11 +219,38 @@ class WidgetSyncService {
   TodaysHabitsWidgetSnapshot? lastTodaysHabits;
   StreaksWidgetSnapshot? lastStreaks;
   XpMasteryWidgetSnapshot? lastXpMastery;
+  FocusTimerWidgetSnapshot? lastFocusTimer;
 
   WidgetSyncService(
     this._repository, [
     this._gamificationRepository,
   ]);
+
+  Future<void> syncFocusTimerWidget({
+    String? habitId,
+    required String habitTitle,
+    required int totalSeconds,
+    required int remainingSeconds,
+    required String status,
+    required double progressFraction,
+  }) async {
+    lastFocusTimer = FocusTimerWidgetSnapshot(
+      habitId: habitId,
+      habitTitle: habitTitle,
+      totalSeconds: totalSeconds,
+      remainingSeconds: remainingSeconds,
+      status: status,
+      progressFraction: progressFraction,
+    );
+    try {
+      const channel = MethodChannel('com.productivity.habits/widgets');
+      await channel.invokeMethod('updateWidgetData', {
+        'widgetType': 'focus_timer',
+        'jsonData': jsonEncode(lastFocusTimer!.toJson()),
+      });
+      await channel.invokeMethod('updateAllWidgets');
+    } catch (_) {}
+  }
 
   Future<void> syncAllWidgets([DateTime? date]) async {
     final today = date ?? DateTime.now();
@@ -388,6 +444,38 @@ class WidgetSyncService {
           nextBadgeTitle: inProgressBadge?.definition.title,
         );
       } catch (_) {}
+    }
+
+    // Platform sync via MethodChannel
+    try {
+      const channel = MethodChannel('com.productivity.habits/widgets');
+      if (lastDailyFocus != null) {
+        await channel.invokeMethod('updateWidgetData', {
+          'widgetType': 'daily_focus',
+          'jsonData': jsonEncode(lastDailyFocus!.toJson()),
+        });
+      }
+      if (lastTodaysHabits != null) {
+        await channel.invokeMethod('updateWidgetData', {
+          'widgetType': 'todays_habits',
+          'jsonData': jsonEncode(lastTodaysHabits!.toJson()),
+        });
+      }
+      if (lastStreaks != null) {
+        await channel.invokeMethod('updateWidgetData', {
+          'widgetType': 'streaks',
+          'jsonData': jsonEncode(lastStreaks!.toJson()),
+        });
+      }
+      if (lastXpMastery != null) {
+        await channel.invokeMethod('updateWidgetData', {
+          'widgetType': 'xp_mastery',
+          'jsonData': jsonEncode(lastXpMastery!.toJson()),
+        });
+      }
+      await channel.invokeMethod('updateAllWidgets');
+    } catch (_) {
+      // Ignored in headless/test environments
     }
   }
 }

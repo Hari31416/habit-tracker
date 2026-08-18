@@ -11,6 +11,8 @@ import '../../../domain/models/habit_target_type.dart';
 import '../../../domain/models/habit_with_progress.dart';
 import '../../../domain/repositories/habit_repository.dart';
 
+import '../../../services/widget_sync_service.dart';
+
 enum HabitSortOption {
   pinnedFirst('Pinned First'),
   streakDesc('Longest Streak'),
@@ -88,6 +90,7 @@ class DailyTrackerUiState {
 
 class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
   final HabitRepository _repository;
+  final WidgetSyncService? _widgetSyncService;
   StreamSubscription<List<Habit>>? _habitsSubscription;
   StreamSubscription<List<HabitLog>>? _logsSubscription;
   StreamSubscription<List<HabitCategory>>? _categoriesSubscription;
@@ -96,8 +99,10 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
   List<HabitLog> _allLogs = [];
   List<HabitCategory> _allCategories = [];
 
-  DailyTrackerController(this._repository)
-      : super(DailyTrackerUiState(
+  DailyTrackerController(
+    this._repository, [
+    this._widgetSyncService,
+  ]) : super(DailyTrackerUiState(
           selectedDate: DateTime(
             DateTime.now().year,
             DateTime.now().month,
@@ -267,6 +272,8 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
       totalCompletedForSelectedDate: totalCompleted,
       isLoading: false,
     );
+
+    _widgetSyncService?.syncAllWidgets(date);
   }
 
   void selectDate(DateTime date) {
@@ -362,5 +369,6 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
 final dailyTrackerControllerProvider =
     StateNotifierProvider<DailyTrackerController, DailyTrackerUiState>((ref) {
   final repository = ref.watch(habitRepositoryProvider);
-  return DailyTrackerController(repository);
+  final widgetSync = ref.watch(widgetSyncServiceProvider);
+  return DailyTrackerController(repository, widgetSync);
 });

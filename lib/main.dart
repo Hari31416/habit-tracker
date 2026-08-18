@@ -10,10 +10,20 @@ import 'ui/gamification/badges_showcase_screen.dart';
 import 'ui/matrix/habit_week_matrix_screen.dart';
 import 'ui/navigation/screen.dart';
 import 'ui/theme/app_theme.dart';
+import 'di/providers.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ProviderScope(child: HabitTrackerApp()));
+  final container = ProviderContainer();
+  // Trigger initial background sync for home widgets
+  Future.microtask(() => container.read(widgetSyncServiceProvider).syncAllWidgets());
+
+  runApp(
+    UncontrolledProviderScope(
+      container: container,
+      child: const HabitTrackerApp(),
+    ),
+  );
 }
 
 class HabitTrackerApp extends ConsumerWidget {

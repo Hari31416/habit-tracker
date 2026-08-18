@@ -84,7 +84,7 @@ class FocusTimerBackgroundService {
     _stateController.add(_state);
 
     _startTimerLoop();
-    _widgetSyncService?.syncAllWidgets();
+    _syncWidget();
   }
 
   void pause() {
@@ -92,7 +92,7 @@ class FocusTimerBackgroundService {
     if (_state.isRunning) {
       _state = _state.copyWith(status: BackgroundTimerStatus.paused);
       _stateController.add(_state);
-      _widgetSyncService?.syncAllWidgets();
+      _syncWidget();
     }
   }
 
@@ -101,7 +101,7 @@ class FocusTimerBackgroundService {
       _state = _state.copyWith(status: BackgroundTimerStatus.running);
       _stateController.add(_state);
       _startTimerLoop();
-      _widgetSyncService?.syncAllWidgets();
+      _syncWidget();
     }
   }
 
@@ -109,7 +109,7 @@ class FocusTimerBackgroundService {
     _countdownTimer?.cancel();
     _state = _state.copyWith(status: BackgroundTimerStatus.idle);
     _stateController.add(_state);
-    _widgetSyncService?.syncAllWidgets();
+    _syncWidget();
   }
 
   void reset() {
@@ -119,7 +119,7 @@ class FocusTimerBackgroundService {
       status: BackgroundTimerStatus.idle,
     );
     _stateController.add(_state);
-    _widgetSyncService?.syncAllWidgets();
+    _syncWidget();
   }
 
   void adjustRemaining(int deltaSeconds) {
@@ -127,7 +127,18 @@ class FocusTimerBackgroundService {
         (_state.remainingSeconds + deltaSeconds).clamp(0, _state.totalSeconds);
     _state = _state.copyWith(remainingSeconds: newRemaining);
     _stateController.add(_state);
-    _widgetSyncService?.syncAllWidgets();
+    _syncWidget();
+  }
+
+  void _syncWidget() {
+    _widgetSyncService?.syncFocusTimerWidget(
+      habitId: _state.habitId,
+      habitTitle: _state.habitTitle,
+      totalSeconds: _state.totalSeconds,
+      remainingSeconds: _state.remainingSeconds,
+      status: _state.status.name,
+      progressFraction: _state.progressFraction,
+    );
   }
 
   void _startTimerLoop() {
@@ -141,6 +152,9 @@ class FocusTimerBackgroundService {
           remainingSeconds: _state.remainingSeconds - 1,
         );
         _stateController.add(_state);
+        if (_state.remainingSeconds % 5 == 0) {
+          _syncWidget();
+        }
       }
     });
   }
