@@ -187,9 +187,13 @@ class FakeHabitRepository implements HabitRepository {
   @override
   Stream<List<Habit>> getPinnedHabits() => getAllHabits();
   @override
-  Stream<Habit?> getHabitById(String id) => Stream.value(null);
+  Stream<Habit?> getHabitById(String id) =>
+      Stream.value(_habits.where((h) => h.id == id).firstOrNull);
   @override
-  Future<Habit?> getHabitByIdOnce(String id) async => null;
+  Future<Habit?> getHabitByIdOnce(String id) async =>
+      _habits.where((h) => h.id == id).firstOrNull;
+  Future<List<Habit>> getAllActiveHabitsOnce() async =>
+      _habits.where((h) => !h.archived).toList();
   @override
   Stream<List<Habit>> getHabitsByCategory(String categoryId) => getAllHabits();
   @override
