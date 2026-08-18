@@ -1,4 +1,4 @@
-package com.productivity.habits.habit_tracker.widgets
+package com.productivity.habits.widgets
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
@@ -11,9 +11,9 @@ import android.graphics.Paint
 import android.net.Uri
 import android.view.View
 import android.widget.RemoteViews
-import com.productivity.habits.habit_tracker.FocusTimerService
-import com.productivity.habits.habit_tracker.MainActivity
-import com.productivity.habits.habit_tracker.R
+import com.productivity.habits.FocusTimerService
+import com.productivity.habits.MainActivity
+import com.productivity.habits.R
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Locale

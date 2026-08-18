@@ -1,15 +1,15 @@
 # Release and Version Bump Guide
 
-This document describes the standard procedure for bumping application versions, validating native Android builds, and publishing new tagged releases to trigger GitHub Actions automated Release APK builds.
+This document describes the standard procedure for bumping application versions, validating Flutter Android builds, and publishing new tagged releases to trigger GitHub Actions automated Release APK builds.
 
 ## Release Overview
 
-The application maintains versioning across the native Android project:
+The application maintains versioning across the Flutter project:
 
-- **Android App**: `app/build.gradle.kts` (`versionCode` and `versionName`)
+- **Flutter App**: `pubspec.yaml` (`version: X.Y.Z+build`, e.g., `1.0.0+1`)
 - **Changelog**: `CHANGELOG.md` (Release notes following Keep a Changelog)
 - **Git Tags**: Semantic version tags in `vX.Y.Z` format (e.g. `v1.0.0`)
-- **CI / CD Pipeline**: `.github/workflows/android-build.yml` triggers automatically on tag pushes matching `v*` and attaches the compiled Release APK to a GitHub Release.
+- **CI / CD Pipeline**: `.github/workflows/android-build.yml` triggers automatically on tag pushes matching `v*` and attaches the compiled Flutter Release APK to a GitHub Release.
 
 ## Step-by-Step Version Bump Workflow
 
@@ -17,12 +17,11 @@ The application maintains versioning across the native Android project:
 
 Determine whether the release is a **major**, **minor**, or **patch** update according to Semantic Versioning (`MAJOR.MINOR.PATCH`):
 
-1. **`app/build.gradle.kts`**:
-   - Increment `versionCode` by `+1` (must always be a monotonically increasing integer).
-   - Set `versionName` to match the new version string:
-     ```kotlin
-     versionCode = 2
-     versionName = "1.1.0"
+1. **`pubspec.yaml`**:
+   - Increment the build number `+build` by `+1` (must always be a monotonically increasing integer).
+   - Set the version string to match the new release:
+     ```yaml
+     version: 1.1.0+2
      ```
 
 ### 2. Update Changelog
@@ -41,42 +40,31 @@ Document new features, fixes, and architectural enhancements in `CHANGELOG.md` u
 - Bug fix details...
 ```
 
-### 3. Run Test Suite
+### 3. Run Test Suite & Linter
 
-Verify all unit tests and calculation engines pass cleanly:
+Verify all Flutter unit and widget tests and code analysis pass cleanly:
 
 ```bash
 make test
-```
-
-Or execute directly via Gradle:
-
-```bash
-./gradlew testReleaseUnitTest
+make lint
 ```
 
 ### 4. Validate Release Build
 
-Verify that KSP code generation, Room schema verification, ProGuard rules, and Release APK assembly complete without error:
+Verify that Drift code generation, ProGuard/R8 rules, and Release APK assembly complete without error:
 
 ```bash
 make build-release
 ```
 
-Or execute directly via Gradle:
-
-```bash
-./gradlew assembleRelease
-```
-
-Ensure the release binary is generated at `app/build/outputs/apk/release/app-release.apk`.
+Ensure the release binary is generated at `build/app/outputs/flutter-apk/app-release.apk`.
 
 ### 5. Stage and Commit Changes
 
 Create a clean conventional commit for the release:
 
 ```bash
-git add app/build.gradle.kts CHANGELOG.md RELEASE_PROCESS.md
+git add pubspec.yaml CHANGELOG.md RELEASE_PROCESS.md
 git commit -m "chore(release): bump version to 1.1.0"
 ```
 
@@ -102,9 +90,9 @@ git push origin v1.1.0
 1. Open your repository on GitHub and navigate to the **Actions** tab.
 2. The **Build Android APK** workflow will execute the following automated steps:
    - Checkout code
-   - Setup Java JDK 17 with Gradle cache
-   - Run release unit tests (`./gradlew testReleaseUnitTest`)
-   - Assemble release APK (`./gradlew assembleRelease`)
+   - Setup Java JDK 17 & Flutter SDK
+   - Run unit & widget tests (`flutter test`)
+   - Assemble release APK (`flutter build apk --release`)
    - Upload `habit-tracker-release-apk` artifact
    - Publish a formal **GitHub Release** with the attached `app-release.apk` and auto-generated release notes.
 
@@ -113,10 +101,11 @@ git push origin v1.1.0
 Before tagging and publishing a release, verify each of the following items:
 
 - [ ] Working tree is clean (`git status`)
-- [ ] `versionCode` and `versionName` updated in `app/build.gradle.kts`
+- [ ] `version` updated in `pubspec.yaml`
 - [ ] `CHANGELOG.md` updated with release notes and date
-- [ ] Unit tests pass cleanly (`make test` or `./gradlew testReleaseUnitTest`)
-- [ ] Release APK compiles cleanly (`make build-release` or `./gradlew assembleRelease`)
-- [ ] Release APK artifact verified at `app/build/outputs/apk/release/app-release.apk`
+- [ ] Unit and widget tests pass cleanly (`make test`)
+- [ ] Code analysis passes cleanly (`make lint`)
+- [ ] Release APK compiles cleanly (`make build-release`)
+- [ ] Release APK artifact verified at `build/app/outputs/flutter-apk/app-release.apk`
 - [ ] Release commit follows conventional commit style
 - [ ] Git tag created with format `vX.Y.Z`

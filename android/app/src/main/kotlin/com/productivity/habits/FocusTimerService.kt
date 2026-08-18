@@ -1,4 +1,4 @@
-package com.productivity.habits.habit_tracker
+package com.productivity.habits
 
 import android.app.Notification
 import android.app.NotificationChannel

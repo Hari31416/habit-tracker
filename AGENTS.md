@@ -1,15 +1,19 @@
 ## Technology Stack and Standards
 
-- Language: Kotlin 2.0+ targeting SDK 34 (min SDK 26) with Java 8+ API desugaring
-- Architecture: Clean Architecture with reactive unidirectional data flow (MVI / MVVM)
-- UI: Jetpack Compose with Material 3 Design System
-- State: Jetpack ViewModel with `StateFlow`
-- Dependency Injection: Hilt / Dagger
-- Local Persistence: Room Database with reactive Flow queries and schema exports
-- Background Tasks: AlarmManager for exact alarms; WorkManager for maintenance and day rollover
-- Widgets: Jetpack Glance (AppWidgets)
-- Charts: Vico Compose (do not use MPAndroidChart)
+### Primary Framework: Flutter
+- Language: Dart 3.13+ / Flutter 3.47+ targeting Android (min SDK 26, target SDK 34) and iOS
+- Architecture: Clean Architecture with reactive unidirectional data flow (Riverpod 2.6+)
+- UI: Material 3 Design System
+- State: Riverpod `AsyncNotifier` / `StateNotifier`
+- Local Persistence: Drift Database with reactive Streams, DAOs, and type-safe converters
+- Background Tasks & Notifications: `flutter_local_notifications`, foreground focus timer service, and background rollover tasks
+- Widgets: Android AppWidgets & iOS WidgetKit synchronized via `SharedPreferences` and method channels
+- Charts: Custom / `fl_chart` with Vico styling parity
 - Haptics: System haptics only (no Konfetti or particle libraries)
+
+### Native Android Reference (Kotlin)
+- Language: Kotlin 2.0+ targeting SDK 34 (min SDK 26) with Java 8+ API desugaring (`app/src/main/java/com/productivity/habits/`)
+- Architecture: Clean Architecture (Jetpack Compose, Room, Hilt, Glance)
 
 ## Development and Verification Flow
 
@@ -21,25 +25,31 @@ When making changes to the codebase, follow this sequential verification workflo
 - Preserve existing comments and docstrings
 - Follow existing entity, DAO, engine, and repository patterns
 
-### 2. Unit Testing (Mandatory for Logic Changes)
+### 2. Unit & Widget Testing (Mandatory for Logic Changes)
 
-After modifying domain calculation engines, Room converters, or repository implementations, run:
+After modifying domain calculation engines, Drift tables/converters, or repository implementations, run:
 
 ```bash
 make test
 ```
 
-Command executes `./gradlew testDebugUnitTest`. Ensure all domain unit tests pass before proceeding.
+Command executes `flutter test`. Ensure all Flutter unit and widget tests pass before proceeding.
 
-### 3. Build Assembly Verification
+### 3. Code Generation and Build Assembly Verification
 
-Verify that Room schemas, KSP code generation, Hilt dependency bindings, and the Jetpack Compose compiler compile cleanly:
+If modifying Drift tables, run codegen first:
+
+```bash
+make codegen
+```
+
+Verify that Flutter compiles cleanly:
 
 ```bash
 make build
 ```
 
-Command executes `./gradlew assembleDebug`. Ensure zero compilation errors or warnings.
+Command executes `flutter build apk --debug --android-skip-build-dependency-validation`. Ensure zero compilation errors or warnings.
 
 ### 4. Emulator and Device Testing
 
@@ -53,7 +63,7 @@ This target automatically detects if an emulator is running (launches the defaul
 
 ### 5. Runtime Log Inspection
 
-To inspect app logs, Room query logs, and uncaught exceptions:
+To inspect app logs:
 
 ```bash
 make logcat
@@ -69,6 +79,15 @@ make stop
 
 # Gracefully shut down running emulator
 make emulator-stop
+```
+
+### 7. Native Kotlin Reference Verification (Optional)
+
+To verify the Kotlin baseline when comparing reference logic:
+
+```bash
+make kotlin-test
+make kotlin-build
 ```
 
 ## Git Commit Guidelines
@@ -89,25 +108,5 @@ make emulator-stop
   - Custom Days: non-scheduled days are skipped without breaking consecutive streak chains
 - Icons: String keys stored on habits resolved at runtime via `HabitIconRegistry` to Material Icons
 - Cards vs Detail: Habit cards support pin and check-in controls; archive and delete are restricted to Habit Detail view
-
-## Flutter Migration Guidelines
-
-When implementing the Flutter migration:
-
-- **Do Not Start from Scratch:** Every Flutter model, calculation engine, Drift table, DAO query, Riverpod controller, and widget layout must directly reference and port the corresponding Kotlin implementation in `app/src/main/java/com/productivity/habits/`.
-- **Logic & UI Parity:** All calculations, algorithms, UI paddings, colors, shapes, haptic strengths, and lifecycle behaviors in Flutter must match the Kotlin source with 100% exact parity.
-- **Reference Mapping:** Refer to `plans/flutter/README.md` for the complete 1:1 file mapping table.
-
-### Flutter Verification Commands
-
-```bash
-# Run unit tests
-flutter test
-
-# Run code generator
-dart run build_runner build --delete-conflicting-outputs
-
-# Build debug APK
-flutter build apk --debug
-```
+- Parity Directive: All calculations, algorithms, UI paddings, colors, shapes, haptic strengths, and lifecycle behaviors in Flutter match the Kotlin reference with 100% exact parity. Reference mapping table in `plans/flutter/README.md`.
 

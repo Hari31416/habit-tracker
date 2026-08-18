@@ -43,6 +43,7 @@ proguard/
 *.jks
 *.keystore
 !app/debug.keystore
+!android/app/debug.keystore
 
 # Google Services (Firebase)
 google-services.json

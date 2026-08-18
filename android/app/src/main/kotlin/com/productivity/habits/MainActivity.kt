@@ -1,9 +1,9 @@
-package com.productivity.habits.habit_tracker
-
+package com.productivity.habits
+ 
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
-import com.productivity.habits.habit_tracker.widgets.*
+import com.productivity.habits.widgets.*
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel

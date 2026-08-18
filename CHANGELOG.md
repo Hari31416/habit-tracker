@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-08-18
+
+### Added
+
+- Default Flutter Android build and verification toolchain integration.
+- CI/CD automated workflow running Flutter analyze, unit/widget tests, and release APK packaging.
+- Dedicated Flutter signing configuration with local debug keystore.
+
+### Changed
+
+- Transitioned root build system, test suites, and linter defaults in Makefile to Flutter.
+- Aligned Flutter host application ID and namespace with `com.productivity.habits`.
+- Updated release automation process and documentation for Flutter project versioning.
+
 ## [0.3.0] - 2026-08-18
 
 ### Added
