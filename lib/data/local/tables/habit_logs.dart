@@ -15,6 +15,8 @@ class HabitLogs extends Table {
   RealColumn get value => real().nullable()();
   IntColumn get durationSeconds => integer().nullable()();
   TextColumn get note => text().nullable()();
+  IntColumn get energyLevel => integer().nullable()(); // 1 to 5 scale
+  TextColumn get mood => text().nullable()(); // mood tag: energized, happy, calm, tired, stressed, focused
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 

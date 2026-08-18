@@ -35,6 +35,15 @@ abstract class HabitRepository {
     int? durationSeconds,
     int? intervalIndex,
     String? note,
+    int? energyLevel,
+    String? mood,
+  });
+  Future<void> updateReflection({
+    required String habitId,
+    required DateTime date,
+    int? energyLevel,
+    String? mood,
+    String? note,
   });
   Future<void> toggleBooleanCheckIn(String habitId, DateTime date);
   Future<void> updateNumericValue(String habitId, DateTime date, double value);

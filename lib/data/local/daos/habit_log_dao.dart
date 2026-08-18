@@ -136,4 +136,23 @@ class HabitLogDao extends DatabaseAccessor<AppDatabase> with _$HabitLogDaoMixin 
               l.intervalIndex.equals(intervalIndex)))
         .go();
   }
+
+  Future<void> updateReflectionForHabitAndDate(
+    String habitId,
+    String date, {
+    int? energyLevel,
+    String? mood,
+    String? note,
+  }) async {
+    final now = DateTime.now().toUtc();
+    final companion = HabitLogsCompanion(
+      energyLevel: Value(energyLevel),
+      mood: Value(mood),
+      note: Value(note),
+      updatedAt: Value(now),
+    );
+    await (update(habitLogs)
+          ..where((l) => l.habitId.equals(habitId) & l.date.equals(date)))
+        .write(companion);
+  }
 }

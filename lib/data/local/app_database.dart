@@ -54,7 +54,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -68,6 +68,10 @@ class AppDatabase extends _$AppDatabase {
           await m.createTable(habitShields);
           await m.addColumn(userGamification, userGamification.maxShieldsCapacity);
           await m.addColumn(userGamification, userGamification.autoConsumeShields);
+        }
+        if (from < 3) {
+          await m.addColumn(habitLogs, habitLogs.energyLevel);
+          await m.addColumn(habitLogs, habitLogs.mood);
         }
       },
       beforeOpen: (details) async {

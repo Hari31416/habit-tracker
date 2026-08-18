@@ -1299,6 +1299,26 @@ class $HabitLogsTable extends HabitLogs
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _energyLevelMeta = const VerificationMeta(
+    'energyLevel',
+  );
+  @override
+  late final GeneratedColumn<int> energyLevel = GeneratedColumn<int>(
+    'energy_level',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _moodMeta = const VerificationMeta('mood');
+  @override
+  late final GeneratedColumn<String> mood = GeneratedColumn<String>(
+    'mood',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -1332,6 +1352,8 @@ class $HabitLogsTable extends HabitLogs
     value,
     durationSeconds,
     note,
+    energyLevel,
+    mood,
     createdAt,
     updatedAt,
   ];
@@ -1414,6 +1436,21 @@ class $HabitLogsTable extends HabitLogs
         note.isAcceptableOrUnknown(data['note']!, _noteMeta),
       );
     }
+    if (data.containsKey('energy_level')) {
+      context.handle(
+        _energyLevelMeta,
+        energyLevel.isAcceptableOrUnknown(
+          data['energy_level']!,
+          _energyLevelMeta,
+        ),
+      );
+    }
+    if (data.containsKey('mood')) {
+      context.handle(
+        _moodMeta,
+        mood.isAcceptableOrUnknown(data['mood']!, _moodMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -1475,6 +1512,14 @@ class $HabitLogsTable extends HabitLogs
         DriftSqlType.string,
         data['${effectivePrefix}note'],
       ),
+      energyLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}energy_level'],
+      ),
+      mood: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mood'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -1502,6 +1547,8 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
   final double? value;
   final int? durationSeconds;
   final String? note;
+  final int? energyLevel;
+  final String? mood;
   final DateTime createdAt;
   final DateTime updatedAt;
   const HabitLogRow({
@@ -1514,6 +1561,8 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
     this.value,
     this.durationSeconds,
     this.note,
+    this.energyLevel,
+    this.mood,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -1537,6 +1586,12 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
     }
+    if (!nullToAbsent || energyLevel != null) {
+      map['energy_level'] = Variable<int>(energyLevel);
+    }
+    if (!nullToAbsent || mood != null) {
+      map['mood'] = Variable<String>(mood);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -1559,6 +1614,10 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
           ? const Value.absent()
           : Value(durationSeconds),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      energyLevel: energyLevel == null && nullToAbsent
+          ? const Value.absent()
+          : Value(energyLevel),
+      mood: mood == null && nullToAbsent ? const Value.absent() : Value(mood),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -1579,6 +1638,8 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
       value: serializer.fromJson<double?>(json['value']),
       durationSeconds: serializer.fromJson<int?>(json['durationSeconds']),
       note: serializer.fromJson<String?>(json['note']),
+      energyLevel: serializer.fromJson<int?>(json['energyLevel']),
+      mood: serializer.fromJson<String?>(json['mood']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -1596,6 +1657,8 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
       'value': serializer.toJson<double?>(value),
       'durationSeconds': serializer.toJson<int?>(durationSeconds),
       'note': serializer.toJson<String?>(note),
+      'energyLevel': serializer.toJson<int?>(energyLevel),
+      'mood': serializer.toJson<String?>(mood),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -1611,6 +1674,8 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
     Value<double?> value = const Value.absent(),
     Value<int?> durationSeconds = const Value.absent(),
     Value<String?> note = const Value.absent(),
+    Value<int?> energyLevel = const Value.absent(),
+    Value<String?> mood = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => HabitLogRow(
@@ -1627,6 +1692,8 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
         ? durationSeconds.value
         : this.durationSeconds,
     note: note.present ? note.value : this.note,
+    energyLevel: energyLevel.present ? energyLevel.value : this.energyLevel,
+    mood: mood.present ? mood.value : this.mood,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -1645,6 +1712,10 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
           ? data.durationSeconds.value
           : this.durationSeconds,
       note: data.note.present ? data.note.value : this.note,
+      energyLevel: data.energyLevel.present
+          ? data.energyLevel.value
+          : this.energyLevel,
+      mood: data.mood.present ? data.mood.value : this.mood,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -1662,6 +1733,8 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
           ..write('value: $value, ')
           ..write('durationSeconds: $durationSeconds, ')
           ..write('note: $note, ')
+          ..write('energyLevel: $energyLevel, ')
+          ..write('mood: $mood, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -1679,6 +1752,8 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
     value,
     durationSeconds,
     note,
+    energyLevel,
+    mood,
     createdAt,
     updatedAt,
   );
@@ -1695,6 +1770,8 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
           other.value == this.value &&
           other.durationSeconds == this.durationSeconds &&
           other.note == this.note &&
+          other.energyLevel == this.energyLevel &&
+          other.mood == this.mood &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -1709,6 +1786,8 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
   final Value<double?> value;
   final Value<int?> durationSeconds;
   final Value<String?> note;
+  final Value<int?> energyLevel;
+  final Value<String?> mood;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -1722,6 +1801,8 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
     this.value = const Value.absent(),
     this.durationSeconds = const Value.absent(),
     this.note = const Value.absent(),
+    this.energyLevel = const Value.absent(),
+    this.mood = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -1736,6 +1817,8 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
     this.value = const Value.absent(),
     this.durationSeconds = const Value.absent(),
     this.note = const Value.absent(),
+    this.energyLevel = const Value.absent(),
+    this.mood = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
@@ -1756,6 +1839,8 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
     Expression<double>? value,
     Expression<int>? durationSeconds,
     Expression<String>? note,
+    Expression<int>? energyLevel,
+    Expression<String>? mood,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -1770,6 +1855,8 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
       if (value != null) 'value': value,
       if (durationSeconds != null) 'duration_seconds': durationSeconds,
       if (note != null) 'note': note,
+      if (energyLevel != null) 'energy_level': energyLevel,
+      if (mood != null) 'mood': mood,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -1786,6 +1873,8 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
     Value<double?>? value,
     Value<int?>? durationSeconds,
     Value<String?>? note,
+    Value<int?>? energyLevel,
+    Value<String?>? mood,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -1800,6 +1889,8 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
       value: value ?? this.value,
       durationSeconds: durationSeconds ?? this.durationSeconds,
       note: note ?? this.note,
+      energyLevel: energyLevel ?? this.energyLevel,
+      mood: mood ?? this.mood,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -1836,6 +1927,12 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
+    if (energyLevel.present) {
+      map['energy_level'] = Variable<int>(energyLevel.value);
+    }
+    if (mood.present) {
+      map['mood'] = Variable<String>(mood.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -1860,6 +1957,8 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
           ..write('value: $value, ')
           ..write('durationSeconds: $durationSeconds, ')
           ..write('note: $note, ')
+          ..write('energyLevel: $energyLevel, ')
+          ..write('mood: $mood, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -4205,6 +4304,8 @@ typedef $$HabitLogsTableCreateCompanionBuilder = HabitLogsCompanion Function({
   Value<double?> value,
   Value<int?> durationSeconds,
   Value<String?> note,
+  Value<int?> energyLevel,
+  Value<String?> mood,
   required DateTime createdAt,
   required DateTime updatedAt,
   Value<int> rowid,
@@ -4219,6 +4320,8 @@ typedef $$HabitLogsTableUpdateCompanionBuilder = HabitLogsCompanion Function({
   Value<double?> value,
   Value<int?> durationSeconds,
   Value<String?> note,
+  Value<int?> energyLevel,
+  Value<String?> mood,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<int> rowid,
@@ -4292,6 +4395,16 @@ class $$HabitLogsTableFilterComposer
 
   ColumnFilters<String> get note => $composableBuilder(
     column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get energyLevel => $composableBuilder(
+    column: $table.energyLevel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mood => $composableBuilder(
+    column: $table.mood,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4378,6 +4491,16 @@ class $$HabitLogsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get energyLevel => $composableBuilder(
+    column: $table.energyLevel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mood => $composableBuilder(
+    column: $table.mood,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -4449,6 +4572,14 @@ class $$HabitLogsTableAnnotationComposer
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
 
+  GeneratedColumn<int> get energyLevel => $composableBuilder(
+    column: $table.energyLevel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get mood =>
+      $composableBuilder(column: $table.mood, builder: (column) => column);
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -4516,6 +4647,8 @@ class $$HabitLogsTableTableManager
                 Value<double?> value = const Value.absent(),
                 Value<int?> durationSeconds = const Value.absent(),
                 Value<String?> note = const Value.absent(),
+                Value<int?> energyLevel = const Value.absent(),
+                Value<String?> mood = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -4529,6 +4662,8 @@ class $$HabitLogsTableTableManager
                 value: value,
                 durationSeconds: durationSeconds,
                 note: note,
+                energyLevel: energyLevel,
+                mood: mood,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -4544,6 +4679,8 @@ class $$HabitLogsTableTableManager
                 Value<double?> value = const Value.absent(),
                 Value<int?> durationSeconds = const Value.absent(),
                 Value<String?> note = const Value.absent(),
+                Value<int?> energyLevel = const Value.absent(),
+                Value<String?> mood = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -4557,6 +4694,8 @@ class $$HabitLogsTableTableManager
                 value: value,
                 durationSeconds: durationSeconds,
                 note: note,
+                energyLevel: energyLevel,
+                mood: mood,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,

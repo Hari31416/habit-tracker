@@ -98,6 +98,8 @@ class HabitRepositoryImpl implements HabitRepository {
         value: row.value,
         durationSeconds: row.durationSeconds,
         note: row.note,
+        energyLevel: row.energyLevel,
+        mood: row.mood,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
       );
@@ -249,6 +251,8 @@ class HabitRepositoryImpl implements HabitRepository {
     int? durationSeconds,
     int? intervalIndex,
     String? note,
+    int? energyLevel,
+    String? mood,
   }) async {
     final now = DateTime.now().toUtc();
     final log = HabitLogsCompanion(
@@ -261,10 +265,43 @@ class HabitRepositoryImpl implements HabitRepository {
       value: Value(value),
       durationSeconds: Value(durationSeconds),
       note: Value(note),
+      energyLevel: Value(energyLevel),
+      mood: Value(mood),
       createdAt: Value(now),
       updatedAt: Value(now),
     );
     await habitLogDao.upsertLog(log);
+  }
+
+  @override
+  Future<void> updateReflection({
+    required String habitId,
+    required DateTime date,
+    int? energyLevel,
+    String? mood,
+    String? note,
+  }) async {
+    final dateStr = _dateFormatter.format(date);
+    final existingRows = await habitLogDao.getLogsForHabitAndDateOnce(habitId, dateStr);
+    if (existingRows.isEmpty) {
+      // Create a completed log with reflection
+      await logCheckIn(
+        habitId: habitId,
+        date: date,
+        completed: true,
+        energyLevel: energyLevel,
+        mood: mood,
+        note: note,
+      );
+    } else {
+      await habitLogDao.updateReflectionForHabitAndDate(
+        habitId,
+        dateStr,
+        energyLevel: energyLevel,
+        mood: mood,
+        note: note,
+      );
+    }
   }
 
   @override

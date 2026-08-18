@@ -8,6 +8,8 @@ class HabitLog {
   final double? value; // Recorded numeric value or minutes
   final int? durationSeconds; // Elapsed duration in seconds for timer habits
   final String? note;
+  final int? energyLevel; // 1 to 5 scale
+  final String? mood; // energized, happy, calm, tired, stressed, focused
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -21,6 +23,8 @@ class HabitLog {
     this.value,
     this.durationSeconds,
     this.note,
+    this.energyLevel,
+    this.mood,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -35,6 +39,8 @@ class HabitLog {
     double? value,
     int? durationSeconds,
     String? note,
+    int? energyLevel,
+    String? mood,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -48,6 +54,8 @@ class HabitLog {
       value: value ?? this.value,
       durationSeconds: durationSeconds ?? this.durationSeconds,
       note: note ?? this.note,
+      energyLevel: energyLevel ?? this.energyLevel,
+      mood: mood ?? this.mood,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
