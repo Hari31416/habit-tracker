@@ -1,3 +1,4 @@
+import '../engines/shield_banking_engine.dart';
 import '../gamification/gamification_models.dart';
 
 abstract class GamificationRepository {
@@ -5,4 +6,11 @@ abstract class GamificationRepository {
   Stream<List<AchievementStatus>> getAchievements();
   Stream<LevelUpCelebration?> getPendingCelebration();
   Future<void> dismissCelebration(int level);
+
+  // Shield Banking
+  Stream<ShieldBankState> getShieldBankState();
+  Future<void> updateShieldSettings({
+    required int maxCapacity,
+    required bool autoConsume,
+  });
 }

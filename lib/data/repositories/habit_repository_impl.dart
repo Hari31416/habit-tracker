@@ -3,23 +3,29 @@ import 'package:drift/drift.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../domain/engines/shield_banking_engine.dart';
 import '../../domain/engines/streak_calculator.dart';
 import '../../domain/models/habit.dart';
 import '../../domain/models/habit_category.dart';
 import '../../domain/models/habit_frequency_type.dart';
 import '../../domain/models/habit_log.dart';
+import '../../domain/models/habit_shield.dart';
 import '../../domain/models/habit_target_type.dart';
 import '../../domain/repositories/habit_repository.dart';
 import '../../domain/schedulers/habit_reminder_scheduler.dart';
 import '../local/app_database.dart';
+import '../local/daos/gamification_dao.dart';
 import '../local/daos/habit_category_dao.dart';
 import '../local/daos/habit_dao.dart';
 import '../local/daos/habit_log_dao.dart';
+import '../local/daos/habit_shield_dao.dart';
 
 class HabitRepositoryImpl implements HabitRepository {
   final HabitDao habitDao;
   final HabitLogDao habitLogDao;
+  final HabitShieldDao habitShieldDao;
   final HabitCategoryDao habitCategoryDao;
+  final GamificationDao? gamificationDao;
   final HabitReminderScheduler reminderScheduler;
   final DateFormat _dateFormatter = DateFormat('yyyy-MM-dd');
   final Uuid _uuid = const Uuid();
@@ -27,7 +33,9 @@ class HabitRepositoryImpl implements HabitRepository {
   HabitRepositoryImpl({
     required this.habitDao,
     required this.habitLogDao,
+    required this.habitShieldDao,
     required this.habitCategoryDao,
+    this.gamificationDao,
     required this.reminderScheduler,
   });
 
@@ -90,6 +98,15 @@ class HabitRepositoryImpl implements HabitRepository {
         value: row.value,
         durationSeconds: row.durationSeconds,
         note: row.note,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+      );
+
+  HabitShield _shieldRowToDomain(HabitShieldRow row) => HabitShield(
+        id: row.id,
+        habitId: row.habitId,
+        date: row.date,
+        autoApplied: row.autoApplied,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
       );
@@ -424,6 +441,181 @@ class HabitRepositoryImpl implements HabitRepository {
   @override
   Future<void> deleteLogsForHabitAndDate(String habitId, DateTime date) async {
     await habitLogDao.deleteLogsForHabitAndDate(habitId, _dateFormatter.format(date));
+  }
+
+  // Shields & Grace Days
+  @override
+  Stream<List<HabitShield>> getAllShields() =>
+      habitShieldDao.watchAllShields().map((rows) => rows.map(_shieldRowToDomain).toList());
+
+  @override
+  Future<List<HabitShield>> getAllShieldsOnce() async {
+    final rows = await habitShieldDao.getAllShieldsOnce();
+    return rows.map(_shieldRowToDomain).toList();
+  }
+
+  @override
+  Stream<List<HabitShield>> getShieldsForHabit(String habitId) => habitShieldDao
+      .watchShieldsForHabit(habitId)
+      .map((rows) => rows.map(_shieldRowToDomain).toList());
+
+  @override
+  Future<List<HabitShield>> getShieldsForHabitOnce(String habitId) async {
+    final rows = await habitShieldDao.getShieldsForHabitOnce(habitId);
+    return rows.map(_shieldRowToDomain).toList();
+  }
+
+  @override
+  Stream<List<HabitShield>> getShieldsForDate(DateTime date) => habitShieldDao
+      .watchShieldsForDate(_dateFormatter.format(date))
+      .map((rows) => rows.map(_shieldRowToDomain).toList());
+
+  @override
+  Future<List<HabitShield>> getShieldsForDateOnce(DateTime date) async {
+    final rows = await habitShieldDao.getShieldsForDateOnce(_dateFormatter.format(date));
+    return rows.map(_shieldRowToDomain).toList();
+  }
+
+  @override
+  Stream<List<HabitShield>> getShieldsForDateRange(DateTime startDate, DateTime endDate) =>
+      habitShieldDao
+          .watchShieldsForDateRange(_dateFormatter.format(startDate), _dateFormatter.format(endDate))
+          .map((rows) => rows.map(_shieldRowToDomain).toList());
+
+  @override
+  Future<List<HabitShield>> getShieldsForDateRangeOnce(DateTime startDate, DateTime endDate) async {
+    final rows = await habitShieldDao.getShieldsForDateRangeOnce(
+      _dateFormatter.format(startDate),
+      _dateFormatter.format(endDate),
+    );
+    return rows.map(_shieldRowToDomain).toList();
+  }
+
+  @override
+  Future<void> applyShield({
+    required String habitId,
+    required DateTime date,
+    bool autoApplied = false,
+  }) async {
+    final dateStr = _dateFormatter.format(date);
+    final now = DateTime.now().toUtc();
+    final companion = HabitShieldsCompanion(
+      id: Value(_uuid.v4()),
+      habitId: Value(habitId),
+      date: Value(dateStr),
+      autoApplied: Value(autoApplied),
+      createdAt: Value(now),
+      updatedAt: Value(now),
+    );
+    await habitShieldDao.upsertShield(companion);
+  }
+
+  @override
+  Future<void> removeShield(String habitId, DateTime date) async {
+    final dateStr = _dateFormatter.format(date);
+    await habitShieldDao.deleteShield(habitId, dateStr);
+  }
+
+  @override
+  Future<void> toggleShield(String habitId, DateTime date) async {
+    final isShielded = await isDateShielded(habitId, date);
+    if (isShielded) {
+      await removeShield(habitId, date);
+    } else {
+      await applyShield(habitId: habitId, date: date, autoApplied: false);
+    }
+  }
+
+  @override
+  Future<bool> isDateShielded(String habitId, DateTime date) async {
+    final dateStr = _dateFormatter.format(date);
+    final shield = await habitShieldDao.getShieldForHabitAndDate(habitId, dateStr);
+    return shield != null;
+  }
+
+  @override
+  Future<int> autoProtectMissedDays(DateTime date) async {
+    final habits = (await habitDao.watchActiveHabits().first).map(_habitRowToDomain).toList();
+    final allLogs = await getAllLogsOnce();
+    final allShields = await getAllShieldsOnce();
+
+    final userGamification = await gamificationDao?.getUserGamificationOnce();
+    final autoConsume = userGamification?.autoConsumeShields ?? true;
+    final maxCapacity = userGamification?.maxShieldsCapacity ?? ShieldBankingEngine.defaultMaxCapacity;
+
+    if (!autoConsume) return 0;
+
+    var currentBankState = ShieldBankingEngine.calculateBankState(
+      habits: habits,
+      logs: allLogs,
+      shields: allShields,
+      maxCapacity: maxCapacity,
+      autoConsumeEnabled: autoConsume,
+      referenceDate: date,
+    );
+
+    if (currentBankState.availableShields <= 0) return 0;
+
+    var autoAppliedCount = 0;
+    final targetDate = DateTime(date.year, date.month, date.day);
+    final targetDateStr = _dateFormatter.format(targetDate);
+
+    final logsByHabit = <String, List<HabitLog>>{};
+    for (final log in allLogs) {
+      logsByHabit.putIfAbsent(log.habitId, () => []).add(log);
+    }
+
+    final shieldsByHabit = <String, List<HabitShield>>{};
+    for (final s in allShields) {
+      shieldsByHabit.putIfAbsent(s.habitId, () => []).add(s);
+    }
+
+    for (final habit in habits) {
+      if (currentBankState.availableShields <= 0) break;
+
+      final isScheduled = StreakCalculator.isHabitScheduledOnDate(habit, targetDate);
+      if (!isScheduled) continue;
+
+      final habitLogs = logsByHabit[habit.id] ?? const [];
+      final dayLogs = habitLogs.where((l) => l.date == targetDateStr).toList();
+      final isCompleted = StreakCalculator.isHabitCompletedOnDate(habit, dayLogs);
+
+      final habitShields = shieldsByHabit[habit.id] ?? const [];
+      final isShielded = habitShields.any((s) => s.date == targetDateStr);
+
+      if (!isCompleted && !isShielded) {
+        // Check if habit had an active streak ending on yesterday
+        final yesterday = targetDate.subtract(const Duration(days: 1));
+        final yesterdayStreak = StreakCalculator.calculateStreak(
+          habit,
+          habitLogs,
+          yesterday,
+          habitShields,
+        );
+
+        if (yesterdayStreak.currentStreak > 0) {
+          await applyShield(
+            habitId: habit.id,
+            date: targetDate,
+            autoApplied: true,
+          );
+          autoAppliedCount++;
+
+          // Update bank state after applying
+          final updatedShields = await getAllShieldsOnce();
+          currentBankState = ShieldBankingEngine.calculateBankState(
+            habits: habits,
+            logs: allLogs,
+            shields: updatedShields,
+            maxCapacity: maxCapacity,
+            autoConsumeEnabled: autoConsume,
+            referenceDate: date,
+          );
+        }
+      }
+    }
+
+    return autoAppliedCount;
   }
 
   // Categories

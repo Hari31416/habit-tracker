@@ -1868,6 +1868,423 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
   }
 }
 
+class $HabitShieldsTable extends HabitShields
+    with TableInfo<$HabitShieldsTable, HabitShieldRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HabitShieldsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _habitIdMeta = const VerificationMeta(
+    'habitId',
+  );
+  @override
+  late final GeneratedColumn<String> habitId = GeneratedColumn<String>(
+    'habit_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES habits (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<String> date = GeneratedColumn<String>(
+    'date',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _autoAppliedMeta = const VerificationMeta(
+    'autoApplied',
+  );
+  @override
+  late final GeneratedColumn<bool> autoApplied = GeneratedColumn<bool>(
+    'auto_applied',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("auto_applied" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    habitId,
+    date,
+    autoApplied,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'habit_shields';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<HabitShieldRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('habit_id')) {
+      context.handle(
+        _habitIdMeta,
+        habitId.isAcceptableOrUnknown(data['habit_id']!, _habitIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_habitIdMeta);
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    if (data.containsKey('auto_applied')) {
+      context.handle(
+        _autoAppliedMeta,
+        autoApplied.isAcceptableOrUnknown(
+          data['auto_applied']!,
+          _autoAppliedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  HabitShieldRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return HabitShieldRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      habitId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}habit_id'],
+      )!,
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}date'],
+      )!,
+      autoApplied: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}auto_applied'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $HabitShieldsTable createAlias(String alias) {
+    return $HabitShieldsTable(attachedDatabase, alias);
+  }
+}
+
+class HabitShieldRow extends DataClass implements Insertable<HabitShieldRow> {
+  final String id;
+  final String habitId;
+  final String date;
+  final bool autoApplied;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const HabitShieldRow({
+    required this.id,
+    required this.habitId,
+    required this.date,
+    required this.autoApplied,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['habit_id'] = Variable<String>(habitId);
+    map['date'] = Variable<String>(date);
+    map['auto_applied'] = Variable<bool>(autoApplied);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  HabitShieldsCompanion toCompanion(bool nullToAbsent) {
+    return HabitShieldsCompanion(
+      id: Value(id),
+      habitId: Value(habitId),
+      date: Value(date),
+      autoApplied: Value(autoApplied),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory HabitShieldRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return HabitShieldRow(
+      id: serializer.fromJson<String>(json['id']),
+      habitId: serializer.fromJson<String>(json['habitId']),
+      date: serializer.fromJson<String>(json['date']),
+      autoApplied: serializer.fromJson<bool>(json['autoApplied']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'habitId': serializer.toJson<String>(habitId),
+      'date': serializer.toJson<String>(date),
+      'autoApplied': serializer.toJson<bool>(autoApplied),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  HabitShieldRow copyWith({
+    String? id,
+    String? habitId,
+    String? date,
+    bool? autoApplied,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => HabitShieldRow(
+    id: id ?? this.id,
+    habitId: habitId ?? this.habitId,
+    date: date ?? this.date,
+    autoApplied: autoApplied ?? this.autoApplied,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  HabitShieldRow copyWithCompanion(HabitShieldsCompanion data) {
+    return HabitShieldRow(
+      id: data.id.present ? data.id.value : this.id,
+      habitId: data.habitId.present ? data.habitId.value : this.habitId,
+      date: data.date.present ? data.date.value : this.date,
+      autoApplied: data.autoApplied.present
+          ? data.autoApplied.value
+          : this.autoApplied,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HabitShieldRow(')
+          ..write('id: $id, ')
+          ..write('habitId: $habitId, ')
+          ..write('date: $date, ')
+          ..write('autoApplied: $autoApplied, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, habitId, date, autoApplied, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is HabitShieldRow &&
+          other.id == this.id &&
+          other.habitId == this.habitId &&
+          other.date == this.date &&
+          other.autoApplied == this.autoApplied &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class HabitShieldsCompanion extends UpdateCompanion<HabitShieldRow> {
+  final Value<String> id;
+  final Value<String> habitId;
+  final Value<String> date;
+  final Value<bool> autoApplied;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const HabitShieldsCompanion({
+    this.id = const Value.absent(),
+    this.habitId = const Value.absent(),
+    this.date = const Value.absent(),
+    this.autoApplied = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  HabitShieldsCompanion.insert({
+    required String id,
+    required String habitId,
+    required String date,
+    this.autoApplied = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       habitId = Value(habitId),
+       date = Value(date),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<HabitShieldRow> custom({
+    Expression<String>? id,
+    Expression<String>? habitId,
+    Expression<String>? date,
+    Expression<bool>? autoApplied,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (habitId != null) 'habit_id': habitId,
+      if (date != null) 'date': date,
+      if (autoApplied != null) 'auto_applied': autoApplied,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  HabitShieldsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? habitId,
+    Value<String>? date,
+    Value<bool>? autoApplied,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return HabitShieldsCompanion(
+      id: id ?? this.id,
+      habitId: habitId ?? this.habitId,
+      date: date ?? this.date,
+      autoApplied: autoApplied ?? this.autoApplied,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (habitId.present) {
+      map['habit_id'] = Variable<String>(habitId.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<String>(date.value);
+    }
+    if (autoApplied.present) {
+      map['auto_applied'] = Variable<bool>(autoApplied.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HabitShieldsCompanion(')
+          ..write('id: $id, ')
+          ..write('habitId: $habitId, ')
+          ..write('date: $date, ')
+          ..write('autoApplied: $autoApplied, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $HabitCategoriesTable extends HabitCategories
     with TableInfo<$HabitCategoriesTable, HabitCategoryRow> {
   @override
@@ -2223,6 +2640,31 @@ class $UserGamificationTable extends UserGamification
     requiredDuringInsert: false,
     defaultValue: const Constant(1),
   );
+  static const VerificationMeta _maxShieldsCapacityMeta =
+      const VerificationMeta('maxShieldsCapacity');
+  @override
+  late final GeneratedColumn<int> maxShieldsCapacity = GeneratedColumn<int>(
+    'max_shields_capacity',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(3),
+  );
+  static const VerificationMeta _autoConsumeShieldsMeta =
+      const VerificationMeta('autoConsumeShields');
+  @override
+  late final GeneratedColumn<bool> autoConsumeShields = GeneratedColumn<bool>(
+    'auto_consume_shields',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("auto_consume_shields" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -2240,6 +2682,8 @@ class $UserGamificationTable extends UserGamification
     totalXp,
     currentLevel,
     lastCelebratedLevel,
+    maxShieldsCapacity,
+    autoConsumeShields,
     updatedAt,
   ];
   @override
@@ -2281,6 +2725,24 @@ class $UserGamificationTable extends UserGamification
         ),
       );
     }
+    if (data.containsKey('max_shields_capacity')) {
+      context.handle(
+        _maxShieldsCapacityMeta,
+        maxShieldsCapacity.isAcceptableOrUnknown(
+          data['max_shields_capacity']!,
+          _maxShieldsCapacityMeta,
+        ),
+      );
+    }
+    if (data.containsKey('auto_consume_shields')) {
+      context.handle(
+        _autoConsumeShieldsMeta,
+        autoConsumeShields.isAcceptableOrUnknown(
+          data['auto_consume_shields']!,
+          _autoConsumeShieldsMeta,
+        ),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -2314,6 +2776,14 @@ class $UserGamificationTable extends UserGamification
         DriftSqlType.int,
         data['${effectivePrefix}last_celebrated_level'],
       )!,
+      maxShieldsCapacity: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}max_shields_capacity'],
+      )!,
+      autoConsumeShields: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}auto_consume_shields'],
+      )!,
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -2333,12 +2803,16 @@ class UserGamificationRow extends DataClass
   final int totalXp;
   final int currentLevel;
   final int lastCelebratedLevel;
+  final int maxShieldsCapacity;
+  final bool autoConsumeShields;
   final DateTime updatedAt;
   const UserGamificationRow({
     required this.id,
     required this.totalXp,
     required this.currentLevel,
     required this.lastCelebratedLevel,
+    required this.maxShieldsCapacity,
+    required this.autoConsumeShields,
     required this.updatedAt,
   });
   @override
@@ -2348,6 +2822,8 @@ class UserGamificationRow extends DataClass
     map['total_xp'] = Variable<int>(totalXp);
     map['current_level'] = Variable<int>(currentLevel);
     map['last_celebrated_level'] = Variable<int>(lastCelebratedLevel);
+    map['max_shields_capacity'] = Variable<int>(maxShieldsCapacity);
+    map['auto_consume_shields'] = Variable<bool>(autoConsumeShields);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
@@ -2358,6 +2834,8 @@ class UserGamificationRow extends DataClass
       totalXp: Value(totalXp),
       currentLevel: Value(currentLevel),
       lastCelebratedLevel: Value(lastCelebratedLevel),
+      maxShieldsCapacity: Value(maxShieldsCapacity),
+      autoConsumeShields: Value(autoConsumeShields),
       updatedAt: Value(updatedAt),
     );
   }
@@ -2374,6 +2852,8 @@ class UserGamificationRow extends DataClass
       lastCelebratedLevel: serializer.fromJson<int>(
         json['lastCelebratedLevel'],
       ),
+      maxShieldsCapacity: serializer.fromJson<int>(json['maxShieldsCapacity']),
+      autoConsumeShields: serializer.fromJson<bool>(json['autoConsumeShields']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
@@ -2385,6 +2865,8 @@ class UserGamificationRow extends DataClass
       'totalXp': serializer.toJson<int>(totalXp),
       'currentLevel': serializer.toJson<int>(currentLevel),
       'lastCelebratedLevel': serializer.toJson<int>(lastCelebratedLevel),
+      'maxShieldsCapacity': serializer.toJson<int>(maxShieldsCapacity),
+      'autoConsumeShields': serializer.toJson<bool>(autoConsumeShields),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
@@ -2394,12 +2876,16 @@ class UserGamificationRow extends DataClass
     int? totalXp,
     int? currentLevel,
     int? lastCelebratedLevel,
+    int? maxShieldsCapacity,
+    bool? autoConsumeShields,
     DateTime? updatedAt,
   }) => UserGamificationRow(
     id: id ?? this.id,
     totalXp: totalXp ?? this.totalXp,
     currentLevel: currentLevel ?? this.currentLevel,
     lastCelebratedLevel: lastCelebratedLevel ?? this.lastCelebratedLevel,
+    maxShieldsCapacity: maxShieldsCapacity ?? this.maxShieldsCapacity,
+    autoConsumeShields: autoConsumeShields ?? this.autoConsumeShields,
     updatedAt: updatedAt ?? this.updatedAt,
   );
   UserGamificationRow copyWithCompanion(UserGamificationCompanion data) {
@@ -2412,6 +2898,12 @@ class UserGamificationRow extends DataClass
       lastCelebratedLevel: data.lastCelebratedLevel.present
           ? data.lastCelebratedLevel.value
           : this.lastCelebratedLevel,
+      maxShieldsCapacity: data.maxShieldsCapacity.present
+          ? data.maxShieldsCapacity.value
+          : this.maxShieldsCapacity,
+      autoConsumeShields: data.autoConsumeShields.present
+          ? data.autoConsumeShields.value
+          : this.autoConsumeShields,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
@@ -2423,14 +2915,23 @@ class UserGamificationRow extends DataClass
           ..write('totalXp: $totalXp, ')
           ..write('currentLevel: $currentLevel, ')
           ..write('lastCelebratedLevel: $lastCelebratedLevel, ')
+          ..write('maxShieldsCapacity: $maxShieldsCapacity, ')
+          ..write('autoConsumeShields: $autoConsumeShields, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, totalXp, currentLevel, lastCelebratedLevel, updatedAt);
+  int get hashCode => Object.hash(
+    id,
+    totalXp,
+    currentLevel,
+    lastCelebratedLevel,
+    maxShieldsCapacity,
+    autoConsumeShields,
+    updatedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2439,6 +2940,8 @@ class UserGamificationRow extends DataClass
           other.totalXp == this.totalXp &&
           other.currentLevel == this.currentLevel &&
           other.lastCelebratedLevel == this.lastCelebratedLevel &&
+          other.maxShieldsCapacity == this.maxShieldsCapacity &&
+          other.autoConsumeShields == this.autoConsumeShields &&
           other.updatedAt == this.updatedAt);
 }
 
@@ -2447,6 +2950,8 @@ class UserGamificationCompanion extends UpdateCompanion<UserGamificationRow> {
   final Value<int> totalXp;
   final Value<int> currentLevel;
   final Value<int> lastCelebratedLevel;
+  final Value<int> maxShieldsCapacity;
+  final Value<bool> autoConsumeShields;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
   const UserGamificationCompanion({
@@ -2454,6 +2959,8 @@ class UserGamificationCompanion extends UpdateCompanion<UserGamificationRow> {
     this.totalXp = const Value.absent(),
     this.currentLevel = const Value.absent(),
     this.lastCelebratedLevel = const Value.absent(),
+    this.maxShieldsCapacity = const Value.absent(),
+    this.autoConsumeShields = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -2462,6 +2969,8 @@ class UserGamificationCompanion extends UpdateCompanion<UserGamificationRow> {
     this.totalXp = const Value.absent(),
     this.currentLevel = const Value.absent(),
     this.lastCelebratedLevel = const Value.absent(),
+    this.maxShieldsCapacity = const Value.absent(),
+    this.autoConsumeShields = const Value.absent(),
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
   }) : updatedAt = Value(updatedAt);
@@ -2470,6 +2979,8 @@ class UserGamificationCompanion extends UpdateCompanion<UserGamificationRow> {
     Expression<int>? totalXp,
     Expression<int>? currentLevel,
     Expression<int>? lastCelebratedLevel,
+    Expression<int>? maxShieldsCapacity,
+    Expression<bool>? autoConsumeShields,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
@@ -2479,6 +2990,10 @@ class UserGamificationCompanion extends UpdateCompanion<UserGamificationRow> {
       if (currentLevel != null) 'current_level': currentLevel,
       if (lastCelebratedLevel != null)
         'last_celebrated_level': lastCelebratedLevel,
+      if (maxShieldsCapacity != null)
+        'max_shields_capacity': maxShieldsCapacity,
+      if (autoConsumeShields != null)
+        'auto_consume_shields': autoConsumeShields,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -2489,6 +3004,8 @@ class UserGamificationCompanion extends UpdateCompanion<UserGamificationRow> {
     Value<int>? totalXp,
     Value<int>? currentLevel,
     Value<int>? lastCelebratedLevel,
+    Value<int>? maxShieldsCapacity,
+    Value<bool>? autoConsumeShields,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
@@ -2497,6 +3014,8 @@ class UserGamificationCompanion extends UpdateCompanion<UserGamificationRow> {
       totalXp: totalXp ?? this.totalXp,
       currentLevel: currentLevel ?? this.currentLevel,
       lastCelebratedLevel: lastCelebratedLevel ?? this.lastCelebratedLevel,
+      maxShieldsCapacity: maxShieldsCapacity ?? this.maxShieldsCapacity,
+      autoConsumeShields: autoConsumeShields ?? this.autoConsumeShields,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
@@ -2517,6 +3036,12 @@ class UserGamificationCompanion extends UpdateCompanion<UserGamificationRow> {
     if (lastCelebratedLevel.present) {
       map['last_celebrated_level'] = Variable<int>(lastCelebratedLevel.value);
     }
+    if (maxShieldsCapacity.present) {
+      map['max_shields_capacity'] = Variable<int>(maxShieldsCapacity.value);
+    }
+    if (autoConsumeShields.present) {
+      map['auto_consume_shields'] = Variable<bool>(autoConsumeShields.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -2533,6 +3058,8 @@ class UserGamificationCompanion extends UpdateCompanion<UserGamificationRow> {
           ..write('totalXp: $totalXp, ')
           ..write('currentLevel: $currentLevel, ')
           ..write('lastCelebratedLevel: $lastCelebratedLevel, ')
+          ..write('maxShieldsCapacity: $maxShieldsCapacity, ')
+          ..write('autoConsumeShields: $autoConsumeShields, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -2858,6 +3385,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $HabitsTable habits = $HabitsTable(this);
   late final $HabitLogsTable habitLogs = $HabitLogsTable(this);
+  late final $HabitShieldsTable habitShields = $HabitShieldsTable(this);
   late final $HabitCategoriesTable habitCategories = $HabitCategoriesTable(
     this,
   );
@@ -2877,8 +3405,23 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'idx_habit_logs_habit_id_date',
     'CREATE INDEX idx_habit_logs_habit_id_date ON habit_logs (habit_id, date)',
   );
+  late final Index idxHabitShieldsHabitId = Index(
+    'idx_habit_shields_habit_id',
+    'CREATE INDEX idx_habit_shields_habit_id ON habit_shields (habit_id)',
+  );
+  late final Index idxHabitShieldsDate = Index(
+    'idx_habit_shields_date',
+    'CREATE INDEX idx_habit_shields_date ON habit_shields (date)',
+  );
+  late final Index idxHabitShieldsHabitIdDate = Index(
+    'idx_habit_shields_habit_id_date',
+    'CREATE INDEX idx_habit_shields_habit_id_date ON habit_shields (habit_id, date)',
+  );
   late final HabitDao habitDao = HabitDao(this as AppDatabase);
   late final HabitLogDao habitLogDao = HabitLogDao(this as AppDatabase);
+  late final HabitShieldDao habitShieldDao = HabitShieldDao(
+    this as AppDatabase,
+  );
   late final HabitCategoryDao habitCategoryDao = HabitCategoryDao(
     this as AppDatabase,
   );
@@ -2892,12 +3435,16 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     habits,
     habitLogs,
+    habitShields,
     habitCategories,
     userGamification,
     achievements,
     idxHabitLogsHabitId,
     idxHabitLogsDate,
     idxHabitLogsHabitIdDate,
+    idxHabitShieldsHabitId,
+    idxHabitShieldsDate,
+    idxHabitShieldsHabitIdDate,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -2907,6 +3454,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('habit_logs', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'habits',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('habit_shields', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -2977,6 +3531,24 @@ final class $$HabitsTableReferences
     ).filter((f) => f.habitId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_habitLogsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$HabitShieldsTable, List<HabitShieldRow>>
+  _habitShieldsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.habitShields,
+    aliasName: 'habits__id__habit_shields__habit_id',
+  );
+
+  $$HabitShieldsTableProcessedTableManager get habitShieldsRefs {
+    final manager = $$HabitShieldsTableTableManager(
+      $_db,
+      $_db.habitShields,
+    ).filter((f) => f.habitId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_habitShieldsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -3118,6 +3690,31 @@ class $$HabitsTableFilterComposer
           }) => $$HabitLogsTableFilterComposer(
             $db: $db,
             $table: $db.habitLogs,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> habitShieldsRefs(
+    Expression<bool> Function($$HabitShieldsTableFilterComposer f) f,
+  ) {
+    final $$HabitShieldsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.habitShields,
+      getReferencedColumn: (t) => t.habitId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HabitShieldsTableFilterComposer(
+            $db: $db,
+            $table: $db.habitShields,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -3368,6 +3965,31 @@ class $$HabitsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> habitShieldsRefs<T extends Object>(
+    Expression<T> Function($$HabitShieldsTableAnnotationComposer a) f,
+  ) {
+    final $$HabitShieldsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.habitShields,
+      getReferencedColumn: (t) => t.habitId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HabitShieldsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.habitShields,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$HabitsTableTableManager
@@ -3383,7 +4005,7 @@ class $$HabitsTableTableManager
           $$HabitsTableUpdateCompanionBuilder,
           (HabitRow, $$HabitsTableReferences),
           HabitRow,
-          PrefetchHooks Function({bool habitLogsRefs})
+          PrefetchHooks Function({bool habitLogsRefs, bool habitShieldsRefs})
         > {
   $$HabitsTableTableManager(_$AppDatabase db, $HabitsTable table)
     : super(
@@ -3498,32 +4120,63 @@ class $$HabitsTableTableManager
                     (e.readTable(table), $$HabitsTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({habitLogsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (habitLogsRefs) db.habitLogs],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (habitLogsRefs)
-                    await $_getPrefetchedData<
-                      HabitRow,
-                      $HabitsTable,
-                      HabitLogRow
-                    >(
-                      currentTable: table,
-                      referencedTable: $$HabitsTableReferences
-                          ._habitLogsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$HabitsTableReferences(db, table, p0).habitLogsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.habitId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({habitLogsRefs = false, habitShieldsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (habitLogsRefs) db.habitLogs,
+                    if (habitShieldsRefs) db.habitShields,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (habitLogsRefs)
+                        await $_getPrefetchedData<
+                          HabitRow,
+                          $HabitsTable,
+                          HabitLogRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$HabitsTableReferences
+                              ._habitLogsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$HabitsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).habitLogsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.habitId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (habitShieldsRefs)
+                        await $_getPrefetchedData<
+                          HabitRow,
+                          $HabitsTable,
+                          HabitShieldRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$HabitsTableReferences
+                              ._habitShieldsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$HabitsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).habitShieldsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.habitId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -3540,7 +4193,7 @@ typedef $$HabitsTableProcessedTableManager =
       $$HabitsTableUpdateCompanionBuilder,
       (HabitRow, $$HabitsTableReferences),
       HabitRow,
-      PrefetchHooks Function({bool habitLogsRefs})
+      PrefetchHooks Function({bool habitLogsRefs, bool habitShieldsRefs})
     >;
 typedef $$HabitLogsTableCreateCompanionBuilder = HabitLogsCompanion Function({
   required String id,
@@ -3973,6 +4626,342 @@ typedef $$HabitLogsTableProcessedTableManager =
       HabitLogRow,
       PrefetchHooks Function({bool habitId})
     >;
+typedef $$HabitShieldsTableCreateCompanionBuilder =
+    HabitShieldsCompanion Function({
+      required String id,
+      required String habitId,
+      required String date,
+      Value<bool> autoApplied,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$HabitShieldsTableUpdateCompanionBuilder =
+    HabitShieldsCompanion Function({
+      Value<String> id,
+      Value<String> habitId,
+      Value<String> date,
+      Value<bool> autoApplied,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$HabitShieldsTableReferences
+    extends BaseReferences<_$AppDatabase, $HabitShieldsTable, HabitShieldRow> {
+  $$HabitShieldsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $HabitsTable _habitIdTable(_$AppDatabase db) =>
+      db.habits.createAlias('habit_shields__habit_id__habits__id');
+
+  $$HabitsTableProcessedTableManager get habitId {
+    final $_column = $_itemColumn<String>('habit_id')!;
+
+    final manager = $$HabitsTableTableManager(
+      $_db,
+      $_db.habits,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_habitIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$HabitShieldsTableFilterComposer
+    extends Composer<_$AppDatabase, $HabitShieldsTable> {
+  $$HabitShieldsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get autoApplied => $composableBuilder(
+    column: $table.autoApplied,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$HabitsTableFilterComposer get habitId {
+    final $$HabitsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.habitId,
+      referencedTable: $db.habits,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HabitsTableFilterComposer(
+            $db: $db,
+            $table: $db.habits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$HabitShieldsTableOrderingComposer
+    extends Composer<_$AppDatabase, $HabitShieldsTable> {
+  $$HabitShieldsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get autoApplied => $composableBuilder(
+    column: $table.autoApplied,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$HabitsTableOrderingComposer get habitId {
+    final $$HabitsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.habitId,
+      referencedTable: $db.habits,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HabitsTableOrderingComposer(
+            $db: $db,
+            $table: $db.habits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$HabitShieldsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $HabitShieldsTable> {
+  $$HabitShieldsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<bool> get autoApplied => $composableBuilder(
+    column: $table.autoApplied,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$HabitsTableAnnotationComposer get habitId {
+    final $$HabitsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.habitId,
+      referencedTable: $db.habits,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$HabitsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.habits,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$HabitShieldsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $HabitShieldsTable,
+          HabitShieldRow,
+          $$HabitShieldsTableFilterComposer,
+          $$HabitShieldsTableOrderingComposer,
+          $$HabitShieldsTableAnnotationComposer,
+          $$HabitShieldsTableCreateCompanionBuilder,
+          $$HabitShieldsTableUpdateCompanionBuilder,
+          (HabitShieldRow, $$HabitShieldsTableReferences),
+          HabitShieldRow,
+          PrefetchHooks Function({bool habitId})
+        > {
+  $$HabitShieldsTableTableManager(_$AppDatabase db, $HabitShieldsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$HabitShieldsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$HabitShieldsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$HabitShieldsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> habitId = const Value.absent(),
+                Value<String> date = const Value.absent(),
+                Value<bool> autoApplied = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => HabitShieldsCompanion(
+                id: id,
+                habitId: habitId,
+                date: date,
+                autoApplied: autoApplied,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String habitId,
+                required String date,
+                Value<bool> autoApplied = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => HabitShieldsCompanion.insert(
+                id: id,
+                habitId: habitId,
+                date: date,
+                autoApplied: autoApplied,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$HabitShieldsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({habitId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (habitId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.habitId,
+                        referencedTable: $$HabitShieldsTableReferences
+                            ._habitIdTable(db),
+                        referencedColumn: $$HabitShieldsTableReferences
+                            ._habitIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$HabitShieldsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $HabitShieldsTable,
+      HabitShieldRow,
+      $$HabitShieldsTableFilterComposer,
+      $$HabitShieldsTableOrderingComposer,
+      $$HabitShieldsTableAnnotationComposer,
+      $$HabitShieldsTableCreateCompanionBuilder,
+      $$HabitShieldsTableUpdateCompanionBuilder,
+      (HabitShieldRow, $$HabitShieldsTableReferences),
+      HabitShieldRow,
+      PrefetchHooks Function({bool habitId})
+    >;
 typedef $$HabitCategoriesTableCreateCompanionBuilder =
     HabitCategoriesCompanion Function({
       required String id,
@@ -4166,6 +5155,8 @@ typedef $$UserGamificationTableCreateCompanionBuilder =
       Value<int> totalXp,
       Value<int> currentLevel,
       Value<int> lastCelebratedLevel,
+      Value<int> maxShieldsCapacity,
+      Value<bool> autoConsumeShields,
       required DateTime updatedAt,
       Value<int> rowid,
     });
@@ -4175,6 +5166,8 @@ typedef $$UserGamificationTableUpdateCompanionBuilder =
       Value<int> totalXp,
       Value<int> currentLevel,
       Value<int> lastCelebratedLevel,
+      Value<int> maxShieldsCapacity,
+      Value<bool> autoConsumeShields,
       Value<DateTime> updatedAt,
       Value<int> rowid,
     });
@@ -4205,6 +5198,16 @@ class $$UserGamificationTableFilterComposer
 
   ColumnFilters<int> get lastCelebratedLevel => $composableBuilder(
     column: $table.lastCelebratedLevel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get maxShieldsCapacity => $composableBuilder(
+    column: $table.maxShieldsCapacity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get autoConsumeShields => $composableBuilder(
+    column: $table.autoConsumeShields,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4243,6 +5246,16 @@ class $$UserGamificationTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get maxShieldsCapacity => $composableBuilder(
+    column: $table.maxShieldsCapacity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get autoConsumeShields => $composableBuilder(
+    column: $table.autoConsumeShields,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -4271,6 +5284,16 @@ class $$UserGamificationTableAnnotationComposer
 
   GeneratedColumn<int> get lastCelebratedLevel => $composableBuilder(
     column: $table.lastCelebratedLevel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get maxShieldsCapacity => $composableBuilder(
+    column: $table.maxShieldsCapacity,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get autoConsumeShields => $composableBuilder(
+    column: $table.autoConsumeShields,
     builder: (column) => column,
   );
 
@@ -4319,6 +5342,8 @@ class $$UserGamificationTableTableManager
                 Value<int> totalXp = const Value.absent(),
                 Value<int> currentLevel = const Value.absent(),
                 Value<int> lastCelebratedLevel = const Value.absent(),
+                Value<int> maxShieldsCapacity = const Value.absent(),
+                Value<bool> autoConsumeShields = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => UserGamificationCompanion(
@@ -4326,6 +5351,8 @@ class $$UserGamificationTableTableManager
                 totalXp: totalXp,
                 currentLevel: currentLevel,
                 lastCelebratedLevel: lastCelebratedLevel,
+                maxShieldsCapacity: maxShieldsCapacity,
+                autoConsumeShields: autoConsumeShields,
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),
@@ -4335,6 +5362,8 @@ class $$UserGamificationTableTableManager
                 Value<int> totalXp = const Value.absent(),
                 Value<int> currentLevel = const Value.absent(),
                 Value<int> lastCelebratedLevel = const Value.absent(),
+                Value<int> maxShieldsCapacity = const Value.absent(),
+                Value<bool> autoConsumeShields = const Value.absent(),
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
               }) => UserGamificationCompanion.insert(
@@ -4342,6 +5371,8 @@ class $$UserGamificationTableTableManager
                 totalXp: totalXp,
                 currentLevel: currentLevel,
                 lastCelebratedLevel: lastCelebratedLevel,
+                maxShieldsCapacity: maxShieldsCapacity,
+                autoConsumeShields: autoConsumeShields,
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),
@@ -4565,6 +5596,8 @@ class $AppDatabaseManager {
       $$HabitsTableTableManager(_db, _db.habits);
   $$HabitLogsTableTableManager get habitLogs =>
       $$HabitLogsTableTableManager(_db, _db.habitLogs);
+  $$HabitShieldsTableTableManager get habitShields =>
+      $$HabitShieldsTableTableManager(_db, _db.habitShields);
   $$HabitCategoriesTableTableManager get habitCategories =>
       $$HabitCategoriesTableTableManager(_db, _db.habitCategories);
   $$UserGamificationTableTableManager get userGamification =>

@@ -17,6 +17,7 @@ void main() {
     repository = HabitRepositoryImpl(
       habitDao: db.habitDao,
       habitLogDao: db.habitLogDao,
+      habitShieldDao: db.habitShieldDao,
       habitCategoryDao: db.habitCategoryDao,
       reminderScheduler: const NoOpHabitReminderScheduler(),
     );
@@ -156,5 +157,41 @@ void main() {
     await repository.deleteCategory(category);
     final afterDelete = await repository.getCategoryById('cat_custom').first;
     expect(afterDelete, isNull);
+  });
+
+  test('shield operations apply, retrieve, and toggle shields properly', () async {
+    final now = DateTime.now().toUtc();
+    final today = DateTime(2026, 8, 18);
+    final habit = Habit(
+      id: 'test-shield-habit',
+      title: 'Workout',
+      color: '#10B981',
+      frequencyType: HabitFrequencyType.daily,
+      targetType: HabitTargetType.boolean,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    await repository.upsertHabit(habit);
+
+    // Apply shield
+    await repository.applyShield(habitId: habit.id, date: today);
+    expect(await repository.isDateShielded(habit.id, today), isTrue);
+
+    final shields = await repository.getShieldsForHabitOnce(habit.id);
+    expect(shields.length, 1);
+    expect(shields.first.date, '2026-08-18');
+
+    // Toggle off
+    await repository.toggleShield(habit.id, today);
+    expect(await repository.isDateShielded(habit.id, today), isFalse);
+
+    // Toggle back on
+    await repository.toggleShield(habit.id, today);
+    expect(await repository.isDateShielded(habit.id, today), isTrue);
+
+    // Remove shield
+    await repository.removeShield(habit.id, today);
+    expect(await repository.isDateShielded(habit.id, today), isFalse);
   });
 }

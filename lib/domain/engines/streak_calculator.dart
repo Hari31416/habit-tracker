@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../models/habit.dart';
 import '../models/habit_frequency_type.dart';
 import '../models/habit_log.dart';
+import '../models/habit_shield.dart';
 import '../models/habit_target_type.dart';
 
 class StreakResult {
@@ -10,12 +11,14 @@ class StreakResult {
   final int bestStreak;
   final int completionRate30Days;
   final int totalCompletions; // day-level completions; for WEEKLY also exposes week meets
+  final int totalShieldedDays; // protected days within evaluated history
 
   const StreakResult({
     required this.currentStreak,
     required this.bestStreak,
     required this.completionRate30Days,
     required this.totalCompletions,
+    this.totalShieldedDays = 0,
   });
 
   @override
@@ -26,18 +29,20 @@ class StreakResult {
           currentStreak == other.currentStreak &&
           bestStreak == other.bestStreak &&
           completionRate30Days == other.completionRate30Days &&
-          totalCompletions == other.totalCompletions;
+          totalCompletions == other.totalCompletions &&
+          totalShieldedDays == other.totalShieldedDays;
 
   @override
   int get hashCode =>
       currentStreak.hashCode ^
       bestStreak.hashCode ^
       completionRate30Days.hashCode ^
-      totalCompletions.hashCode;
+      totalCompletions.hashCode ^
+      totalShieldedDays.hashCode;
 
   @override
   String toString() =>
-      'StreakResult(currentStreak: $currentStreak, bestStreak: $bestStreak, completionRate30Days: $completionRate30Days%, totalCompletions: $totalCompletions)';
+      'StreakResult(currentStreak: $currentStreak, bestStreak: $bestStreak, completionRate30Days: $completionRate30Days%, totalCompletions: $totalCompletions, shielded: $totalShieldedDays)';
 }
 
 class StreakCalculator {
@@ -113,25 +118,30 @@ class StreakCalculator {
   static bool isWeeklyTargetMet(
     Habit habit,
     Map<String, List<HabitLog>> logsByDate,
-    DateTime weekStart,
-  ) {
+    DateTime weekStart, [
+    Set<String>? shieldedDates,
+  ]) {
     final required = habit.targetCountPerWeek ?? 1;
-    var completedDays = 0;
+    var completedOrShieldedDays = 0;
     for (var offset = 0; offset < 7; offset++) {
       final date = weekStart.add(Duration(days: offset));
       final dateStr = dateFormatter.format(date);
       final dayLogs = logsByDate[dateStr] ?? const [];
-      if (isHabitCompletedOnDate(habit, dayLogs)) {
-        completedDays++;
+      final isCompleted = isHabitCompletedOnDate(habit, dayLogs);
+      final isShielded = shieldedDates?.contains(dateStr) == true;
+
+      if (isCompleted || isShielded) {
+        completedOrShieldedDays++;
       }
     }
-    return completedDays >= required;
+    return completedOrShieldedDays >= required;
   }
 
   static StreakResult calculateStreak(
     Habit habit,
     List<HabitLog> allLogs, [
     DateTime? referenceDate,
+    List<HabitShield>? shields,
   ]) {
     final ref = referenceDate ?? DateTime.now();
     final refDate = DateTime(ref.year, ref.month, ref.day);
@@ -143,14 +153,24 @@ class StreakCalculator {
       }
     }
 
+    final shieldedDates = <String>{};
+    if (shields != null) {
+      for (final shield in shields) {
+        if (shield.habitId == habit.id) {
+          shieldedDates.add(shield.date);
+        }
+      }
+    }
+
     if (habit.frequencyType == HabitFrequencyType.weekly) {
-      return calculateWeeklyStreak(habit, logsByDate, refDate);
+      return calculateWeeklyStreak(habit, logsByDate, refDate, shieldedDates);
     }
 
     var currentStreak = 0;
     var bestStreak = 0;
     var tempStreak = 0;
     var totalCompletions = 0;
+    var totalShieldedDays = 0;
 
     var scheduledDaysIn30 = 0;
     var completedDaysIn30 = 0;
@@ -179,9 +199,11 @@ class StreakCalculator {
     final refDateStr = dateFormatter.format(refDate);
     final refLogs = logsByDate[refDateStr] ?? const [];
     final refCompleted = isHabitCompletedOnDate(habit, refLogs);
+    final refShielded = shieldedDates.contains(refDateStr);
 
-    // In-progress preservation: If today is not completed but is scheduled, start evaluating streak from yesterday
-    if (!refCompleted && isHabitScheduledOnDate(habit, refDate)) {
+    // In-progress preservation: If today is not completed, not shielded, but is scheduled,
+    // start evaluating streak chain from yesterday.
+    if (!refCompleted && !refShielded && isHabitScheduledOnDate(habit, refDate)) {
       checkDate = refDate.subtract(const Duration(days: 1));
     }
 
@@ -192,6 +214,7 @@ class StreakCalculator {
       if (isScheduled) {
         final dayLogs = logsByDate[dateStr] ?? const [];
         final completed = isHabitCompletedOnDate(habit, dayLogs);
+        final isShielded = shieldedDates.contains(dateStr);
 
         if (completed) {
           totalCompletions++;
@@ -199,6 +222,12 @@ class StreakCalculator {
           if (isCurrentStreakChain) {
             currentStreak++;
           }
+          if (tempStreak > bestStreak) {
+            bestStreak = tempStreak;
+          }
+        } else if (isShielded) {
+          totalShieldedDays++;
+          // Streak freeze / grace day: Keep current streak chain intact without breaking it
           if (tempStreak > bestStreak) {
             bestStreak = tempStreak;
           }
@@ -215,18 +244,21 @@ class StreakCalculator {
       bestStreak: max(bestStreak, currentStreak),
       completionRate30Days: completionRate30Days,
       totalCompletions: totalCompletions,
+      totalShieldedDays: totalShieldedDays,
     );
   }
 
   static StreakResult calculateWeeklyStreak(
     Habit habit,
     Map<String, List<HabitLog>> logsByDate,
-    DateTime referenceDate,
-  ) {
+    DateTime referenceDate, [
+    Set<String>? shieldedDates,
+  ]) {
     var currentStreak = 0;
     var bestStreak = 0;
     var tempStreak = 0;
     var totalCompletions = 0;
+    var totalShieldedDays = 0;
 
     final windowStart = referenceDate.subtract(const Duration(days: 29));
     final weeksInWindow = <DateTime>{};
@@ -236,27 +268,33 @@ class StreakCalculator {
       cursor = cursor.add(const Duration(days: 1));
     }
 
-    final metWeeksInWindow = weeksInWindow.where((week) => isWeeklyTargetMet(habit, logsByDate, week)).length;
+    final metWeeksInWindow = weeksInWindow
+        .where((week) => isWeeklyTargetMet(habit, logsByDate, week, shieldedDates))
+        .length;
     final completionRate30Days = weeksInWindow.isNotEmpty
         ? ((metWeeksInWindow / weeksInWindow.length) * 100).round()
         : 0;
 
     var weekStart = isoWeekStart(referenceDate);
     var isCurrentStreakChain = true;
-    final currentWeekMet = isWeeklyTargetMet(habit, logsByDate, weekStart);
+    final currentWeekMet =
+        isWeeklyTargetMet(habit, logsByDate, weekStart, shieldedDates);
     if (!currentWeekMet) {
       // In-progress week: do not break streak until the week ends unmet
       weekStart = weekStart.subtract(const Duration(days: 7));
     }
 
     for (var i = 0; i < 52; i++) {
-      final met = isWeeklyTargetMet(habit, logsByDate, weekStart);
-      // Count day-level completions inside the week for totalCompletions
+      final met = isWeeklyTargetMet(habit, logsByDate, weekStart, shieldedDates);
+      // Count day-level completions and shields inside the week
       for (var offset = 0; offset < 7; offset++) {
         final dateStr = dateFormatter.format(weekStart.add(Duration(days: offset)));
         final dayLogs = logsByDate[dateStr] ?? const [];
         if (isHabitCompletedOnDate(habit, dayLogs)) {
           totalCompletions++;
+        }
+        if (shieldedDates?.contains(dateStr) == true) {
+          totalShieldedDays++;
         }
       }
 
@@ -280,6 +318,7 @@ class StreakCalculator {
       bestStreak: max(bestStreak, currentStreak),
       completionRate30Days: completionRate30Days,
       totalCompletions: totalCompletions,
+      totalShieldedDays: totalShieldedDays,
     );
   }
 }

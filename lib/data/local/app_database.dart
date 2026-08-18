@@ -12,18 +12,20 @@ import 'daos/gamification_dao.dart';
 import 'daos/habit_category_dao.dart';
 import 'daos/habit_dao.dart';
 import 'daos/habit_log_dao.dart';
+import 'daos/habit_shield_dao.dart';
 import 'database_seeder.dart';
 import 'tables/achievements.dart';
 import 'tables/habit_categories.dart';
 import 'tables/habit_logs.dart';
+import 'tables/habit_shields.dart';
 import 'tables/habits.dart';
 import 'tables/user_gamification.dart';
 
 part 'app_database.g.dart';
 
 @DriftDatabase(
-  tables: [Habits, HabitLogs, HabitCategories, UserGamification, Achievements],
-  daos: [HabitDao, HabitLogDao, HabitCategoryDao, GamificationDao],
+  tables: [Habits, HabitLogs, HabitShields, HabitCategories, UserGamification, Achievements],
+  daos: [HabitDao, HabitLogDao, HabitShieldDao, HabitCategoryDao, GamificationDao],
 )
 class AppDatabase extends _$AppDatabase {
   static AppDatabase? _sharedInstance;
@@ -52,7 +54,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration {
@@ -60,6 +62,13 @@ class AppDatabase extends _$AppDatabase {
       onCreate: (Migrator m) async {
         await m.createAll();
         await DatabaseSeeder.seedIfEmpty(this);
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from < 2) {
+          await m.createTable(habitShields);
+          await m.addColumn(userGamification, userGamification.maxShieldsCapacity);
+          await m.addColumn(userGamification, userGamification.autoConsumeShields);
+        }
       },
       beforeOpen: (details) async {
         await customStatement('PRAGMA foreign_keys = ON');

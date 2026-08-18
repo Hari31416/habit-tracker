@@ -1,11 +1,16 @@
+import '../../domain/repositories/habit_repository.dart';
 import '../../services/widget_sync_service.dart';
 
 class DayRolloverTask {
   static const String uniqueWorkName = 'habit_day_rollover';
 
   final WidgetSyncService _widgetSyncService;
+  final HabitRepository? _habitRepository;
 
-  DayRolloverTask(this._widgetSyncService);
+  DayRolloverTask(
+    this._widgetSyncService, [
+    this._habitRepository,
+  ]);
 
   static Duration calculateDelayToNextMidnight([DateTime? referenceDateTime]) {
     final now = referenceDateTime ?? DateTime.now();
@@ -24,6 +29,11 @@ class DayRolloverTask {
   Future<bool> executeRollover([DateTime? rolloverDate]) async {
     try {
       final date = rolloverDate ?? DateTime.now();
+      final yesterday = date.subtract(const Duration(days: 1));
+      
+      // Auto-protect any uncompleted active habits for yesterday if shields are available
+      await _habitRepository?.autoProtectMissedDays(yesterday);
+      
       await _widgetSyncService.syncAllWidgets(date);
       return true;
     } catch (_) {

@@ -19,12 +19,14 @@ void main() {
     habitRepository = HabitRepositoryImpl(
       habitDao: db.habitDao,
       habitLogDao: db.habitLogDao,
+      habitShieldDao: db.habitShieldDao,
       habitCategoryDao: db.habitCategoryDao,
       reminderScheduler: const NoOpHabitReminderScheduler(),
     );
     gamificationRepository = GamificationRepositoryImpl(
       habitDao: db.habitDao,
       habitLogDao: db.habitLogDao,
+      habitShieldDao: db.habitShieldDao,
       habitCategoryDao: db.habitCategoryDao,
       gamificationDao: db.gamificationDao,
     );
@@ -57,5 +59,22 @@ void main() {
     final achievements = await gamificationRepository.getAchievements().first;
     final vol1 = achievements.firstWhere((a) => a.definition.id == 'vol_1');
     expect(vol1.isUnlocked, isTrue);
+  });
+
+  test('gamificationRepository computes shield bank state and updates shield settings', () async {
+    final bankState = await gamificationRepository.getShieldBankState().first;
+    expect(bankState.totalShieldsEarned, 1);
+    expect(bankState.availableShields, 1);
+    expect(bankState.maxCapacity, 3);
+    expect(bankState.autoConsumeEnabled, true);
+
+    await gamificationRepository.updateShieldSettings(
+      maxCapacity: 5,
+      autoConsume: false,
+    );
+
+    final updated = await gamificationRepository.getShieldBankState().first;
+    expect(updated.maxCapacity, 5);
+    expect(updated.autoConsumeEnabled, false);
   });
 }

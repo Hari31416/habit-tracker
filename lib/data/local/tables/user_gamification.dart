@@ -6,6 +6,8 @@ class UserGamification extends Table {
   IntColumn get totalXp => integer().withDefault(const Constant(0))();
   IntColumn get currentLevel => integer().withDefault(const Constant(1))();
   IntColumn get lastCelebratedLevel => integer().withDefault(const Constant(1))();
+  IntColumn get maxShieldsCapacity => integer().withDefault(const Constant(3))();
+  BoolColumn get autoConsumeShields => boolean().withDefault(const Constant(true))();
   DateTimeColumn get updatedAt => dateTime()();
 
   @override

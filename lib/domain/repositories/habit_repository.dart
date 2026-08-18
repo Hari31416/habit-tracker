@@ -1,6 +1,7 @@
 import '../models/habit.dart';
 import '../models/habit_category.dart';
 import '../models/habit_log.dart';
+import '../models/habit_shield.dart';
 
 abstract class HabitRepository {
   // Habits
@@ -40,6 +41,25 @@ abstract class HabitRepository {
   Future<void> addNumericDelta(String habitId, DateTime date, double delta);
   Future<void> toggleSlotCheckIn(String habitId, DateTime date, int slotIndex);
   Future<void> deleteLogsForHabitAndDate(String habitId, DateTime date);
+
+  // Shields & Grace Days
+  Stream<List<HabitShield>> getAllShields();
+  Future<List<HabitShield>> getAllShieldsOnce();
+  Stream<List<HabitShield>> getShieldsForHabit(String habitId);
+  Future<List<HabitShield>> getShieldsForHabitOnce(String habitId);
+  Stream<List<HabitShield>> getShieldsForDate(DateTime date);
+  Future<List<HabitShield>> getShieldsForDateOnce(DateTime date);
+  Stream<List<HabitShield>> getShieldsForDateRange(DateTime startDate, DateTime endDate);
+  Future<List<HabitShield>> getShieldsForDateRangeOnce(DateTime startDate, DateTime endDate);
+  Future<void> applyShield({
+    required String habitId,
+    required DateTime date,
+    bool autoApplied = false,
+  });
+  Future<void> removeShield(String habitId, DateTime date);
+  Future<void> toggleShield(String habitId, DateTime date);
+  Future<bool> isDateShielded(String habitId, DateTime date);
+  Future<int> autoProtectMissedDays(DateTime date);
 
   // Categories
   Stream<List<HabitCategory>> getAllCategories();

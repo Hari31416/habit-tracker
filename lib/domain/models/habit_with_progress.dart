@@ -8,6 +8,7 @@ class HabitWithProgress {
   final HabitCategory? category;
   final List<HabitLog> logsForDate;
   final bool isCompletedOnDate;
+  final bool isShieldedOnDate;
   final double currentValueOnDate;
   final int currentDurationSecondsOnDate;
   final StreakResult streak;
@@ -17,6 +18,7 @@ class HabitWithProgress {
     this.category,
     this.logsForDate = const [],
     this.isCompletedOnDate = false,
+    this.isShieldedOnDate = false,
     this.currentValueOnDate = 0.0,
     this.currentDurationSecondsOnDate = 0,
     this.streak = const StreakResult(
@@ -32,6 +34,7 @@ class HabitWithProgress {
     HabitCategory? category,
     List<HabitLog>? logsForDate,
     bool? isCompletedOnDate,
+    bool? isShieldedOnDate,
     double? currentValueOnDate,
     int? currentDurationSecondsOnDate,
     StreakResult? streak,
@@ -41,6 +44,7 @@ class HabitWithProgress {
       category: category ?? this.category,
       logsForDate: logsForDate ?? this.logsForDate,
       isCompletedOnDate: isCompletedOnDate ?? this.isCompletedOnDate,
+      isShieldedOnDate: isShieldedOnDate ?? this.isShieldedOnDate,
       currentValueOnDate: currentValueOnDate ?? this.currentValueOnDate,
       currentDurationSecondsOnDate:
           currentDurationSecondsOnDate ?? this.currentDurationSecondsOnDate,

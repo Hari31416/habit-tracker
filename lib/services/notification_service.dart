@@ -347,6 +347,7 @@ class NotificationService {
       final repo = HabitRepositoryImpl(
         habitDao: db.habitDao,
         habitLogDao: db.habitLogDao,
+        habitShieldDao: db.habitShieldDao,
         habitCategoryDao: db.habitCategoryDao,
         reminderScheduler: const NoOpHabitReminderScheduler(),
       );
