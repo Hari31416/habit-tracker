@@ -10,12 +10,12 @@ Strategic feature roadmap for the Habit Tracker application, ordered sequentiall
 - [x] **Milestone Achievement Badges:** 20+ unlockable achievements for streaks, total volume, category diversity, and perfect days.
 - [x] **Progression UI:** Level status badge on dashboard header with animated progress bars, level-up celebration dialogs, and a dedicated badges showcase.
 
-## 2. Habit Shields and Grace Days
+## 2. Habit Shields and Grace Days (Completed)
 
-- [ ] **Streak Freeze Mechanism:** Protect streaks against unavoidable missed days caused by illness, travel, or emergencies.
-- [ ] **Shield Banking:** Automatically earn 1 shield for every 14 days of unbroken consistency, capped at a configurable maximum.
-- [ ] **Auto and Manual Protection:** Option to auto-consume shields on missed days or manually apply them to past dates.
-- [ ] **Visual Distinction:** Distinct shield markers in the calendar and matrix views so genuine completion history remains accurate.
+- [x] **Streak Freeze Mechanism:** Protect streaks against unavoidable missed days caused by illness, travel, or emergencies.
+- [x] **Shield Banking:** Automatically earn 1 shield for every 14 days of unbroken consistency, capped at a configurable maximum.
+- [x] **Auto and Manual Protection:** Option to auto-consume shields on missed days or manually apply them to past dates.
+- [x] **Visual Distinction:** Distinct shield markers in the calendar and matrix views so genuine completion history remains accurate.
 
 ## 3. Elastic Goals and Bad-Day Mode
 
