@@ -55,12 +55,6 @@ class FakeHabitRepository implements HabitRepository {
   Future<List<HabitLog>> getLogsForHabitOnce(String habitId) async =>
       _logs.where((l) => l.habitId == habitId).toList();
 
-  @override
-  Stream<List<HabitCategory>> getAllCategories() {
-    Future.microtask(
-        () => _categoriesController.add(List.unmodifiable(_categories)));
-    return _categoriesController.stream;
-  }
 
   @override
   Future<List<HabitCategory>> getAllCategoriesOnce() async => _categories;
@@ -162,36 +156,76 @@ class FakeHabitRepository implements HabitRepository {
   }
 
   @override
-  Stream<List<Habit>> getAllHabits() => _habitsController.stream;
+  Stream<List<Habit>> getAllHabits() {
+    Future.microtask(() => _habitsController.add(List.unmodifiable(_habits)));
+    return _habitsController.stream;
+  }
+
   @override
-  Stream<List<Habit>> getActiveHabits() => _habitsController.stream;
+  Stream<List<Habit>> getActiveHabits() {
+    Future.microtask(() => _habitsController.add(List.unmodifiable(_habits)));
+    return _habitsController.stream
+        .map((list) => list.where((h) => !h.archived).toList());
+  }
+
   @override
-  Stream<List<Habit>> getArchivedHabits() => _habitsController.stream;
+  Stream<List<Habit>> getArchivedHabits() {
+    Future.microtask(() => _habitsController.add(List.unmodifiable(_habits)));
+    return _habitsController.stream
+        .map((list) => list.where((h) => h.archived).toList());
+  }
+
   @override
-  Stream<List<Habit>> getPinnedHabits() => _habitsController.stream;
+  Stream<List<Habit>> getPinnedHabits() {
+    Future.microtask(() => _habitsController.add(List.unmodifiable(_habits)));
+    return _habitsController.stream
+        .map((list) => list.where((h) => h.pinned).toList());
+  }
+
   @override
-  Stream<List<Habit>> getHabitsByCategory(String categoryId) =>
-      _habitsController.stream;
+  Stream<List<Habit>> getHabitsByCategory(String categoryId) {
+    Future.microtask(() => _habitsController.add(List.unmodifiable(_habits)));
+    return _habitsController.stream
+        .map((list) => list.where((h) => h.categoryId == categoryId).toList());
+  }
+
   @override
-  Stream<List<HabitLog>> getAllLogs() => _logsController.stream;
+  Stream<List<HabitLog>> getAllLogs() {
+    Future.microtask(() => _logsController.add(List.unmodifiable(_logs)));
+    return _logsController.stream;
+  }
+
   @override
   Future<List<HabitLog>> getAllLogsOnce() async => _logs;
+
   @override
   Stream<List<HabitLog>> getLogsForDate(DateTime date) => _logsController.stream;
+
   @override
   Future<List<HabitLog>> getLogsForDateOnce(DateTime date) async => _logs;
+
   @override
   Stream<List<HabitLog>> getLogsForHabitAndDate(
           String habitId, DateTime date) =>
       _logsController.stream;
+
+  @override
+  Stream<List<HabitCategory>> getAllCategories() {
+    Future.microtask(
+        () => _categoriesController.add(List.unmodifiable(_categories)));
+    return _categoriesController.stream;
+  }
+
   @override
   Stream<List<HabitLog>> getLogsForDateRange(
           DateTime startDate, DateTime endDate) =>
       _logsController.stream;
+
   @override
   Future<List<HabitLog>> getLogsForDateRangeOnce(
           DateTime startDate, DateTime endDate) async =>
       _logs;
+
   @override
   Future<void> logCheckIn({
     required String habitId,
