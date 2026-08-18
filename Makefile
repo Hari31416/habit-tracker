@@ -2,6 +2,15 @@ ANDROID_HOME ?= $(HOME)/Library/Android/sdk
 ADB := $(shell which adb 2>/dev/null || echo $(ANDROID_HOME)/platform-tools/adb)
 EMULATOR := $(shell which emulator 2>/dev/null || echo $(ANDROID_HOME)/emulator/emulator)
 
+RELEASE_CREDENTIALS ?= $(HOME)/keys/habit-tracker-release.credentials.txt
+ifneq ($(wildcard $(RELEASE_CREDENTIALS)),)
+  ANDROID_KEYSTORE_PATH ?= $(shell awk -F= '/^keystore=/{print substr($$0, index($$0,$$2))}' $(RELEASE_CREDENTIALS))
+  ANDROID_KEY_ALIAS ?= $(shell awk -F= '/^alias=/{print substr($$0, index($$0,$$2))}' $(RELEASE_CREDENTIALS))
+  ANDROID_KEYSTORE_PASSWORD ?= $(shell awk -F= '/^store_password=/{print substr($$0, index($$0,$$2))}' $(RELEASE_CREDENTIALS))
+  ANDROID_KEY_PASSWORD ?= $(shell awk -F= '/^key_password=/{print substr($$0, index($$0,$$2))}' $(RELEASE_CREDENTIALS))
+  export ANDROID_KEYSTORE_PATH ANDROID_KEY_ALIAS ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_PASSWORD
+endif
+
 PACKAGE_NAME := com.productivity.habits
 MAIN_ACTIVITY := $(PACKAGE_NAME).MainActivity
 DEFAULT_AVD := $(shell $(EMULATOR) -list-avds 2>/dev/null | head -n 1)
@@ -51,12 +60,15 @@ build: ## Build Flutter debug APK
 	flutter build apk --debug --android-skip-build-dependency-validation
 
 build-release: ## Build Flutter release split-ABI APKs
+	@test -n "$(ANDROID_KEYSTORE_PATH)" && test -f "$(ANDROID_KEYSTORE_PATH)" || { echo "Release keystore not found. Create $(RELEASE_CREDENTIALS) or export ANDROID_KEYSTORE_PATH."; exit 1; }
 	flutter build apk --release --split-per-abi --android-skip-build-dependency-validation
 
 build-release-universal: ## Build Flutter release universal APK
+	@test -n "$(ANDROID_KEYSTORE_PATH)" && test -f "$(ANDROID_KEYSTORE_PATH)" || { echo "Release keystore not found. Create $(RELEASE_CREDENTIALS) or export ANDROID_KEYSTORE_PATH."; exit 1; }
 	flutter build apk --release --android-skip-build-dependency-validation
 
 build-appbundle: ## Build Flutter release Android App Bundle (.aab)
+	@test -n "$(ANDROID_KEYSTORE_PATH)" && test -f "$(ANDROID_KEYSTORE_PATH)" || { echo "Release keystore not found. Create $(RELEASE_CREDENTIALS) or export ANDROID_KEYSTORE_PATH."; exit 1; }
 	flutter build appbundle --release --android-skip-build-dependency-validation
 
 test: ## Run Flutter unit and widget tests

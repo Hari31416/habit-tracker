@@ -50,7 +50,6 @@ habit-tracker-android/
 ├── test/                               # Flutter unit, widget, and domain test suite
 ├── android/                            # Android native host project & widgets
 │   ├── app/
-│   │   ├── debug.keystore              # Debug signing keystore
 │   │   ├── build.gradle.kts            # Android application gradle config
 │   │   └── src/main/kotlin/com/productivity/habits/
 │   │       ├── MainActivity.kt
@@ -78,6 +77,8 @@ To build the debug APK:
 ```bash
 flutter build apk --debug --android-skip-build-dependency-validation
 ```
+
+Debug builds use the default Android debug key. Release builds require a private keystore via `ANDROID_KEYSTORE_PATH`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, and `ANDROID_KEY_PASSWORD`, or a gitignored `android/key.properties` file.
 
 To build release split-ABI APKs:
 
