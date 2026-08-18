@@ -1,0 +1,42 @@
+name: habit_tracker
+description: "A standalone Habit Tracker application with 100% parity to the Kotlin Habit Tracker."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management & DI
+  flutter_riverpod: ^2.6.1
+
+  # Local Persistence
+  drift: ^2.24.2
+  sqlite3_flutter_libs: ^0.5.28
+  path_provider: ^2.1.5
+  path: ^1.9.0
+
+  # Utilities
+  intl: ^0.20.2
+  uuid: ^4.5.1
+
+  # Icons
+  cupertino_icons: ^1.0.8
+  material_design_icons_flutter: ^7.0.7296
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+  # Code Generation
+  build_runner: ^2.4.15
+  drift_dev: ^2.24.2
+
+flutter:
+  uses-material-design: true
+
