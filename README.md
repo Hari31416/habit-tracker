@@ -131,3 +131,35 @@ The project roadmap is structured into sequential milestones:
 - Phase 5: AlarmManager Reminders, WorkManager Rollover, and Jetpack Glance Widgets
 
 For detailed phase documentation and technical specifications, refer to `plans/overview.md` and `plans/phasewise/README.md`.
+
+## Flutter Migration and Parity Guidelines
+
+A comprehensive, phase-by-phase migration plan to Flutter is documented in `plans/flutter/`.
+
+### Core Directive for Agents
+
+- **Do Not Start from Scratch:** Every Flutter model, calculation engine, Drift table, DAO query, Riverpod controller, and widget layout must directly reference and port the corresponding Kotlin implementation in `app/src/main/java/com/productivity/habits/`.
+- **Logic & UI Parity:** All calculations, algorithms, UI paddings, colors, shapes, haptic strengths, and lifecycle behaviors in Flutter must match the Kotlin source with 100% exact parity.
+- **Reference Kotlin Source Mapping:** Refer to `plans/flutter/README.md` for the complete 1:1 file mapping table between Kotlin source files and Flutter target files.
+
+### Flutter Development & Verification Workflow
+
+The Flutter SDK (3.47+) and Android SDK toolchain (36.1.0) are pre-installed and configured on the machine.
+
+```bash
+# Run pure Dart domain unit tests
+flutter test test/domain/
+
+# Run widget and UI component tests
+flutter test test/ui/
+
+# Run code generator for Drift tables and Riverpod providers
+dart run build_runner build --delete-conflicting-outputs
+
+# Build the debug APK
+flutter build apk --debug
+
+# Launch interactive emulator session with Hot Reload
+flutter run
+```
+

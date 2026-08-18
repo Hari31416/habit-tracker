@@ -89,3 +89,25 @@ make emulator-stop
   - Custom Days: non-scheduled days are skipped without breaking consecutive streak chains
 - Icons: String keys stored on habits resolved at runtime via `HabitIconRegistry` to Material Icons
 - Cards vs Detail: Habit cards support pin and check-in controls; archive and delete are restricted to Habit Detail view
+
+## Flutter Migration Guidelines
+
+When implementing the Flutter migration:
+
+- **Do Not Start from Scratch:** Every Flutter model, calculation engine, Drift table, DAO query, Riverpod controller, and widget layout must directly reference and port the corresponding Kotlin implementation in `app/src/main/java/com/productivity/habits/`.
+- **Logic & UI Parity:** All calculations, algorithms, UI paddings, colors, shapes, haptic strengths, and lifecycle behaviors in Flutter must match the Kotlin source with 100% exact parity.
+- **Reference Mapping:** Refer to `plans/flutter/README.md` for the complete 1:1 file mapping table.
+
+### Flutter Verification Commands
+
+```bash
+# Run unit tests
+flutter test
+
+# Run code generator
+dart run build_runner build --delete-conflicting-outputs
+
+# Build debug APK
+flutter build apk --debug
+```
+
