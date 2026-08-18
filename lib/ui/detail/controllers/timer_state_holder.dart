@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../di/providers.dart';
@@ -66,10 +67,85 @@ class TimerState {
 }
 
 class TimerStateHolderNotifier extends StateNotifier<TimerState> {
+  static const MethodChannel _nativeChannel =
+      MethodChannel('com.productivity.habits/focus_timer');
+
   final HabitRepository? _repository;
   Timer? _ticker;
+  bool _applyingNativeEvent = false;
 
-  TimerStateHolderNotifier([this._repository]) : super(const TimerState());
+  TimerStateHolderNotifier([this._repository]) : super(const TimerState()) {
+    _bindNativeEvents();
+  }
+
+  void _bindNativeEvents() {
+    _nativeChannel.setMethodCallHandler((call) async {
+      if (call.method == 'onNativeTimerEvent' && call.arguments is Map) {
+        applyNativeState(Map<String, dynamic>.from(call.arguments as Map));
+      }
+    });
+  }
+
+  /// Applies pause/resume/stop/complete from the native notification service.
+  void applyNativeState(Map<String, dynamic> payload) {
+    final rawStatus = payload['status'] as String? ?? 'Ready';
+    final habitId = payload['habitId'] as String?;
+    final habitTitle = payload['habitTitle'] as String?;
+    final totalSeconds = (payload['totalSeconds'] as num?)?.toInt();
+    final remainingSeconds = (payload['remainingSeconds'] as num?)?.toInt();
+
+    final mapped = switch (rawStatus) {
+      'Running' => TimerStatus.running,
+      'Paused' => TimerStatus.paused,
+      'Done' => TimerStatus.completed,
+      _ => TimerStatus.idle,
+    };
+
+    _applyingNativeEvent = true;
+    try {
+      if (mapped == TimerStatus.idle) {
+        if (state.focusModeActive || state.isCompleted) {
+          _ticker?.cancel();
+          state = const TimerState();
+        }
+        return;
+      }
+
+      _ticker?.cancel();
+
+      final remaining = remainingSeconds ?? state.remainingSeconds;
+      final total = totalSeconds ?? state.totalSeconds;
+      final endTime = mapped == TimerStatus.running
+          ? DateTime.now().add(Duration(seconds: remaining))
+          : null;
+
+      state = TimerState(
+        habitId: habitId ?? state.habitId,
+        habitTitle: habitTitle ?? state.habitTitle,
+        totalSeconds: total,
+        remainingSeconds: remaining,
+        status: mapped,
+        targetEndTime: endTime,
+      );
+
+      if (mapped == TimerStatus.running) {
+        _startTicker();
+      }
+    } finally {
+      _applyingNativeEvent = false;
+    }
+  }
+
+  Future<void> syncFromNative() async {
+    try {
+      final raw = await _nativeChannel.invokeMethod<String>('getTimerState');
+      if (raw == null || raw.isEmpty) return;
+      final decoded = jsonDecode(raw);
+      if (decoded is Map) {
+        applyNativeState(Map<String, dynamic>.from(decoded));
+      }
+    } catch (_) {}
+  }
 
   void start(String habitId, String habitTitle, double durationMinutes) {
     _ticker?.cancel();
@@ -102,7 +178,9 @@ class TimerStateHolderNotifier extends StateNotifier<TimerState> {
         status: TimerStatus.running,
         targetEndTime: endTime,
       );
-      _callNativeTimer('resumeTimer');
+      if (!_applyingNativeEvent) {
+        _callNativeTimer('resumeTimer');
+      }
       _startTicker();
     }
   }
@@ -114,7 +192,9 @@ class TimerStateHolderNotifier extends StateNotifier<TimerState> {
         status: TimerStatus.paused,
         clearTargetEndTime: true,
       );
-      _callNativeTimer('pauseTimer');
+      if (!_applyingNativeEvent) {
+        _callNativeTimer('pauseTimer');
+      }
     }
   }
 
@@ -125,13 +205,17 @@ class TimerStateHolderNotifier extends StateNotifier<TimerState> {
       status: TimerStatus.idle,
       clearTargetEndTime: true,
     );
-    _callNativeTimer('stopTimer');
+    if (!_applyingNativeEvent) {
+      _callNativeTimer('stopTimer');
+    }
   }
 
   void stop() {
     _ticker?.cancel();
     state = const TimerState();
-    _callNativeTimer('stopTimer');
+    if (!_applyingNativeEvent) {
+      _callNativeTimer('stopTimer');
+    }
   }
 
   void tick(int remainingSec) {
@@ -180,9 +264,9 @@ class TimerStateHolderNotifier extends StateNotifier<TimerState> {
   }
 
   void _callNativeTimer(String method, [Map<String, dynamic>? args]) {
+    if (_applyingNativeEvent) return;
     try {
-      const channel = MethodChannel('com.productivity.habits/focus_timer');
-      channel.invokeMethod(method, args).catchError((_) => null);
+      _nativeChannel.invokeMethod(method, args).catchError((_) => null);
     } catch (_) {}
   }
 
@@ -399,6 +483,50 @@ class TimerStateHolder {
         totalSeconds: newTotal,
         targetEndTime: newEndTime,
       ));
+    }
+  }
+
+  static void applyNativeState(Map<String, dynamic> payload) {
+    final rawStatus = payload['status'] as String? ?? 'Ready';
+    final habitId = payload['habitId'] as String?;
+    final habitTitle = payload['habitTitle'] as String?;
+    final totalSeconds = (payload['totalSeconds'] as num?)?.toInt();
+    final remainingSeconds = (payload['remainingSeconds'] as num?)?.toInt();
+
+    final mapped = switch (rawStatus) {
+      'Running' => TimerStatus.running,
+      'Paused' => TimerStatus.paused,
+      'Done' => TimerStatus.completed,
+      _ => TimerStatus.idle,
+    };
+
+    if (mapped == TimerStatus.idle) {
+      if (_state.focusModeActive || _state.isCompleted) {
+        _ticker?.cancel();
+        _updateState(const TimerState());
+      }
+      return;
+    }
+
+    _ticker?.cancel();
+
+    final remaining = remainingSeconds ?? _state.remainingSeconds;
+    final total = totalSeconds ?? _state.totalSeconds;
+    final endTime = mapped == TimerStatus.running
+        ? DateTime.now().add(Duration(seconds: remaining))
+        : null;
+
+    _updateState(TimerState(
+      habitId: habitId ?? _state.habitId,
+      habitTitle: habitTitle ?? _state.habitTitle,
+      totalSeconds: total,
+      remainingSeconds: remaining,
+      status: mapped,
+      targetEndTime: endTime,
+    ));
+
+    if (mapped == TimerStatus.running) {
+      _startTicker();
     }
   }
 

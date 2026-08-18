@@ -14,6 +14,7 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        timerChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, TIMER_CHANNEL)
 
         // Widgets Method Channel
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, WIDGETS_CHANNEL).setMethodCallHandler { call, result ->
@@ -51,7 +52,7 @@ class MainActivity : FlutterActivity() {
         }
 
         // Focus Timer Method Channel
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, TIMER_CHANNEL).setMethodCallHandler { call, result ->
+        timerChannel?.setMethodCallHandler { call, result ->
             when (call.method) {
                 "startTimer" -> {
                     val habitId = call.argument<String>("habitId") ?: ""
@@ -77,12 +78,26 @@ class MainActivity : FlutterActivity() {
                     FocusTimerService.adjustTimer(applicationContext, deltaSeconds)
                     result.success(true)
                 }
+                "getTimerState" -> {
+                    val prefs = getSharedPreferences("habit_widget_prefs", Context.MODE_PRIVATE)
+                    result.success(prefs.getString("focus_timer", null))
+                }
                 else -> result.notImplemented()
             }
         }
     }
 
+    override fun onDestroy() {
+        if (isFinishing) {
+            timerChannel = null
+        }
+        super.onDestroy()
+    }
+
     companion object {
+        @Volatile
+        var timerChannel: MethodChannel? = null
+
         fun updateAllAppWidgets(context: Context) {
             val appWidgetManager = AppWidgetManager.getInstance(context)
 

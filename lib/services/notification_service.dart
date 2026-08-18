@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
@@ -175,7 +176,8 @@ class NotificationService {
         return AndroidNotificationAction(
           action.actionId,
           action.label,
-          showsUserInterface: false,
+          showsUserInterface:
+              action.actionId == NotificationPayload.actionViewHabit,
         );
       }).toList();
 
@@ -202,6 +204,17 @@ class NotificationService {
 
       final details = NotificationDetails(android: androidDetails);
 
+      AndroidScheduleMode scheduleMode = AndroidScheduleMode.exactAllowWhileIdle;
+      final androidPlugin =
+          _plugin.resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+      if (androidPlugin != null) {
+        final canExact = await androidPlugin.canScheduleExactNotifications();
+        if (canExact == false) {
+          scheduleMode = AndroidScheduleMode.inexactAllowWhileIdle;
+        }
+      }
+
       await _plugin.zonedSchedule(
         id: id,
         title: payload.title,
@@ -209,10 +222,10 @@ class NotificationService {
         scheduledDate: scheduledDate,
         notificationDetails: details,
         payload: actionPayloadJson,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: scheduleMode,
       );
-    } catch (_) {
-      // Graceful fallback for test/headless environments
+    } catch (e) {
+      debugPrint('Failed to schedule notification $id: $e');
     }
   }
 

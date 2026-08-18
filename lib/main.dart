@@ -10,6 +10,7 @@ import 'di/providers.dart';
 import 'services/notification_service.dart';
 import 'ui/analytics/habit_analytics_screen.dart';
 import 'ui/daily/daily_tracker_screen.dart';
+import 'ui/detail/controllers/timer_state_holder.dart';
 import 'ui/detail/focus_timer_screen.dart';
 import 'ui/detail/habit_detail_screen.dart';
 import 'ui/gamification/badges_showcase_screen.dart';
@@ -65,6 +66,7 @@ class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(timerStateHolderProvider.notifier).syncFromNative();
       _handlePendingDeepLink();
     });
   }
@@ -80,6 +82,7 @@ class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
     if (state == AppLifecycleState.resumed) {
       ref.read(widgetSyncServiceProvider).consumePendingWidgetActions();
       ref.read(habitReminderSchedulerProvider).rescheduleAll();
+      ref.read(timerStateHolderProvider.notifier).syncFromNative();
       _handlePendingDeepLink();
     }
   }

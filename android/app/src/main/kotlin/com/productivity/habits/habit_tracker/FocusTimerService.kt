@@ -113,6 +113,7 @@ class FocusTimerService : Service() {
                 targetEndTimeMillis = System.currentTimeMillis() + (remainingSeconds * 1000)
 
                 saveStateToPreferences("Running")
+                emitStateToFlutter()
                 startForegroundWithNotification(buildNotification())
                 startCountdown()
                 MainActivity.updateAllAppWidgets(applicationContext)
@@ -123,6 +124,7 @@ class FocusTimerService : Service() {
                     isPaused = true
                     stopCountdown()
                     saveStateToPreferences("Paused")
+                    emitStateToFlutter()
                     updateNotification()
                     MainActivity.updateAllAppWidgets(applicationContext)
                 }
@@ -133,6 +135,7 @@ class FocusTimerService : Service() {
                     isPaused = false
                     targetEndTimeMillis = System.currentTimeMillis() + (remainingSeconds * 1000)
                     saveStateToPreferences("Running")
+                    emitStateToFlutter()
                     startCountdown()
                     updateNotification()
                     MainActivity.updateAllAppWidgets(applicationContext)
@@ -144,6 +147,7 @@ class FocusTimerService : Service() {
                 isPaused = false
                 remainingSeconds = totalSeconds
                 saveStateToPreferences("Ready")
+                emitStateToFlutter()
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 MainActivity.updateAllAppWidgets(applicationContext)
                 stopSelf()
@@ -158,6 +162,7 @@ class FocusTimerService : Service() {
                     targetEndTimeMillis = System.currentTimeMillis() + (remainingSeconds * 1000)
                 }
                 saveStateToPreferences(if (isRunning) "Running" else if (isPaused) "Paused" else "Ready")
+                emitStateToFlutter()
                 updateNotification()
                 MainActivity.updateAllAppWidgets(applicationContext)
             }
@@ -206,6 +211,7 @@ class FocusTimerService : Service() {
         remainingSeconds = 0
 
         saveStateToPreferences("Done")
+        emitStateToFlutter()
 
         // Record finished session in preferences for Flutter sync
         val prefs = getSharedPreferences("habit_widget_prefs", Context.MODE_PRIVATE)
@@ -322,6 +328,28 @@ class FocusTimerService : Service() {
             .addAction(android.R.drawable.ic_media_pause, actionTitle, pauseResumePendingIntent)
             .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Stop", stopPendingIntent)
             .build()
+    }
+
+    private fun emitStateToFlutter() {
+        val status = when {
+            isRunning -> "Running"
+            isPaused -> "Paused"
+            remainingSeconds <= 0L -> "Done"
+            else -> "Ready"
+        }
+        val payload = hashMapOf<String, Any?>(
+            "habitId" to habitId,
+            "habitTitle" to habitTitle,
+            "totalSeconds" to totalSeconds,
+            "remainingSeconds" to remainingSeconds,
+            "status" to status,
+        )
+        mainHandler.post {
+            try {
+                MainActivity.timerChannel?.invokeMethod("onNativeTimerEvent", payload)
+            } catch (_: Exception) {
+            }
+        }
     }
 
     private fun saveStateToPreferences(status: String) {

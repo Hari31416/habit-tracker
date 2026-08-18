@@ -104,4 +104,51 @@ void main() {
     TimerStateHolder.stop();
     expect(TimerStateHolder.timerState.focusModeActive, isFalse);
   });
+
+  test('native pause/stop events update timer state to match notification actions',
+      () {
+    TimerStateHolder.start('habit_1', 'Focus Work', 25.0);
+    TimerStateHolder.tick(90);
+
+    TimerStateHolder.applyNativeState({
+      'habitId': 'habit_1',
+      'habitTitle': 'Focus Work',
+      'totalSeconds': 25 * 60,
+      'remainingSeconds': 88,
+      'status': 'Paused',
+    });
+
+    expect(TimerStateHolder.timerState.status, TimerStatus.paused);
+    expect(TimerStateHolder.timerState.remainingSeconds, 88);
+    expect(TimerStateHolder.timerState.isPaused, isTrue);
+
+    TimerStateHolder.applyNativeState({
+      'habitId': 'habit_1',
+      'habitTitle': 'Focus Work',
+      'totalSeconds': 25 * 60,
+      'remainingSeconds': 88,
+      'status': 'Ready',
+    });
+
+    expect(TimerStateHolder.timerState.status, TimerStatus.idle);
+    expect(TimerStateHolder.timerState.focusModeActive, isFalse);
+  });
+
+  test('native resume event restarts the in-app countdown from remaining time',
+      () {
+    TimerStateHolder.start('habit_1', 'Focus Work', 25.0);
+    TimerStateHolder.pause();
+
+    TimerStateHolder.applyNativeState({
+      'habitId': 'habit_1',
+      'habitTitle': 'Focus Work',
+      'totalSeconds': 25 * 60,
+      'remainingSeconds': 500,
+      'status': 'Running',
+    });
+
+    expect(TimerStateHolder.timerState.status, TimerStatus.running);
+    expect(TimerStateHolder.timerState.remainingSeconds, 500);
+    expect(TimerStateHolder.timerState.targetEndTime, isNotNull);
+  });
 }

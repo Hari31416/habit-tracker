@@ -1,4 +1,3 @@
-import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../domain/models/habit.dart';
@@ -39,13 +38,7 @@ class FlutterHabitReminderScheduler implements HabitReminderScheduler {
     if (!hasPermission) return;
 
     final now = DateTime.now();
-    tz.Location location;
-    try {
-      final timeZoneName = await FlutterTimezone.getLocalTimezone();
-      location = tz.getLocation(timeZoneName);
-    } catch (_) {
-      location = tz.local;
-    }
+    final location = tz.local;
 
     for (int index = 0; index < habit.reminderTimes.length; index++) {
       final timeStr = habit.reminderTimes[index];
