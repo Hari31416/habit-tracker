@@ -1,6 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import '../domain/engines/streak_calculator.dart';
 import '../domain/gamification/gamification_engine.dart';
 import '../domain/gamification/gamification_models.dart';
@@ -229,7 +229,9 @@ class XpMasteryWidgetSnapshot {
 class WidgetSyncService {
   final HabitRepository _repository;
   final GamificationRepository? _gamificationRepository;
-  final DateFormat _dateFormatter = DateFormat('yyyy-MM-dd');
+
+  Timer? _debounceTimer;
+  Completer<void>? _debounceCompleter;
 
   // Cached snapshots for platform widgets / testing
   DailyFocusWidgetSnapshot? lastDailyFocus;
@@ -242,6 +244,15 @@ class WidgetSyncService {
     this._repository, [
     this._gamificationRepository,
   ]);
+
+  void dispose() {
+    _debounceTimer?.cancel();
+    _debounceTimer = null;
+    if (_debounceCompleter != null && !_debounceCompleter!.isCompleted) {
+      _debounceCompleter!.complete();
+    }
+    _debounceCompleter = null;
+  }
 
   Future<void> syncFocusTimerWidget({
     String? habitId,
@@ -310,12 +321,48 @@ class WidgetSyncService {
 
       if ((checkIns is List && checkIns.isNotEmpty) ||
           (sessions is List && sessions.isNotEmpty)) {
-        await syncAllWidgets(now);
+        await syncAllWidgets(now, true);
       }
     } catch (_) {}
   }
 
-  Future<void> syncAllWidgets([DateTime? date]) async {
+  Future<void> syncAllWidgetsImmediate([DateTime? date]) =>
+      syncAllWidgets(date, true);
+
+  Future<void> syncAllWidgets([
+    DateTime? date,
+    bool immediate = false,
+  ]) {
+    if (immediate) {
+      _debounceTimer?.cancel();
+      _debounceTimer = null;
+      if (_debounceCompleter != null && !_debounceCompleter!.isCompleted) {
+        _debounceCompleter!.complete();
+      }
+      _debounceCompleter = null;
+      return _performSync(date);
+    }
+
+    _debounceTimer?.cancel();
+    if (_debounceCompleter == null || _debounceCompleter!.isCompleted) {
+      _debounceCompleter = Completer<void>();
+    }
+    final completer = _debounceCompleter!;
+
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
+      try {
+        await _performSync(date);
+      } finally {
+        if (!completer.isCompleted) {
+          completer.complete();
+        }
+      }
+    });
+
+    return completer.future;
+  }
+
+  Future<void> _performSync([DateTime? date]) async {
     final today = date ?? DateTime.now();
     final todayStr = StreakCalculator.formatIsoDate(today);
 

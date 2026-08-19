@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
-import 'package:timezone/data/latest_all.dart' as tz_data;
+import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
 import 'data/preferences/theme_mode.dart';
@@ -20,21 +20,8 @@ import 'ui/theme/app_theme.dart';
 
 final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize time zones and local location
-  tz_data.initializeTimeZones();
-  try {
-    final timeZoneName = await FlutterTimezone.getLocalTimezone();
-    tz.setLocalLocation(tz.getLocation(timeZoneName));
-  } catch (_) {
-    // Fallback to default
-  }
-
-  // Initialize notification service & channels
-  await NotificationService.init();
-  await NotificationService.requestPermission();
 
   final container = ProviderContainer();
   NotificationService.bindActionHandler(({
@@ -48,11 +35,27 @@ void main() async {
           delta: delta,
         );
   });
-  // Trigger initial background sync and consume any pending widget actions
+
+  // Non-blocking background startup pipeline: timezones, notifications, widget sync, and reminder schedule
   Future.microtask(() async {
-    await container.read(widgetSyncServiceProvider).consumePendingWidgetActions();
-    await container.read(widgetSyncServiceProvider).syncAllWidgets();
-    await container.read(habitReminderSchedulerProvider).rescheduleAll();
+    try {
+      tz_data.initializeTimeZones();
+      final timeZoneName = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(timeZoneName));
+    } catch (_) {
+      // Fallback to default
+    }
+
+    try {
+      await NotificationService.init();
+      await NotificationService.requestPermission();
+    } catch (_) {}
+
+    try {
+      await container.read(widgetSyncServiceProvider).consumePendingWidgetActions();
+      await container.read(widgetSyncServiceProvider).syncAllWidgetsImmediate();
+      await container.read(habitReminderSchedulerProvider).rescheduleAll();
+    } catch (_) {}
   });
 
   runApp(

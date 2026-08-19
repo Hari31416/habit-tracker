@@ -101,7 +101,9 @@ final localNotificationsSchedulerProvider =
 final widgetSyncServiceProvider = Provider<WidgetSyncService>((ref) {
   final habitRepo = ref.watch(habitRepositoryProvider);
   final gamificationRepo = ref.watch(gamificationRepositoryProvider);
-  return WidgetSyncService(habitRepo, gamificationRepo);
+  final service = WidgetSyncService(habitRepo, gamificationRepo);
+  ref.onDispose(() => service.dispose());
+  return service;
 });
 
 final notificationActionHandlerProvider =

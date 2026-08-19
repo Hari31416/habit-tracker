@@ -104,4 +104,38 @@ void main() {
       'app://habits/detail/w_pinned',
     );
   });
+
+  test('WidgetSyncService syncAllWidgetsImmediate runs without delay', () async {
+    final habitRepo = FakeHabitRepository(
+      initialHabits: [pinnedHabit],
+    );
+    final widgetSync = WidgetSyncService(habitRepo);
+
+    expect(widgetSync.lastDailyFocus, isNull);
+    await widgetSync.syncAllWidgetsImmediate(today);
+    expect(widgetSync.lastDailyFocus, isNotNull);
+    expect(widgetSync.lastDailyFocus!.totalScheduled, 1);
+  });
+
+  test('WidgetSyncService debounces rapid calls and disposes cleanly', () async {
+    final habitRepo = FakeHabitRepository(
+      initialHabits: [pinnedHabit],
+    );
+    final widgetSync = WidgetSyncService(habitRepo);
+
+    // Trigger multiple debounced sync calls without awaiting
+    widgetSync.syncAllWidgets(today);
+    widgetSync.syncAllWidgets(today);
+    final lastCallFuture = widgetSync.syncAllWidgets(today);
+
+    expect(widgetSync.lastDailyFocus, isNull);
+
+    await lastCallFuture;
+
+    expect(widgetSync.lastDailyFocus, isNotNull);
+    expect(widgetSync.lastDailyFocus!.totalScheduled, 1);
+
+    widgetSync.dispose();
+  });
 }
+

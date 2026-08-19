@@ -6,7 +6,7 @@ import 'package:habit_tracker/domain/models/habit.dart';
 import 'package:habit_tracker/domain/models/habit_frequency_type.dart';
 import 'package:habit_tracker/domain/models/habit_target_type.dart';
 import 'package:habit_tracker/services/notification_service.dart';
-import 'package:timezone/data/latest_all.dart' as tz_data;
+import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
 void main() {

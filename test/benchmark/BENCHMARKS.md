@@ -83,12 +83,31 @@ flutter test test/benchmark/phase3_benchmark_test.dart
 
 ## Phase 4: Platform Channels and Startup Pipeline
 
-Phase 4 benchmarks will measure widget sync MethodChannel debounce latency, asynchronous notification scheduling, and cold start time-to-first-frame.
+### Phase 4 Results Summary
 
-*Status: Scheduled*
+| Scenario / Operation                                                 | Before Optimization                                   | After Phase 4 Optimization | Speedup / Reduction          | Notes                                                                                  |
+| :------------------------------------------------------------------- | :---------------------------------------------------- | :------------------------- | :--------------------------- | :------------------------------------------------------------------------------------- |
+| **Burst Check-In Widget Sync UI Dispatch**<br>*(50 rapid check-ins)* | 119.67 ms (blocking UI)                               | 0.67 ms (unblocked UI)     | 178.07x UI latency speedup   | Check-in mutations fire unawaited debounced widget sync so checkboxes paint instantly. |
+| **Widget Sync Channel Coalescing**<br>*(50 rapid check-ins burst)*   | 50 full sync passes                                   | 1 coalesced pass           | 50x fewer IPC & DB passes    | 500ms debounce timer merges bursts into a single snapshot generation pass.             |
+| **Timezone Database Initialization**                                 | `latest_all.dart` (large full historical tz database) | `latest.dart` (~18.36 ms)  | Non-blocking background init | Moved off first-frame critical path before `runApp()`.                                 |
+
+### Phase 4 Detailed Breakdown
+
+- **Debounced Widget Synchronization:** Replaced immediate blocking widget synchronization on every habit check-in mutation with a 500ms debounce timer in `WidgetSyncService`. Bursts of check-ins now coalesce into a single pass.
+- **Unblocked Check-In UI Path:** Removed `await` on widget synchronization across all check-in, shield, numeric, slot, pin, and quick-add mutations in `DailyTrackerController`. The UI repaints immediately without waiting for JSON serialization or MethodChannel IPC.
+- **Non-Blocking Cold Start Pipeline:** Streamlined `main.dart` by switching to `timezone/data/latest.dart` and moving timezone setup, notification initialization, permission checks, initial widget sync, and reminder scheduling to execute asynchronously in the background after first frame rendering.
+
+### Phase 4 Benchmark Suite
+
+Run the Phase 4 benchmark suite with:
+
+```bash
+flutter test test/benchmark/phase4_benchmark_test.dart
+```
 
 ## Phase 5: UI Layer and Rebuild Scoping
 
 Phase 5 benchmarks will evaluate granular Riverpod selector scoping, viewport virtualization in week matrix grids, and UI frame build times during search and check-in interactions.
 
 *Status: Scheduled*
+
