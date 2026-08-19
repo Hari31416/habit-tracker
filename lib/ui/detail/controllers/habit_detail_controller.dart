@@ -114,6 +114,7 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
   List<HabitShield> _currentShields = [];
   List<HabitCategory> _currentCategories = [];
   ShieldBankState? _currentShieldBank;
+  bool _recomputeScheduled = false;
 
   final StreamController<void> _navigateBackController =
       StreamController<void>.broadcast();
@@ -130,27 +131,38 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
   void _initSubscriptions() {
     _habitSubscription = repository.getHabitById(habitId).listen((habit) {
       _currentHabit = habit;
-      _recomputeState();
+      _scheduleRecompute();
     });
 
     _logsSubscription = repository.getLogsForHabit(habitId).listen((logs) {
       _currentLogs = logs;
-      _recomputeState();
+      _scheduleRecompute();
     });
 
     _shieldsSubscription = repository.getShieldsForHabit(habitId).listen((shields) {
       _currentShields = shields;
-      _recomputeState();
+      _scheduleRecompute();
     });
 
     _categoriesSubscription = repository.getAllCategories().listen((categories) {
       _currentCategories = categories;
-      _recomputeState();
+      _scheduleRecompute();
     });
 
     _shieldBankSubscription = gamificationRepository?.getShieldBankState().listen((bank) {
       _currentShieldBank = bank;
-      _recomputeState();
+      _scheduleRecompute();
+    });
+  }
+
+  void _scheduleRecompute() {
+    if (_recomputeScheduled) return;
+    _recomputeScheduled = true;
+    scheduleMicrotask(() {
+      _recomputeScheduled = false;
+      if (mounted) {
+        _recomputeState();
+      }
     });
   }
 

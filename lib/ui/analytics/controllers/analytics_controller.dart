@@ -198,6 +198,7 @@ class AnalyticsController extends StateNotifier<AnalyticsUiState> {
   List<Habit> _habits = [];
   List<HabitLog> _logs = [];
   List<HabitCategory> _categories = [];
+  bool _recalculateScheduled = false;
 
   StreamSubscription? _habitsSub;
   StreamSubscription? _logsSub;
@@ -213,17 +214,28 @@ class AnalyticsController extends StateNotifier<AnalyticsUiState> {
   void _init() {
     _habitsSub = _repository.getActiveHabits().listen((habits) {
       _habits = habits;
-      _recalculate();
+      _scheduleRecalculate();
     });
 
     _logsSub = _repository.getAllLogs().listen((logs) {
       _logs = logs;
-      _recalculate();
+      _scheduleRecalculate();
     });
 
     _categoriesSub = _repository.getAllCategories().listen((categories) {
       _categories = categories;
-      _recalculate();
+      _scheduleRecalculate();
+    });
+  }
+
+  void _scheduleRecalculate() {
+    if (_recalculateScheduled) return;
+    _recalculateScheduled = true;
+    scheduleMicrotask(() {
+      _recalculateScheduled = false;
+      if (mounted) {
+        _recalculate();
+      }
     });
   }
 

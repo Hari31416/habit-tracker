@@ -15,6 +15,7 @@ class EvaluationContext {
   final int currentLevel;
   final Map<String, DateTime> storedUnlocks;
   final DateTime referenceDate;
+  final Map<String, StreakResult>? precomputedStreaks;
 
   EvaluationContext({
     required this.habits,
@@ -23,6 +24,7 @@ class EvaluationContext {
     this.currentLevel = 1,
     this.storedUnlocks = const {},
     DateTime? referenceDate,
+    this.precomputedStreaks,
   }) : referenceDate = referenceDate ?? DateTime.now();
 }
 
@@ -43,8 +45,12 @@ class AchievementEvaluator {
     // 1. Streak calculations
     var maxStreak = 0;
     for (final habit in context.habits) {
-      final logs = logsByHabit[habit.id] ?? const [];
-      final streak = StreakCalculator.calculateStreak(habit, logs, context.referenceDate);
+      final streak = context.precomputedStreaks?[habit.id] ??
+          StreakCalculator.calculateStreak(
+            habit,
+            logsByHabit[habit.id] ?? const [],
+            context.referenceDate,
+          );
       maxStreak = max(maxStreak, max(streak.currentStreak, streak.bestStreak));
     }
 

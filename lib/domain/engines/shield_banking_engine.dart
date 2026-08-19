@@ -63,6 +63,7 @@ class ShieldBankingEngine {
     int maxCapacity = defaultMaxCapacity,
     bool autoConsumeEnabled = true,
     DateTime? referenceDate,
+    Map<String, StreakResult>? precomputedStreaks,
   }) {
     final ref = referenceDate ?? DateTime.now();
     final activeHabits = habits.where((h) => !h.archived).toList();
@@ -83,12 +84,13 @@ class ShieldBankingEngine {
     for (final habit in activeHabits) {
       final habitLogs = logsByHabit[habit.id] ?? const [];
       final habitShields = shieldsByHabit[habit.id] ?? const [];
-      final streak = StreakCalculator.calculateStreak(
-        habit,
-        habitLogs,
-        ref,
-        habitShields,
-      );
+      final streak = precomputedStreaks?[habit.id] ??
+          StreakCalculator.calculateStreak(
+            habit,
+            habitLogs,
+            ref,
+            habitShields,
+          );
 
       final highestStreak = max(streak.currentStreak, streak.bestStreak);
       final earnedForHabit = highestStreak ~/ daysPerShield;

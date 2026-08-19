@@ -183,6 +183,7 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
   List<HabitLog> _logs = [];
   List<HabitShield> _shields = [];
   List<HabitCategory> _categories = [];
+  bool _recalculateScheduled = false;
 
   StreamSubscription? _habitsSub;
   StreamSubscription? _logsSub;
@@ -199,12 +200,12 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
   void _init() {
     _habitsSub = _repository.getActiveHabits().listen((habits) {
       _habits = habits;
-      _recalculate();
+      _scheduleRecalculate();
     });
 
     _categoriesSub = _repository.getAllCategories().listen((categories) {
       _categories = categories;
-      _recalculate();
+      _scheduleRecalculate();
     });
 
     _subscribeWeekData();
@@ -217,12 +218,23 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
     final weekEnd = _weekStart.add(const Duration(days: 6));
     _logsSub = _repository.getLogsForDateRange(_weekStart, weekEnd).listen((logs) {
       _logs = logs;
-      _recalculate();
+      _scheduleRecalculate();
     });
 
     _shieldsSub = _repository.getShieldsForDateRange(_weekStart, weekEnd).listen((shields) {
       _shields = shields;
-      _recalculate();
+      _scheduleRecalculate();
+    });
+  }
+
+  void _scheduleRecalculate() {
+    if (_recalculateScheduled) return;
+    _recalculateScheduled = true;
+    scheduleMicrotask(() {
+      _recalculateScheduled = false;
+      if (mounted) {
+        _recalculate();
+      }
     });
   }
 

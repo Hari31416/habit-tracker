@@ -35,20 +35,17 @@ class _ShieldBankBottomSheetState extends ConsumerState<ShieldBankBottomSheet> {
     final theme = Theme.of(context);
     final gamificationRepo = ref.watch(gamificationRepositoryProvider);
     final habitRepo = ref.watch(habitRepositoryProvider);
+    final bankState = ref.watch(shieldBankStateStreamProvider).value;
 
-    return StreamBuilder(
-      stream: gamificationRepo.getShieldBankState(),
-      builder: (context, snapshot) {
-        final bankState = snapshot.data;
-        final available = bankState?.availableShields ?? 0;
-        final maxCapacity = bankState?.maxCapacity ?? 3;
-        final totalEarned = bankState?.totalShieldsEarned ?? 1;
-        final usedCount = bankState?.usedShieldsCount ?? 0;
-        final daysToNext = bankState?.daysToNextShield ?? 14;
-        final progress = bankState?.progressToNextShield ?? 0.0;
-        final autoConsume = bankState?.autoConsumeEnabled ?? true;
+    final available = bankState?.availableShields ?? 0;
+    final maxCapacity = bankState?.maxCapacity ?? 3;
+    final totalEarned = bankState?.totalShieldsEarned ?? 1;
+    final usedCount = bankState?.usedShieldsCount ?? 0;
+    final daysToNext = bankState?.daysToNextShield ?? 14;
+    final progress = bankState?.progressToNextShield ?? 0.0;
+    final autoConsume = bankState?.autoConsumeEnabled ?? true;
 
-        return Material(
+    return Material(
           color: theme.colorScheme.surface,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           clipBehavior: Clip.antiAlias,
@@ -342,9 +339,7 @@ class _ShieldBankBottomSheetState extends ConsumerState<ShieldBankBottomSheet> {
             ),
           ),
         ),
-        );
-      },
-    );
+      );
   }
 
   Widget _buildQuickApplySection(

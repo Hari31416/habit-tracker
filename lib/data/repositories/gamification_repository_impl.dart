@@ -124,7 +124,11 @@ class GamificationRepositoryImpl implements GamificationRepository {
     StreamSubscription? subAchievements;
     StreamSubscription? subUserGamification;
 
+    bool evaluateScheduled = false;
+    Set<String> knownUnlockedIds = {};
+
     void evaluateAndEmit() {
+      evaluateScheduled = false;
       if (latestHabits == null ||
           latestLogs == null ||
           latestShields == null ||
@@ -138,10 +142,7 @@ class GamificationRepositoryImpl implements GamificationRepository {
       final logs = latestLogs!.map(_logRowToDomain).toList();
       final shields = latestShields!.map(_shieldRowToDomain).toList();
       final categories = latestCategories!.map(_categoryRowToDomain).toList();
-      final storedMap = {
-        for (var a in latestAchievements!) a.id: a.unlockedAt
-      };
-
+      
       final logsByHabit = <String, List<HabitLog>>{};
       final logsByDate = <String, List<HabitLog>>{};
       for (final log in logs) {
@@ -155,9 +156,9 @@ class GamificationRepositoryImpl implements GamificationRepository {
       }
 
       final today = DateTime.now();
-
-      // 1. Calculate streaks per habit to find multipliers
+      final streakByHabit = <String, StreakResult>{};
       var longestStreak = 0;
+
       for (final habit in habits) {
         final habitLogs = logsByHabit[habit.id] ?? const [];
         final habitShields = shieldsByHabit[habit.id] ?? const [];
@@ -167,25 +168,20 @@ class GamificationRepositoryImpl implements GamificationRepository {
           today,
           habitShields,
         );
+        streakByHabit[habit.id] = streak;
         longestStreak = max(longestStreak, max(streak.currentStreak, streak.bestStreak));
       }
 
-      // 2. Calculate Base Habit Check-in XP
+      // 2. Calculate Base Habit Check-in XP reusing streakByHabit
       var habitCheckInXp = 0;
       for (final habit in habits) {
         final habitLogs = logsByHabit[habit.id] ?? const [];
-        final habitShields = shieldsByHabit[habit.id] ?? const [];
         final habitLogsByDate = <String, List<HabitLog>>{};
         for (final log in habitLogs) {
           habitLogsByDate.putIfAbsent(log.date, () => []).add(log);
         }
-        final streak = StreakCalculator.calculateStreak(
-          habit,
-          habitLogs,
-          today,
-          habitShields,
-        );
-        final habitMultiplier = GamificationEngine.calculateStreakMultiplier(streak.currentStreak);
+        final currentStreak = streakByHabit[habit.id]?.currentStreak ?? 0;
+        final habitMultiplier = GamificationEngine.calculateStreakMultiplier(currentStreak);
 
         for (final dayLogs in habitLogsByDate.values) {
           final isCompleted = StreakCalculator.isHabitCompletedOnDate(habit, dayLogs);
@@ -220,24 +216,25 @@ class GamificationRepositoryImpl implements GamificationRepository {
         }
       }
 
-      // 4. Achievement Evaluation (first pass)
+      // 4. Achievement Evaluator reusing precomputed streaks
       final initialTotalXp = habitCheckInXp + perfectDaysBonusXp;
       final estimatedProgression = GamificationEngine.calculateProgression(
         totalXp: initialTotalXp,
         longestActiveStreak: longestStreak,
       );
 
-      final evaluationContext = EvaluationContext(
+      final evalContext = EvaluationContext(
         habits: habits,
         allLogs: logs,
         categories: categories,
         currentLevel: estimatedProgression.level,
-        storedUnlocks: storedMap,
+        storedUnlocks: { for (var a in latestAchievements!) a.id: a.unlockedAt },
         referenceDate: today,
+        precomputedStreaks: streakByHabit,
       );
-      final evaluatedAchievements = AchievementEvaluator.evaluateAll(evaluationContext);
+      final evaluatedAchievements = AchievementEvaluator.evaluateAll(evalContext);
 
-      // 5. XP from Unlocked Achievements
+      // 5. Total Achievement XP & Unlocked Badges count
       final achievementsXp = evaluatedAchievements
           .where((a) => a.isUnlocked)
           .fold<int>(0, (sum, a) => sum + a.definition.xpReward);
@@ -253,19 +250,18 @@ class GamificationRepositoryImpl implements GamificationRepository {
         totalBadgesCount: totalCount,
       );
 
-      // 6. Shield Bank Calculation
-      final maxCap = latestUserGamification?.maxShieldsCapacity ?? ShieldBankingEngine.defaultMaxCapacity;
-      final autoConsume = latestUserGamification?.autoConsumeShields ?? true;
+      // 6. Shield Bank
       final shieldBankState = ShieldBankingEngine.calculateBankState(
         habits: habits,
         logs: logs,
         shields: shields,
-        maxCapacity: maxCap,
-        autoConsumeEnabled: autoConsume,
+        maxCapacity: latestUserGamification?.maxShieldsCapacity ?? ShieldBankingEngine.defaultMaxCapacity,
+        autoConsumeEnabled: latestUserGamification?.autoConsumeShields ?? true,
         referenceDate: today,
+        precomputedStreaks: streakByHabit,
       );
 
-      // 7. Level Up Celebration Check
+      // 7. Level Up Celebration
       final lastCelebrated = latestUserGamification?.lastCelebratedLevel ?? 1;
       LevelUpCelebration? celebration;
       if (finalProgression.level > lastCelebrated) {
@@ -278,60 +274,68 @@ class GamificationRepositoryImpl implements GamificationRepository {
         );
       }
 
-      // 8. Persist newly unlocked achievements
+      // 8. Persist new unlocks
       final newlyUnlocked = evaluatedAchievements
-          .where((a) => a.isUnlocked && !storedMap.containsKey(a.definition.id))
+          .where((a) => a.isUnlocked && !knownUnlockedIds.contains(a.definition.id))
           .toList();
       if (newlyUnlocked.isNotEmpty) {
-        final entities = newlyUnlocked.map((a) {
-          return AchievementsCompanion(
+        final companions = <AchievementsCompanion>[];
+        for (var a in newlyUnlocked) {
+          knownUnlockedIds.add(a.definition.id);
+          companions.add(AchievementsCompanion(
             id: Value(a.definition.id),
             unlockedAt: Value(a.unlockedAt ?? DateTime.now().toUtc()),
             progress: Value(a.currentProgress),
-            notified: const Value(false),
-          );
-        }).toList();
-        gamificationDao.upsertAchievements(entities);
+          ));
+        }
+        gamificationDao.upsertAchievements(companions);
       }
 
+      final combined = _CombinedGamificationData(
+        progression: finalProgression,
+        achievements: evaluatedAchievements,
+        shieldBank: shieldBankState,
+        celebration: celebration,
+      );
+
       if (!controller.isClosed) {
-        controller.add(
-          _CombinedGamificationData(
-            progression: finalProgression,
-            achievements: evaluatedAchievements,
-            shieldBank: shieldBankState,
-            celebration: celebration,
-          ),
-        );
+        controller.add(combined);
       }
+    }
+
+    void scheduleEvaluation() {
+      if (evaluateScheduled) return;
+      evaluateScheduled = true;
+      scheduleMicrotask(evaluateAndEmit);
     }
 
     controller = StreamController<_CombinedGamificationData>(
       onListen: () {
         subHabits = habitDao.watchAllHabits().listen((data) {
           latestHabits = data;
-          evaluateAndEmit();
+          scheduleEvaluation();
         });
         subLogs = habitLogDao.watchAllLogs().listen((data) {
           latestLogs = data;
-          evaluateAndEmit();
+          scheduleEvaluation();
         });
         subShields = habitShieldDao.watchAllShields().listen((data) {
           latestShields = data;
-          evaluateAndEmit();
+          scheduleEvaluation();
         });
         subCategories = habitCategoryDao.watchAllCategories().listen((data) {
           latestCategories = data;
-          evaluateAndEmit();
+          scheduleEvaluation();
         });
         subAchievements = gamificationDao.watchAllAchievements().listen((data) {
           latestAchievements = data;
-          evaluateAndEmit();
+          knownUnlockedIds = data.map((a) => a.id).toSet();
+          scheduleEvaluation();
         });
         subUserGamification = gamificationDao.watchUserGamification().listen((data) {
           latestUserGamification = data;
           hasUserGamificationEmitted = true;
-          evaluateAndEmit();
+          scheduleEvaluation();
         });
       },
       onCancel: () {
@@ -344,7 +348,7 @@ class GamificationRepositoryImpl implements GamificationRepository {
       },
     );
 
-    return controller.stream.asBroadcastStream();
+    return controller.stream;
   }
 
   @override

@@ -105,6 +105,7 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
   List<HabitLog> _allLogs = [];
   List<HabitShield> _allShields = [];
   List<HabitCategory> _allCategories = [];
+  bool _recomputeScheduled = false;
 
   DailyTrackerController(
     this._repository, [
@@ -123,22 +124,33 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
   void _initSubscriptions() {
     _categoriesSubscription = _repository.getAllCategories().listen((categories) {
       _allCategories = categories;
-      _recomputeState();
+      _scheduleRecompute();
     });
 
     _habitsSubscription = _repository.getAllHabits().listen((habits) {
       _allHabits = habits;
-      _recomputeState();
+      _scheduleRecompute();
     });
 
     _logsSubscription = _repository.getAllLogs().listen((logs) {
       _allLogs = logs;
-      _recomputeState();
+      _scheduleRecompute();
     });
 
     _shieldsSubscription = _repository.getAllShields().listen((shields) {
       _allShields = shields;
-      _recomputeState();
+      _scheduleRecompute();
+    });
+  }
+
+  void _scheduleRecompute() {
+    if (_recomputeScheduled) return;
+    _recomputeScheduled = true;
+    scheduleMicrotask(() {
+      _recomputeScheduled = false;
+      if (mounted) {
+        _recomputeState();
+      }
     });
   }
 

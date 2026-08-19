@@ -16,6 +16,7 @@ import 'package:habit_tracker/ui/detail/widgets/motivation_card.dart';
 import 'package:habit_tracker/ui/detail/widgets/stats_metric_strip.dart';
 import 'package:habit_tracker/ui/detail/widgets/ten_dot_progress_bar.dart';
 
+import 'gamification_controller_test.dart' show FakeGamificationRepository;
 import 'habit_detail_controller_test.dart' show FakeHabitRepository;
 
 void main() {
@@ -225,6 +226,7 @@ void main() {
       ProviderScope(
         overrides: [
           habitRepositoryProvider.overrideWithValue(fakeRepo),
+          gamificationRepositoryProvider.overrideWithValue(FakeGamificationRepository()),
         ],
         child: MaterialApp(
           home: HabitDetailScreen(

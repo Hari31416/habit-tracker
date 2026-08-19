@@ -11,6 +11,8 @@ import '../data/repositories/habit_repository_impl.dart';
 import '../data/schedulers/flutter_habit_reminder_scheduler.dart';
 import '../data/schedulers/local_notifications_scheduler.dart';
 import '../data/schedulers/notification_action_handler.dart';
+import '../domain/engines/shield_banking_engine.dart';
+import '../domain/gamification/gamification_models.dart';
 import '../domain/repositories/gamification_repository.dart';
 import '../domain/repositories/habit_repository.dart';
 import '../domain/schedulers/habit_reminder_scheduler.dart';
@@ -68,6 +70,26 @@ final gamificationRepositoryProvider = Provider<GamificationRepository>((ref) {
     habitCategoryDao: ref.watch(habitCategoryDaoProvider),
     gamificationDao: ref.watch(gamificationDaoProvider),
   );
+});
+
+final playerProgressionStreamProvider =
+    StreamProvider<PlayerProgression>((ref) {
+  return ref.watch(gamificationRepositoryProvider).getPlayerProgression();
+});
+
+final achievementsStreamProvider =
+    StreamProvider<List<AchievementStatus>>((ref) {
+  return ref.watch(gamificationRepositoryProvider).getAchievements();
+});
+
+final pendingCelebrationStreamProvider =
+    StreamProvider<LevelUpCelebration?>((ref) {
+  return ref.watch(gamificationRepositoryProvider).getPendingCelebration();
+});
+
+final shieldBankStateStreamProvider =
+    StreamProvider<ShieldBankState>((ref) {
+  return ref.watch(gamificationRepositoryProvider).getShieldBankState();
 });
 
 final localNotificationsSchedulerProvider =
