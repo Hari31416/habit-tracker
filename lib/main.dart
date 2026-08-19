@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:developer' as developer;
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,13 +14,10 @@ import 'data/preferences/theme_preferences.dart';
 import 'di/providers.dart';
 import 'services/app_logger.dart';
 import 'services/notification_service.dart';
-import 'ui/analytics/habit_analytics_screen.dart';
-import 'ui/daily/daily_tracker_screen.dart';
 import 'ui/detail/controllers/timer_state_holder.dart';
 import 'ui/detail/focus_timer_screen.dart';
 import 'ui/detail/habit_detail_screen.dart';
-import 'ui/gamification/badges_showcase_screen.dart';
-import 'ui/matrix/habit_week_matrix_screen.dart';
+import 'ui/navigation/main_navigation_shell.dart';
 import 'ui/navigation/screen.dart';
 import 'ui/theme/app_theme.dart';
 
@@ -24,6 +25,11 @@ final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Register VM Service extension only in profile/debug modes (zero overhead in release mode)
+  if (kProfileMode || kDebugMode) {
+    _initFrameMetricsExtension();
+  }
 
   final container = ProviderContainer();
   NotificationService.bindActionHandler(({
@@ -138,7 +144,15 @@ class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
 
     if (deepLink != null) {
       final route = Screen.fromUri(deepLink);
-      if (route != Screen.daily) {
+      if (route == Screen.daily) {
+        ref.read(activeNavigationTabProvider.notifier).state = 0;
+      } else if (route == Screen.matrix) {
+        ref.read(activeNavigationTabProvider.notifier).state = 1;
+      } else if (route == Screen.analytics) {
+        ref.read(activeNavigationTabProvider.notifier).state = 2;
+      } else if (route == Screen.badges) {
+        ref.read(activeNavigationTabProvider.notifier).state = 3;
+      } else {
         appNavigatorKey.currentState?.pushNamed(route);
       }
     }
@@ -171,63 +185,6 @@ class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
       onGenerateRoute: (settings) {
         final route = Screen.fromUri(settings.name);
 
-        if (route == Screen.matrix) {
-          return MaterialPageRoute(
-            settings: settings,
-            builder: (ctx) => HabitWeekMatrixScreen(
-              onNavigateToDaily: () {
-                Navigator.of(ctx).pushReplacementNamed(Screen.daily);
-              },
-              onNavigateToAnalytics: () {
-                Navigator.of(ctx).pushReplacementNamed(Screen.analytics);
-              },
-              onNavigateToBadges: () {
-                Navigator.of(ctx).pushReplacementNamed(Screen.badges);
-              },
-              onNavigateToDetail: (habitId) {
-                Navigator.of(ctx).pushNamed(Screen.detailRoute(habitId));
-              },
-            ),
-          );
-        }
-
-        if (route == Screen.analytics) {
-          return MaterialPageRoute(
-            settings: settings,
-            builder: (ctx) => HabitAnalyticsScreen(
-              onNavigateToDaily: () {
-                Navigator.of(ctx).pushReplacementNamed(Screen.daily);
-              },
-              onNavigateToMatrix: () {
-                Navigator.of(ctx).pushReplacementNamed(Screen.matrix);
-              },
-              onNavigateToBadges: () {
-                Navigator.of(ctx).pushReplacementNamed(Screen.badges);
-              },
-              onNavigateToDetail: (habitId) {
-                Navigator.of(ctx).pushNamed(Screen.detailRoute(habitId));
-              },
-            ),
-          );
-        }
-
-        if (route == Screen.badges) {
-          return MaterialPageRoute(
-            settings: settings,
-            builder: (ctx) => BadgesShowcaseScreen(
-              onNavigateToDaily: () {
-                Navigator.of(ctx).pushReplacementNamed(Screen.daily);
-              },
-              onNavigateToMatrix: () {
-                Navigator.of(ctx).pushReplacementNamed(Screen.matrix);
-              },
-              onNavigateToAnalytics: () {
-                Navigator.of(ctx).pushReplacementNamed(Screen.analytics);
-              },
-            ),
-          );
-        }
-
         if (route.startsWith('detail/')) {
           final habitId = route.replaceFirst('detail/', '');
           if (habitId.isNotEmpty) {
@@ -259,22 +216,46 @@ class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
 
         return MaterialPageRoute(
           settings: settings,
-          builder: (ctx) => DailyTrackerScreen(
-            onNavigateToDetail: (habitId) {
-              Navigator.of(ctx).pushNamed(Screen.detailRoute(habitId));
-            },
-            onNavigateToMatrix: () {
-              Navigator.of(ctx).pushReplacementNamed(Screen.matrix);
-            },
-            onNavigateToAnalytics: () {
-              Navigator.of(ctx).pushReplacementNamed(Screen.analytics);
-            },
-            onNavigateToBadges: () {
-              Navigator.of(ctx).pushReplacementNamed(Screen.badges);
-            },
-          ),
+          builder: (ctx) => const MainNavigationShell(),
         );
       },
     );
   }
 }
+
+void _initFrameMetricsExtension() {
+  final List<double> frameBuildTimes = [];
+  final List<double> frameRasterTimes = [];
+  final List<double> frameTotalTimes = [];
+
+  WidgetsBinding.instance.addTimingsCallback((timings) {
+    for (final timing in timings) {
+      frameBuildTimes.add(timing.buildDuration.inMicroseconds / 1000.0);
+      frameRasterTimes.add(timing.rasterDuration.inMicroseconds / 1000.0);
+      frameTotalTimes.add(timing.totalSpan.inMicroseconds / 1000.0);
+      if (frameBuildTimes.length > 5000) {
+        frameBuildTimes.removeRange(0, 1000);
+        frameRasterTimes.removeRange(0, 1000);
+        frameTotalTimes.removeRange(0, 1000);
+      }
+    }
+  });
+
+  developer.registerExtension('ext.habits.getFrameMetrics', (method, parameters) async {
+    final reset = parameters['reset'] == 'true';
+    final data = {
+      'totalFrames': frameTotalTimes.length,
+      'buildTimesMs': List<double>.from(frameBuildTimes),
+      'rasterTimesMs': List<double>.from(frameRasterTimes),
+      'totalTimesMs': List<double>.from(frameTotalTimes),
+    };
+    if (reset) {
+      frameBuildTimes.clear();
+      frameRasterTimes.clear();
+      frameTotalTimes.clear();
+    }
+    return developer.ServiceExtensionResponse.result(jsonEncode(data));
+  });
+}
+
+

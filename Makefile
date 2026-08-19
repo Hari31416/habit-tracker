@@ -191,5 +191,5 @@ adb-test: ## Run automated ADB UI and regression test suite
 
 perf-test: benchmark ## Alias for benchmark
 
-benchmark: ## Run full Python benchmark runner with plots and Markdown report via uv
-	uv run scripts/benchmark_runner.py
+benchmark: ## Run full Python benchmark runner with plots and Markdown report via uv (optional: TAG=moto_g60 DEVICE=ZD2224QRJY)
+	uv run scripts/benchmark_runner.py $(if $(TAG),--tag $(TAG),) $(if $(DEVICE),--device $(DEVICE),)
