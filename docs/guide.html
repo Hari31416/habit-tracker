@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Guide & Complete Documentation - Habit Tracker</title>
+  <title>Phial User Guide — Habit Tracker &amp; Focus</title>
   <meta name="description"
-    content="Comprehensive technical manual and user guide for Habit Tracker: Focus Timer, Ambient Audio, DND Automation, Habit Shields, RPG Gamification, 28 Badges, AppWidgets, Reminders, and Week Matrix.">
+    content="How Phial works: daily habits, focus timer, streak shields, XP from Novice to Grandmaster, widgets, and reminders. Offline. No account.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -23,8 +23,8 @@
   <header class="site-header">
     <div class="container nav-wrap">
       <a href="index.html" class="brand">
-        <img src="assets/img/app_icon.png" alt="Habit Tracker Icon" class="brand-icon-img">
-        <span>Habit Tracker Docs</span>
+        <img src="assets/img/app_icon.png" alt="Phial" class="brand-icon-img">
+        <span>Phial Docs</span>
       </a>
 
       <ul class="nav-links">
@@ -122,7 +122,7 @@
         <div class="toc-group-title">Resilience & Gamification</div>
         <ul class="toc-list">
           <li><a href="#habit-shields">Habit Shields & Banking</a></li>
-          <li><a href="#rpg-gamification">RPG Progression & XP</a></li>
+          <li><a href="#rpg-gamification">XP, Titles &amp; Mastery</a></li>
           <li><a href="#streak-multipliers">Streak Multipliers</a></li>
           <li><a href="#achievement-badges">28 Milestone Badges</a></li>
         </ul>
@@ -193,7 +193,7 @@
             <div class="toc-group-title">Resilience & Gamification</div>
             <ul class="toc-list">
               <li><a href="#habit-shields">Habit Shields & Banking</a></li>
-              <li><a href="#rpg-gamification">RPG Progression & XP</a></li>
+              <li><a href="#rpg-gamification">XP, Titles &amp; Mastery</a></li>
               <li><a href="#streak-multipliers">Streak Multipliers</a></li>
               <li><a href="#achievement-badges">28 Milestone Badges</a></li>
             </ul>
@@ -216,12 +216,11 @@
         </div>
 
         <div class="guide-header-block">
-          <h1>Habit Tracker User Guide</h1>
+          <h1>Phial user guide</h1>
           <p>
-            A complete technical and operational guide to all features in Habit Tracker: local Drift SQLite storage,
-            multi-target calculation engines, background isolate focus timer, ambient audio, habit shields, RPG
-            gamification, 28 achievement badges, interactive notifications, home screen AppWidgets, and midnight
-            rollover workers.
+            Phial tracks daily habits and focus sessions on your phone. This guide covers local Drift SQLite
+            storage, check-ins, the focus timer, shields when you miss, XP and titles from Novice to Grandmaster,
+            badges, reminders, home screen widgets, and midnight rollover.
           </p>
         </div>
 
@@ -229,8 +228,8 @@
         <section id="architecture" class="guide-section">
           <h2>1. Architecture & Local-First Privacy</h2>
           <p>
-            Habit Tracker is built from the ground up on Clean Architecture with unidirectional reactive data flow
-            powered by Flutter and Riverpod.
+            Phial is built from the ground up on Clean Architecture with unidirectional reactive data flow
+            powered by Flutter and Riverpod. Your data stays on the device.
           </p>
           <ul>
             <li><strong>Reactive Drift SQLite Database:</strong> All tables (Habits, Logs, Categories, Shields,
@@ -272,7 +271,7 @@
           </div>
 
           <h3 id="frequency-types">Recurrence Schedules</h3>
-          <p>Habit Tracker supports four flexible frequency types to accommodate diverse real-world routines:</p>
+          <p>Phial supports four flexible frequency types to accommodate diverse real-world routines:</p>
           <ul>
             <li><strong>Daily:</strong> Scheduled for every calendar day. Unlogged days reset streaks unless protected
               by a Habit Shield. Current in-progress days are preserved while the day is active.</li>
@@ -294,8 +293,8 @@
               <ul>
                 <li><strong>Boolean Targets:</strong> Binary 1-tap completion checkmark with system haptic feedback
                   (e.g. <em>Take Morning Vitamins</em>).</li>
-                <li><strong>Numeric Targets:</strong> Quantitative goals with customizable units (e.g. <em>2500 ml</em>,
-                  <em>20 pages</em>, <em>50 pushups</em>), dynamic delta steppers (+5, +10, +250ml), and a direct
+                <li><strong>Numeric Targets:</strong> Quantitative goals with customizable units (e.g. <em>20 pages</em>,
+                  <em>50 pushups</em>), dynamic delta steppers (+5, +10), and a direct
                   numerical keypad dialog for exact manual entry.
                 </li>
                 <li><strong>Focus Timer Duration:</strong> Dedicated focus duration goals (e.g. <em>45 minutes Deep
@@ -354,7 +353,7 @@
 
           <h3 id="dnd-automation">Do Not Disturb (DND) Automation</h3>
           <p>
-            When granted the Android Notification Policy access permission, Habit Tracker automatically silences phone
+            When granted the Android Notification Policy access permission, Phial automatically silences phone
             notifications upon starting a focus session and restores your previous sound profile when the timer ends.
           </p>
         </section>
@@ -363,8 +362,8 @@
         <section id="habit-shields" class="guide-section">
           <h2>4. Habit Shields & Streak Protection</h2>
           <p>
-            Life happens. Sick days, intense travel, or emergencies shouldn't wipe out months of consistent discipline.
-            Habit Tracker features an intelligent Habit Shield banking engine.
+            Life happens. A miss should not spill the whole shelf. A shield is a cork you earned: it keeps one miss
+            from breaking the streak. Phial banks those corks as you stay consistent.
           </p>
 
           <div class="guide-visual-card">
@@ -401,17 +400,17 @@
           </div>
         </section>
 
-        <!-- Section 5: RPG Progression -->
+        <!-- Section 5: XP and titles -->
         <section id="rpg-gamification" class="guide-section">
-          <h2>5. RPG Progression, XP & 28 Badges</h2>
+          <h2>5. XP, Titles &amp; 28 Badges</h2>
           <p>
-            Build momentum through game-like progression. Every completed action awards XP, scales your level, and
-            unlocks milestone achievements.
+            Quiet ranks in the craft of keeping the shelf — not arcade noise. Every sealed check-in awards XP, raises
+            your title from Novice toward Grandmaster, and unlocks milestone badges.
           </p>
 
           <div class="guide-visual-card">
             <div class="guide-screenshot-wrap">
-              <img src="assets/img/screen_mastery.png" alt="RPG Mastery Screen">
+              <img src="assets/img/screen_mastery.png" alt="Phial mastery screen">
             </div>
             <div>
               <h3>Base XP Calculation</h3>
@@ -534,7 +533,7 @@
         <section id="week-matrix" class="guide-section">
           <h2>6. Analytics, 7-Day Matrix & Monthly Heatmaps</h2>
           <p>
-            Habit Tracker provides deep visibility into your daily and monthly consistency through clean visual charts
+            Phial provides deep visibility into your daily and monthly consistency through clean visual charts
             and adherence matrices.
           </p>
 
@@ -606,7 +605,7 @@
         <section id="notifications-reminders" class="guide-section">
           <h2>7. Notifications, Reminders & Actions</h2>
           <p>
-            Habit Tracker integrates deeply with Android system notifications to ensure you never forget your intentions.
+            Phial integrates with Android notifications so reminders can fire even when the app is closed.
           </p>
           <ul>
             <li><strong>Per-Habit Reminder Scheduling:</strong> Set custom daily reminder times for each individual
@@ -636,13 +635,13 @@
               1-tap check-in buttons and pinned habit prioritization.</li>
             <li><strong>3. Streaks at Risk Widget:</strong> Highlights habits scheduled today that are uncompleted to
               protect active streak chains.</li>
-            <li><strong>4. RPG XP & Mastery Widget:</strong> Displays current player level, title badge, XP progress
+            <li><strong>4. XP &amp; Mastery Widget:</strong> Displays current level, title, XP progress
               bar, and next milestone badge progress.</li>
           </ul>
 
           <h3 id="app-shortcuts">Dynamic Launcher Shortcuts</h3>
           <p>
-            Long-press the Habit Tracker icon on your home screen or app launcher to access dynamic shortcuts for your top
+            Long-press the Phial icon on your home screen or app launcher to access dynamic shortcuts for your top
             pinned habits, launching directly into check-ins or focus sessions.
           </p>
 
@@ -666,9 +665,9 @@
   <footer class="site-footer">
     <div class="container">
       <div style="display: inline-flex; align-items: center; gap: 8px; justify-content: center; margin-bottom: 8px; flex-wrap: wrap;">
-        <img src="assets/img/app_icon.png" alt="Habit Tracker Icon" width="20" height="20"
+        <img src="assets/img/app_icon.png" alt="Phial" width="20" height="20"
           style="border-radius: 5px; display: block;">
-        <span><strong>Habit Tracker</strong> • Built with Flutter, Drift SQLite, and Material 3.</span>
+        <span><strong>Phial</strong> • Habit tracker &amp; focus. Built with Flutter, Drift SQLite, and Material 3.</span>
       </div>
     </div>
   </footer>

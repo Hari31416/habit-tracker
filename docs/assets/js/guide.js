@@ -1,4 +1,4 @@
-// Habit Tracker - User Guide Interactive Logic
+// Phial — user guide search and TOC
 
 // 1. Search Filter across Guide Sections
 function initGuideSearch() {

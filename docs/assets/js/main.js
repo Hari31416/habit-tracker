@@ -1,4 +1,4 @@
-// Habit Tracker - Main JavaScript
+// Phial — site chrome (theme, nav)
 
 // 1. Theme Management (Matches Flutter App Preferences)
 const THEME_KEY = 'habit_tracker_web_theme';
