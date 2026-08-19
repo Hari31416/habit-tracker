@@ -22,6 +22,7 @@ class Habits extends Table {
   TextColumn get reminderTimes => text().map(const StringListConverter()).withDefault(const Constant('[]'))();
   TextColumn get motivationNotes => text().nullable()();
   BoolColumn get archived => boolean().withDefault(const Constant(false))();
+  BoolColumn get promptReflection => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 

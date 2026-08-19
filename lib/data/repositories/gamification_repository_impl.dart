@@ -71,6 +71,7 @@ class GamificationRepositoryImpl implements GamificationRepository {
         reminderTimes: row.reminderTimes,
         motivationNotes: row.motivationNotes,
         archived: row.archived,
+        promptReflection: row.promptReflection,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
       );

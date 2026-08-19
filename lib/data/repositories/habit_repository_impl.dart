@@ -60,6 +60,7 @@ class HabitRepositoryImpl implements HabitRepository {
         reminderTimes: row.reminderTimes,
         motivationNotes: row.motivationNotes,
         archived: row.archived,
+        promptReflection: row.promptReflection,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
       );
@@ -84,6 +85,7 @@ class HabitRepositoryImpl implements HabitRepository {
         reminderTimes: Value(habit.reminderTimes),
         motivationNotes: Value(habit.motivationNotes),
         archived: Value(habit.archived),
+        promptReflection: Value(habit.promptReflection),
         createdAt: Value(habit.createdAt),
         updatedAt: Value(habit.updatedAt),
       );

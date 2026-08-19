@@ -203,6 +203,21 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _promptReflectionMeta = const VerificationMeta(
+    'promptReflection',
+  );
+  @override
+  late final GeneratedColumn<bool> promptReflection = GeneratedColumn<bool>(
+    'prompt_reflection',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("prompt_reflection" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -246,6 +261,7 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
     reminderTimes,
     motivationNotes,
     archived,
+    promptReflection,
     createdAt,
     updatedAt,
   ];
@@ -366,6 +382,15 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
         archived.isAcceptableOrUnknown(data['archived']!, _archivedMeta),
       );
     }
+    if (data.containsKey('prompt_reflection')) {
+      context.handle(
+        _promptReflectionMeta,
+        promptReflection.isAcceptableOrUnknown(
+          data['prompt_reflection']!,
+          _promptReflectionMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -477,6 +502,10 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
         DriftSqlType.bool,
         data['${effectivePrefix}archived'],
       )!,
+      promptReflection: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}prompt_reflection'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -529,6 +558,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
   final List<String> reminderTimes;
   final String? motivationNotes;
   final bool archived;
+  final bool promptReflection;
   final DateTime createdAt;
   final DateTime updatedAt;
   const HabitRow({
@@ -551,6 +581,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     required this.reminderTimes,
     this.motivationNotes,
     required this.archived,
+    required this.promptReflection,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -614,6 +645,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       map['motivation_notes'] = Variable<String>(motivationNotes);
     }
     map['archived'] = Variable<bool>(archived);
+    map['prompt_reflection'] = Variable<bool>(promptReflection);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -658,6 +690,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
           ? const Value.absent()
           : Value(motivationNotes),
       archived: Value(archived),
+      promptReflection: Value(promptReflection),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -692,6 +725,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       reminderTimes: serializer.fromJson<List<String>>(json['reminderTimes']),
       motivationNotes: serializer.fromJson<String?>(json['motivationNotes']),
       archived: serializer.fromJson<bool>(json['archived']),
+      promptReflection: serializer.fromJson<bool>(json['promptReflection']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -719,6 +753,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       'reminderTimes': serializer.toJson<List<String>>(reminderTimes),
       'motivationNotes': serializer.toJson<String?>(motivationNotes),
       'archived': serializer.toJson<bool>(archived),
+      'promptReflection': serializer.toJson<bool>(promptReflection),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -744,6 +779,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     List<String>? reminderTimes,
     Value<String?> motivationNotes = const Value.absent(),
     bool? archived,
+    bool? promptReflection,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => HabitRow(
@@ -774,6 +810,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
         ? motivationNotes.value
         : this.motivationNotes,
     archived: archived ?? this.archived,
+    promptReflection: promptReflection ?? this.promptReflection,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -822,6 +859,9 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
           ? data.motivationNotes.value
           : this.motivationNotes,
       archived: data.archived.present ? data.archived.value : this.archived,
+      promptReflection: data.promptReflection.present
+          ? data.promptReflection.value
+          : this.promptReflection,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -849,6 +889,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
           ..write('reminderTimes: $reminderTimes, ')
           ..write('motivationNotes: $motivationNotes, ')
           ..write('archived: $archived, ')
+          ..write('promptReflection: $promptReflection, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -876,6 +917,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     reminderTimes,
     motivationNotes,
     archived,
+    promptReflection,
     createdAt,
     updatedAt,
   ]);
@@ -902,6 +944,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
           other.reminderTimes == this.reminderTimes &&
           other.motivationNotes == this.motivationNotes &&
           other.archived == this.archived &&
+          other.promptReflection == this.promptReflection &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -926,6 +969,7 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
   final Value<List<String>> reminderTimes;
   final Value<String?> motivationNotes;
   final Value<bool> archived;
+  final Value<bool> promptReflection;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -949,6 +993,7 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     this.reminderTimes = const Value.absent(),
     this.motivationNotes = const Value.absent(),
     this.archived = const Value.absent(),
+    this.promptReflection = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -973,6 +1018,7 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     this.reminderTimes = const Value.absent(),
     this.motivationNotes = const Value.absent(),
     this.archived = const Value.absent(),
+    this.promptReflection = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
@@ -1003,6 +1049,7 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     Expression<String>? reminderTimes,
     Expression<String>? motivationNotes,
     Expression<bool>? archived,
+    Expression<bool>? promptReflection,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -1028,6 +1075,7 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
       if (reminderTimes != null) 'reminder_times': reminderTimes,
       if (motivationNotes != null) 'motivation_notes': motivationNotes,
       if (archived != null) 'archived': archived,
+      if (promptReflection != null) 'prompt_reflection': promptReflection,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -1054,6 +1102,7 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     Value<List<String>>? reminderTimes,
     Value<String?>? motivationNotes,
     Value<bool>? archived,
+    Value<bool>? promptReflection,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -1078,6 +1127,7 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
       reminderTimes: reminderTimes ?? this.reminderTimes,
       motivationNotes: motivationNotes ?? this.motivationNotes,
       archived: archived ?? this.archived,
+      promptReflection: promptReflection ?? this.promptReflection,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -1154,6 +1204,9 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     if (archived.present) {
       map['archived'] = Variable<bool>(archived.value);
     }
+    if (promptReflection.present) {
+      map['prompt_reflection'] = Variable<bool>(promptReflection.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -1188,6 +1241,7 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
           ..write('reminderTimes: $reminderTimes, ')
           ..write('motivationNotes: $motivationNotes, ')
           ..write('archived: $archived, ')
+          ..write('promptReflection: $promptReflection, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -3584,6 +3638,7 @@ typedef $$HabitsTableCreateCompanionBuilder = HabitsCompanion Function({
   Value<List<String>> reminderTimes,
   Value<String?> motivationNotes,
   Value<bool> archived,
+  Value<bool> promptReflection,
   required DateTime createdAt,
   required DateTime updatedAt,
   Value<int> rowid,
@@ -3608,6 +3663,7 @@ typedef $$HabitsTableUpdateCompanionBuilder = HabitsCompanion Function({
   Value<List<String>> reminderTimes,
   Value<String?> motivationNotes,
   Value<bool> archived,
+  Value<bool> promptReflection,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<int> rowid,
@@ -3760,6 +3816,11 @@ class $$HabitsTableFilterComposer
 
   ColumnFilters<bool> get archived => $composableBuilder(
     column: $table.archived,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get promptReflection => $composableBuilder(
+    column: $table.promptReflection,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3928,6 +3989,11 @@ class $$HabitsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get promptReflection => $composableBuilder(
+    column: $table.promptReflection,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -4034,6 +4100,11 @@ class $$HabitsTableAnnotationComposer
   GeneratedColumn<bool> get archived =>
       $composableBuilder(column: $table.archived, builder: (column) => column);
 
+  GeneratedColumn<bool> get promptReflection => $composableBuilder(
+    column: $table.promptReflection,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -4138,6 +4209,7 @@ class $$HabitsTableTableManager
                 Value<List<String>> reminderTimes = const Value.absent(),
                 Value<String?> motivationNotes = const Value.absent(),
                 Value<bool> archived = const Value.absent(),
+                Value<bool> promptReflection = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -4161,6 +4233,7 @@ class $$HabitsTableTableManager
                 reminderTimes: reminderTimes,
                 motivationNotes: motivationNotes,
                 archived: archived,
+                promptReflection: promptReflection,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -4186,6 +4259,7 @@ class $$HabitsTableTableManager
                 Value<List<String>> reminderTimes = const Value.absent(),
                 Value<String?> motivationNotes = const Value.absent(),
                 Value<bool> archived = const Value.absent(),
+                Value<bool> promptReflection = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -4209,6 +4283,7 @@ class $$HabitsTableTableManager
                 reminderTimes: reminderTimes,
                 motivationNotes: motivationNotes,
                 archived: archived,
+                promptReflection: promptReflection,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,

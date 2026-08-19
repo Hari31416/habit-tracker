@@ -22,6 +22,7 @@ class Habit {
   final List<String> reminderTimes;
   final String? motivationNotes;
   final bool archived;
+  final bool promptReflection;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -45,6 +46,7 @@ class Habit {
     this.reminderTimes = const [],
     this.motivationNotes,
     this.archived = false,
+    this.promptReflection = false,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -69,6 +71,7 @@ class Habit {
     List<String>? reminderTimes,
     String? motivationNotes,
     bool? archived,
+    bool? promptReflection,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -92,6 +95,7 @@ class Habit {
       reminderTimes: reminderTimes ?? this.reminderTimes,
       motivationNotes: motivationNotes ?? this.motivationNotes,
       archived: archived ?? this.archived,
+      promptReflection: promptReflection ?? this.promptReflection,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

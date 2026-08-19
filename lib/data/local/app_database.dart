@@ -54,7 +54,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
@@ -72,6 +72,10 @@ class AppDatabase extends _$AppDatabase {
         if (from < 3) {
           await m.addColumn(habitLogs, habitLogs.energyLevel);
           await m.addColumn(habitLogs, habitLogs.mood);
+        }
+        if (from < 4) {
+          await m.addColumn(habits, habits.promptReflection);
+          await customStatement("UPDATE habits SET prompt_reflection = 1 WHERE id IN ('seed_habit_meditation', 'seed_habit_evening_review', 'seed_habit_deep_work')");
         }
       },
       beforeOpen: (details) async {
