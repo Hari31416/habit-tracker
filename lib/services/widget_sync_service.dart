@@ -317,7 +317,7 @@ class WidgetSyncService {
 
   Future<void> syncAllWidgets([DateTime? date]) async {
     final today = date ?? DateTime.now();
-    final todayStr = _dateFormatter.format(today);
+    final todayStr = StreakCalculator.formatIsoDate(today);
 
     final activeHabits = await _repository.getActiveHabits().first;
     final allLogs = await _repository.getAllLogsOnce();

@@ -36,10 +36,15 @@ class AchievementEvaluator {
     final categoryMap = {for (var c in context.categories) c.id: c};
     final logsByHabit = <String, List<HabitLog>>{};
     final logsByDate = <String, List<HabitLog>>{};
+    final logsByHabitDate = <String, Map<String, List<HabitLog>>>{};
 
     for (final log in context.allLogs) {
       logsByHabit.putIfAbsent(log.habitId, () => []).add(log);
       logsByDate.putIfAbsent(log.date, () => []).add(log);
+      logsByHabitDate
+          .putIfAbsent(log.habitId, () => {})
+          .putIfAbsent(log.date, () => [])
+          .add(log);
     }
 
     // 1. Streak calculations
@@ -69,11 +74,7 @@ class AchievementEvaluator {
     }
 
     for (final habit in context.habits) {
-      final logsForHabit = logsByHabit[habit.id] ?? const [];
-      final habitLogsByDate = <String, List<HabitLog>>{};
-      for (final log in logsForHabit) {
-        habitLogsByDate.putIfAbsent(log.date, () => []).add(log);
-      }
+      final habitLogsByDate = logsByHabitDate[habit.id] ?? const {};
       final cat = habit.categoryId != null ? categoryMap[habit.categoryId] : null;
 
       for (final dayLogs in habitLogsByDate.values) {
@@ -104,32 +105,25 @@ class AchievementEvaluator {
       }
     }
 
-    // 3. Perfect Days calculation
-    final allDates = logsByDate.keys.map((d) {
-      try {
-        return dateFormatter.parse(d);
-      } catch (_) {
-        return null;
-      }
-    }).where((d) => d != null).cast<DateTime>().toList()
-      ..sort((a, b) => a.compareTo(b));
+    // 3. Perfect Days calculation using lexicographical ISO date sorting
+    final allDateStrings = logsByDate.keys.toList()..sort();
 
     var totalPerfectDays = 0;
     var maxConsecutivePerfectDays = 0;
     var currentConsecutivePerfect = 0;
     DateTime? prevPerfectDate;
 
-    for (final date in allDates) {
+    for (final dateStr in allDateStrings) {
+      final date = DateTime.tryParse(dateStr);
+      if (date == null) continue;
+
       final scheduledHabits = context.habits.where((habit) {
         return !habit.archived && StreakCalculator.isHabitScheduledOnDate(habit, date);
       }).toList();
 
       if (scheduledHabits.isNotEmpty) {
-        final dateStr = dateFormatter.format(date);
         final allScheduledCompleted = scheduledHabits.every((habit) {
-          final dayLogs = (logsByHabit[habit.id] ?? const [])
-              .where((log) => log.date == dateStr)
-              .toList();
+          final dayLogs = logsByHabitDate[habit.id]?[dateStr] ?? const [];
           return StreakCalculator.isHabitCompletedOnDate(habit, dayLogs);
         });
 

@@ -48,6 +48,14 @@ class StreakResult {
 class StreakCalculator {
   static final DateFormat dateFormatter = DateFormat('yyyy-MM-dd');
 
+  /// Fast ISO-8601 date string generation (yyyy-MM-dd) avoiding DateFormat overhead.
+  static String formatIsoDate(DateTime date) {
+    final y = date.year.toString().padLeft(4, '0');
+    final m = date.month.toString().padLeft(2, '0');
+    final d = date.day.toString().padLeft(2, '0');
+    return '$y-$m-$d';
+  }
+
   static DateTime isoWeekStart(DateTime date) {
     // In Dart, DateTime.weekday: 1 = Monday, ..., 7 = Sunday
     final daysToSubtract = date.weekday - DateTime.monday;
@@ -125,7 +133,7 @@ class StreakCalculator {
     var completedOrShieldedDays = 0;
     for (var offset = 0; offset < 7; offset++) {
       final date = weekStart.add(Duration(days: offset));
-      final dateStr = dateFormatter.format(date);
+      final dateStr = formatIsoDate(date);
       final dayLogs = logsByDate[dateStr] ?? const [];
       final isCompleted = isHabitCompletedOnDate(habit, dayLogs);
       final isShielded = shieldedDates?.contains(dateStr) == true;
@@ -177,7 +185,7 @@ class StreakCalculator {
 
     for (var i = 0; i < 30; i++) {
       final checkDate = refDate.subtract(Duration(days: i));
-      final dateStr = dateFormatter.format(checkDate);
+      final dateStr = formatIsoDate(checkDate);
       final isScheduled = isHabitScheduledOnDate(habit, checkDate);
 
       if (isScheduled) {
@@ -196,7 +204,7 @@ class StreakCalculator {
     var checkDate = refDate;
     var isCurrentStreakChain = true;
 
-    final refDateStr = dateFormatter.format(refDate);
+    final refDateStr = formatIsoDate(refDate);
     final refLogs = logsByDate[refDateStr] ?? const [];
     final refCompleted = isHabitCompletedOnDate(habit, refLogs);
     final refShielded = shieldedDates.contains(refDateStr);
@@ -208,7 +216,7 @@ class StreakCalculator {
     }
 
     for (var i = 0; i < 365; i++) {
-      final dateStr = dateFormatter.format(checkDate);
+      final dateStr = formatIsoDate(checkDate);
       final isScheduled = isHabitScheduledOnDate(habit, checkDate);
 
       if (isScheduled) {
@@ -288,7 +296,7 @@ class StreakCalculator {
       final met = isWeeklyTargetMet(habit, logsByDate, weekStart, shieldedDates);
       // Count day-level completions and shields inside the week
       for (var offset = 0; offset < 7; offset++) {
-        final dateStr = dateFormatter.format(weekStart.add(Duration(days: offset)));
+        final dateStr = formatIsoDate(weekStart.add(Duration(days: offset)));
         final dayLogs = logsByDate[dateStr] ?? const [];
         if (isHabitCompletedOnDate(habit, dayLogs)) {
           totalCompletions++;

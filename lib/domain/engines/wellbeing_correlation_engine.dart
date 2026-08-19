@@ -83,13 +83,13 @@ class WellbeingCorrelationEngine {
     final cleanToday = DateTime(today.year, today.month, today.day);
 
     final logsByDate = <String, List<HabitLog>>{};
+    final logsByHabitDate = <String, Map<String, List<HabitLog>>>{};
     for (final log in logs) {
       logsByDate.putIfAbsent(log.date, () => []).add(log);
-    }
-
-    final logsByHabit = <String, List<HabitLog>>{};
-    for (final log in logs) {
-      logsByHabit.putIfAbsent(log.habitId, () => []).add(log);
+      logsByHabitDate
+          .putIfAbsent(log.habitId, () => {})
+          .putIfAbsent(log.date, () => [])
+          .add(log);
     }
 
     final moodCounts = <String, int>{};
@@ -101,7 +101,7 @@ class WellbeingCorrelationEngine {
 
     for (int i = 0; i < daysCount; i++) {
       final date = cleanToday.subtract(Duration(days: i));
-      final dateStr = StreakCalculator.dateFormatter.format(date);
+      final dateStr = StreakCalculator.formatIsoDate(date);
       final dayLogs = logsByDate[dateStr] ?? const [];
 
       // Check if habits scheduled for this day were completed
@@ -112,9 +112,7 @@ class WellbeingCorrelationEngine {
       for (final habit in habits) {
         if (StreakCalculator.isHabitScheduledOnDate(habit, date)) {
           anyHabitScheduled = true;
-          final hLogs = (logsByHabit[habit.id] ?? const [])
-              .where((l) => l.date == dateStr)
-              .toList();
+          final hLogs = logsByHabitDate[habit.id]?[dateStr] ?? const [];
           if (StreakCalculator.isHabitCompletedOnDate(habit, hLogs)) {
             completedHabitCount++;
           } else {

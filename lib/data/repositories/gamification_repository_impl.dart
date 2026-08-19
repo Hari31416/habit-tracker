@@ -145,9 +145,14 @@ class GamificationRepositoryImpl implements GamificationRepository {
       
       final logsByHabit = <String, List<HabitLog>>{};
       final logsByDate = <String, List<HabitLog>>{};
+      final logsByHabitDate = <String, Map<String, List<HabitLog>>>{};
       for (final log in logs) {
         logsByHabit.putIfAbsent(log.habitId, () => []).add(log);
         logsByDate.putIfAbsent(log.date, () => []).add(log);
+        logsByHabitDate
+            .putIfAbsent(log.habitId, () => {})
+            .putIfAbsent(log.date, () => [])
+            .add(log);
       }
 
       final shieldsByHabit = <String, List<HabitShield>>{};
@@ -175,11 +180,7 @@ class GamificationRepositoryImpl implements GamificationRepository {
       // 2. Calculate Base Habit Check-in XP reusing streakByHabit
       var habitCheckInXp = 0;
       for (final habit in habits) {
-        final habitLogs = logsByHabit[habit.id] ?? const [];
-        final habitLogsByDate = <String, List<HabitLog>>{};
-        for (final log in habitLogs) {
-          habitLogsByDate.putIfAbsent(log.date, () => []).add(log);
-        }
+        final habitLogsByDate = logsByHabitDate[habit.id] ?? const {};
         final currentStreak = streakByHabit[habit.id]?.currentStreak ?? 0;
         final habitMultiplier = GamificationEngine.calculateStreakMultiplier(currentStreak);
 
@@ -194,20 +195,13 @@ class GamificationRepositoryImpl implements GamificationRepository {
 
       // 3. Perfect Days XP Bonus
       var perfectDaysBonusXp = 0;
-      final allDates = logsByDate.keys.map((d) {
-        try {
-          return _dateFormatter.parse(d);
-        } catch (_) {
-          return null;
-        }
-      }).where((d) => d != null).cast<DateTime>();
-
-      for (final date in allDates) {
+      for (final dateStr in logsByDate.keys) {
+        final date = DateTime.tryParse(dateStr);
+        if (date == null) continue;
         final scheduled = habits.where((h) => !h.archived && StreakCalculator.isHabitScheduledOnDate(h, date)).toList();
         if (scheduled.isNotEmpty) {
-          final dateStr = _dateFormatter.format(date);
           final allCompleted = scheduled.every((h) {
-            final dayLogs = (logsByHabit[h.id] ?? const []).where((l) => l.date == dateStr).toList();
+            final dayLogs = logsByHabitDate[h.id]?[dateStr] ?? const [];
             return StreakCalculator.isHabitCompletedOnDate(h, dayLogs);
           });
           if (allCompleted) {
