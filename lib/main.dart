@@ -8,6 +8,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'data/preferences/theme_mode.dart';
 import 'data/preferences/theme_preferences.dart';
 import 'di/providers.dart';
+import 'services/app_logger.dart';
 import 'services/notification_service.dart';
 import 'ui/analytics/habit_analytics_screen.dart';
 import 'ui/daily/daily_tracker_screen.dart';
@@ -43,20 +44,24 @@ void main() {
       tz_data.initializeTimeZones();
       final timeZoneName = await FlutterTimezone.getLocalTimezone();
       tz.setLocalLocation(tz.getLocation(timeZoneName));
-    } catch (_) {
-      // Fallback to default
+    } catch (e, stack) {
+      AppLogger.w('Timezone initialization failed, using default timezone', error: e, stackTrace: stack);
     }
 
     try {
       await NotificationService.init();
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.w('NotificationService initialization failed', error: e, stackTrace: stack);
+    }
 
     try {
       await container.read(dayRolloverTaskProvider).executeRollover();
       await container.read(widgetSyncServiceProvider).consumePendingWidgetActions();
       await container.read(widgetSyncServiceProvider).syncAllWidgetsImmediate();
       await container.read(habitReminderSchedulerProvider).rescheduleAll();
-    } catch (_) {}
+    } catch (e, stack) {
+      AppLogger.w('Background startup tasks encountered an error', error: e, stackTrace: stack);
+    }
   });
 
   runApp(

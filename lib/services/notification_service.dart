@@ -10,6 +10,7 @@ import '../data/repositories/habit_repository_impl.dart';
 import '../data/schedulers/flutter_habit_reminder_scheduler.dart';
 import '../data/schedulers/notification_action_handler.dart';
 import '../data/schedulers/notification_channel_handler.dart';
+import 'app_logger.dart';
 
 typedef NotificationActionCallback = Future<void> Function({
   required String action,
@@ -103,8 +104,8 @@ class NotificationService {
           launchResponse != null) {
         _onForegroundNotificationResponse(launchResponse);
       }
-    } catch (_) {
-      // Graceful fallback for test/headless environments
+    } catch (e, stack) {
+      AppLogger.w('NotificationService init encountered an error', error: e, stackTrace: stack);
     }
   }
 
@@ -234,8 +235,8 @@ class NotificationService {
         androidScheduleMode: scheduleMode,
         matchDateTimeComponents: matchDateTimeComponents,
       );
-    } catch (e) {
-      debugPrint('Failed to schedule notification $id: $e');
+    } catch (e, stack) {
+      AppLogger.e('Failed to schedule notification $id', error: e, stackTrace: stack);
     }
   }
 
@@ -336,8 +337,8 @@ class NotificationService {
           delta: delta,
         );
       }
-    } catch (e) {
-      debugPrint('Failed to handle notification action: $e');
+    } catch (e, stack) {
+      AppLogger.e('Failed to handle notification action', error: e, stackTrace: stack);
     }
   }
 
@@ -371,8 +372,8 @@ class NotificationService {
         delta: delta,
       );
       await db.close();
-    } catch (e) {
-      debugPrint('Background notification action failed: $e');
+    } catch (e, stack) {
+      AppLogger.e('Background notification action failed', error: e, stackTrace: stack);
     }
   }
 }
