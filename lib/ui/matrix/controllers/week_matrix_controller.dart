@@ -252,27 +252,24 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
         start.day == currentIsoMonday.day;
 
     final categoryMap = {for (var c in _categories) c.id: c};
-    final logsByHabit = <String, List<HabitLog>>{};
+    final logsByHabitDate = <String, Map<String, List<HabitLog>>>{};
     for (final log in _logs) {
-      logsByHabit.putIfAbsent(log.habitId, () => []).add(log);
+      logsByHabitDate
+          .putIfAbsent(log.habitId, () => {})
+          .putIfAbsent(log.date, () => [])
+          .add(log);
     }
 
-    final shieldsByHabit = <String, List<HabitShield>>{};
+    final shieldsByHabitDate = <String, Set<String>>{};
     for (final s in _shields) {
-      shieldsByHabit.putIfAbsent(s.habitId, () => []).add(s);
+      shieldsByHabitDate.putIfAbsent(s.habitId, () => {}).add(s.date);
     }
 
     final weekDays = List.generate(7, (i) => start.add(Duration(days: i)));
 
     final rows = _habits.map((habit) {
-      final habitLogs = logsByHabit[habit.id] ?? const [];
-      final habitShields = shieldsByHabit[habit.id] ?? const [];
-      final logsByDate = <String, List<HabitLog>>{};
-      for (final log in habitLogs) {
-        logsByDate.putIfAbsent(log.date, () => []).add(log);
-      }
-
-      final shieldedDates = {for (final s in habitShields) s.date};
+      final logsByDate = logsByHabitDate[habit.id] ?? const {};
+      final shieldedDates = shieldsByHabitDate[habit.id] ?? const {};
 
       int completedDaysCount = 0;
       int shieldedDaysCount = 0;
@@ -282,7 +279,7 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
             date.month == today.month &&
             date.day == today.day;
         final isScheduled = StreakCalculator.isHabitScheduledOnDate(habit, date);
-        final dateStr = _dateFormatter.format(date);
+        final dateStr = StreakCalculator.formatIsoDate(date);
         final dayLogs = logsByDate[dateStr] ?? const [];
         final isCompleted =
             StreakCalculator.isHabitCompletedOnDate(habit, dayLogs);
@@ -345,7 +342,7 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
 
     // Daily completion stats for the bar chart
     final dailyStats = weekDays.map((date) {
-      final dateStr = _dateFormatter.format(date);
+      final dateStr = StreakCalculator.formatIsoDate(date);
       final dayLabel = DateFormat('EEE').format(date).substring(0, 3);
 
       int scheduled = 0;
@@ -356,13 +353,11 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
         final isScheduled = StreakCalculator.isHabitScheduledOnDate(habit, date);
         if (isScheduled) {
           scheduled++;
-          final habitLogs = logsByHabit[habit.id] ?? const [];
-          final dayLogs = habitLogs.where((l) => l.date == dateStr).toList();
+          final dayLogs = logsByHabitDate[habit.id]?[dateStr] ?? const [];
           if (StreakCalculator.isHabitCompletedOnDate(habit, dayLogs)) {
             completed++;
           } else {
-            final habitShields = shieldsByHabit[habit.id] ?? const [];
-            if (habitShields.any((s) => s.date == dateStr)) {
+            if (shieldsByHabitDate[habit.id]?.contains(dateStr) == true) {
               shielded++;
             }
           }

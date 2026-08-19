@@ -160,17 +160,24 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
     final isToday = date.year == now.year &&
         date.month == now.month &&
         date.day == now.day;
-    final dateStr = StreakCalculator.dateFormatter.format(date);
+    final dateStr = StreakCalculator.formatIsoDate(date);
     final categoryMap = {for (final c in _allCategories) c.id: c};
 
     final logsByHabit = <String, List<HabitLog>>{};
+    final logsByHabitDate = <String, Map<String, List<HabitLog>>>{};
     for (final log in _allLogs) {
       logsByHabit.putIfAbsent(log.habitId, () => []).add(log);
+      logsByHabitDate
+          .putIfAbsent(log.habitId, () => {})
+          .putIfAbsent(log.date, () => [])
+          .add(log);
     }
 
     final shieldsByHabit = <String, List<HabitShield>>{};
+    final shieldsByHabitDate = <String, Set<String>>{};
     for (final s in _allShields) {
       shieldsByHabit.putIfAbsent(s.habitId, () => []).add(s);
+      shieldsByHabitDate.putIfAbsent(s.habitId, () => {}).add(s.date);
     }
 
     final filteredHabits = _allHabits.where((habit) {
@@ -190,10 +197,10 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
     final habitsWithProgress = filteredHabits.map((habit) {
       final habitLogs = logsByHabit[habit.id] ?? const [];
       final habitShields = shieldsByHabit[habit.id] ?? const [];
-      final logsOnDate = habitLogs.where((l) => l.date == dateStr).toList();
+      final logsOnDate = logsByHabitDate[habit.id]?[dateStr] ?? const [];
       final isCompleted =
           StreakCalculator.isHabitCompletedOnDate(habit, logsOnDate);
-      final isShielded = habitShields.any((s) => s.date == dateStr);
+      final isShielded = shieldsByHabitDate[habit.id]?.contains(dateStr) == true;
 
       double currentValue;
       switch (habit.targetType) {
@@ -283,13 +290,11 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
     for (var offset = -3; offset <= 3; offset++) {
       final d = date.add(Duration(days: offset));
       final dClean = DateTime(d.year, d.month, d.day);
-      final dStr = StreakCalculator.dateFormatter.format(dClean);
+      final dStr = StreakCalculator.formatIsoDate(dClean);
       final completedCount = _allHabits.where((h) {
         if (h.archived) return false;
         if (!StreakCalculator.isHabitScheduledOnDate(h, dClean)) return false;
-        final hLogs = (logsByHabit[h.id] ?? const [])
-            .where((l) => l.date == dStr)
-            .toList();
+        final hLogs = logsByHabitDate[h.id]?[dStr] ?? const [];
         return StreakCalculator.isHabitCompletedOnDate(h, hLogs);
       }).length;
       weekLogsMap[dClean] = completedCount;

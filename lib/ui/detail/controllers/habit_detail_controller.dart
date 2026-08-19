@@ -181,7 +181,7 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
         .where((c) => c.id == habit.categoryId)
         .firstOrNull;
 
-    final dateStr = _dateFormatter.format(state.selectedDate);
+    final dateStr = StreakCalculator.formatIsoDate(state.selectedDate);
     final logsOnDate =
         _currentLogs.where((log) => log.date == dateStr).toList();
     final isCompleted =

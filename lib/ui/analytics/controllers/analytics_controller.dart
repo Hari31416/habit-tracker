@@ -245,12 +245,17 @@ class AnalyticsController extends StateNotifier<AnalyticsUiState> {
   void _recalculate() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final todayStr = _dateFormatter.format(today);
+    final todayStr = StreakCalculator.formatIsoDate(today);
     final categoryMap = {for (var c in _categories) c.id: c};
 
     final logsByHabit = <String, List<HabitLog>>{};
+    final logsByHabitDate = <String, Map<String, List<HabitLog>>>{};
     for (final log in _logs) {
       logsByHabit.putIfAbsent(log.habitId, () => []).add(log);
+      logsByHabitDate
+          .putIfAbsent(log.habitId, () => {})
+          .putIfAbsent(log.date, () => [])
+          .add(log);
     }
 
     // 1. Top KPIs: 30-Day consistency & Completed Today
@@ -262,13 +267,12 @@ class AnalyticsController extends StateNotifier<AnalyticsUiState> {
 
     for (int i = 0; i < 30; i++) {
       final checkDate = today.subtract(Duration(days: i));
-      final dateStr = _dateFormatter.format(checkDate);
+      final dateStr = StreakCalculator.formatIsoDate(checkDate);
 
       for (final habit in _habits) {
         if (StreakCalculator.isHabitScheduledOnDate(habit, checkDate)) {
           totalScheduled30d++;
-          final habitLogs = logsByHabit[habit.id] ?? const [];
-          final dayLogs = habitLogs.where((l) => l.date == dateStr).toList();
+          final dayLogs = logsByHabitDate[habit.id]?[dateStr] ?? const [];
           if (StreakCalculator.isHabitCompletedOnDate(habit, dayLogs)) {
             totalCompleted30d++;
           }
@@ -282,13 +286,12 @@ class AnalyticsController extends StateNotifier<AnalyticsUiState> {
 
     for (int i = 30; i < 60; i++) {
       final checkDate = today.subtract(Duration(days: i));
-      final dateStr = _dateFormatter.format(checkDate);
+      final dateStr = StreakCalculator.formatIsoDate(checkDate);
 
       for (final habit in _habits) {
         if (StreakCalculator.isHabitScheduledOnDate(habit, checkDate)) {
           totalScheduledPrev30d++;
-          final habitLogs = logsByHabit[habit.id] ?? const [];
-          final dayLogs = habitLogs.where((l) => l.date == dateStr).toList();
+          final dayLogs = logsByHabitDate[habit.id]?[dateStr] ?? const [];
           if (StreakCalculator.isHabitCompletedOnDate(habit, dayLogs)) {
             totalCompletedPrev30d++;
           }
@@ -299,8 +302,7 @@ class AnalyticsController extends StateNotifier<AnalyticsUiState> {
     for (final habit in _habits) {
       if (StreakCalculator.isHabitScheduledOnDate(habit, today)) {
         scheduledToday++;
-        final habitLogs = logsByHabit[habit.id] ?? const [];
-        final dayLogs = habitLogs.where((l) => l.date == todayStr).toList();
+        final dayLogs = logsByHabitDate[habit.id]?[todayStr] ?? const [];
         if (StreakCalculator.isHabitCompletedOnDate(habit, dayLogs)) {
           completedToday++;
         }
@@ -346,7 +348,7 @@ class AnalyticsController extends StateNotifier<AnalyticsUiState> {
     final trendPoints = List.generate(_trendRange.days, (i) {
       final offset = _trendRange.days - 1 - i;
       final date = today.subtract(Duration(days: offset));
-      final dateStr = _dateFormatter.format(date);
+      final dateStr = StreakCalculator.formatIsoDate(date);
 
       int dayScheduled = 0;
       int dayCompleted = 0;
@@ -354,8 +356,7 @@ class AnalyticsController extends StateNotifier<AnalyticsUiState> {
       for (final habit in _habits) {
         if (StreakCalculator.isHabitScheduledOnDate(habit, date)) {
           dayScheduled++;
-          final habitLogs = logsByHabit[habit.id] ?? const [];
-          final dayLogs = habitLogs.where((l) => l.date == dateStr).toList();
+          final dayLogs = logsByHabitDate[habit.id]?[dateStr] ?? const [];
           if (StreakCalculator.isHabitCompletedOnDate(habit, dayLogs)) {
             dayCompleted++;
           }
@@ -387,7 +388,7 @@ class AnalyticsController extends StateNotifier<AnalyticsUiState> {
 
     for (int d = 1; d <= daysInMonth; d++) {
       final date = DateTime(_heatmapMonth.year, _heatmapMonth.month, d);
-      final dateStr = _dateFormatter.format(date);
+      final dateStr = StreakCalculator.formatIsoDate(date);
 
       int dayScheduled = 0;
       int dayCompleted = 0;
@@ -395,8 +396,7 @@ class AnalyticsController extends StateNotifier<AnalyticsUiState> {
       for (final habit in _habits) {
         if (StreakCalculator.isHabitScheduledOnDate(habit, date)) {
           dayScheduled++;
-          final habitLogs = logsByHabit[habit.id] ?? const [];
-          final dayLogs = habitLogs.where((l) => l.date == dateStr).toList();
+          final dayLogs = logsByHabitDate[habit.id]?[dateStr] ?? const [];
           if (StreakCalculator.isHabitCompletedOnDate(habit, dayLogs)) {
             dayCompleted++;
           }
