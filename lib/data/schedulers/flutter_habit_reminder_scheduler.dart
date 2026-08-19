@@ -24,6 +24,8 @@ class FlutterHabitReminderScheduler implements HabitReminderScheduler {
 
   FlutterHabitReminderScheduler(this._habitDao);
 
+  final Map<String, int> _scheduledReminderCounts = {};
+
   @override
   Future<void> schedule(Habit habit, {bool catchUpIfDue = false}) async {
     // Cancel existing notifications for this habit first
@@ -42,6 +44,7 @@ class FlutterHabitReminderScheduler implements HabitReminderScheduler {
     // so catch-up does not fire a second copy of a notification just shown.
     final reference = catchUpIfDue ? now : now.add(const Duration(minutes: 1));
 
+    int scheduledCount = 0;
     for (int index = 0; index < habit.reminderTimes.length; index++) {
       final timeStr = habit.reminderTimes[index];
       final parsedTime = _parseTime(timeStr);
@@ -69,17 +72,24 @@ class FlutterHabitReminderScheduler implements HabitReminderScheduler {
         payload: payload,
         scheduledDate: scheduledDate,
       );
+      scheduledCount++;
+    }
+
+    if (scheduledCount > 0) {
+      _scheduledReminderCounts[habit.id] = scheduledCount;
     }
   }
 
   @override
   Future<void> cancel(String habitId) async {
-    // Cancel up to 10 possible reminder index slots per habit
-    // (same pattern as the Kotlin AlarmHabitReminderScheduler)
-    for (int index = 0; index < 10; index++) {
+    // Cancel up to 10 possible reminder index slots per habit concurrently
+    final count = _scheduledReminderCounts.remove(habitId) ?? 10;
+    final cancelFutures = <Future<void>>[];
+    for (int index = 0; index < count; index++) {
       final requestCode = _generateRequestCode(habitId, index);
-      await NotificationService.cancelNotification(requestCode);
+      cancelFutures.add(NotificationService.cancelNotification(requestCode));
     }
+    await Future.wait(cancelFutures);
   }
 
   @override

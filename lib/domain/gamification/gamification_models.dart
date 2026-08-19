@@ -46,6 +46,33 @@ class AchievementDefinition {
     required this.targetValue,
     required this.unit,
   });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AchievementDefinition &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          title == other.title &&
+          description == other.description &&
+          category == other.category &&
+          tier == other.tier &&
+          iconName == other.iconName &&
+          xpReward == other.xpReward &&
+          targetValue == other.targetValue &&
+          unit == other.unit;
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      title.hashCode ^
+      description.hashCode ^
+      category.hashCode ^
+      tier.hashCode ^
+      iconName.hashCode ^
+      xpReward.hashCode ^
+      targetValue.hashCode ^
+      unit.hashCode;
 }
 
 class AchievementStatus {
@@ -62,6 +89,25 @@ class AchievementStatus {
     required this.progressFraction,
     this.unlockedAt,
   });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AchievementStatus &&
+          runtimeType == other.runtimeType &&
+          definition == other.definition &&
+          isUnlocked == other.isUnlocked &&
+          currentProgress == other.currentProgress &&
+          progressFraction == other.progressFraction &&
+          unlockedAt == other.unlockedAt;
+
+  @override
+  int get hashCode =>
+      definition.hashCode ^
+      isUnlocked.hashCode ^
+      currentProgress.hashCode ^
+      progressFraction.hashCode ^
+      unlockedAt.hashCode;
 }
 
 class PlayerProgression {
@@ -88,6 +134,35 @@ class PlayerProgression {
     this.unlockedBadgesCount = 0,
     this.totalBadgesCount = 0,
   });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PlayerProgression &&
+          runtimeType == other.runtimeType &&
+          totalXp == other.totalXp &&
+          level == other.level &&
+          title == other.title &&
+          currentLevelBaseXp == other.currentLevelBaseXp &&
+          nextLevelTargetXp == other.nextLevelTargetXp &&
+          progressFraction == other.progressFraction &&
+          activeStreakMultiplier == other.activeStreakMultiplier &&
+          longestActiveStreak == other.longestActiveStreak &&
+          unlockedBadgesCount == other.unlockedBadgesCount &&
+          totalBadgesCount == other.totalBadgesCount;
+
+  @override
+  int get hashCode =>
+      totalXp.hashCode ^
+      level.hashCode ^
+      title.hashCode ^
+      currentLevelBaseXp.hashCode ^
+      nextLevelTargetXp.hashCode ^
+      progressFraction.hashCode ^
+      activeStreakMultiplier.hashCode ^
+      longestActiveStreak.hashCode ^
+      unlockedBadgesCount.hashCode ^
+      totalBadgesCount.hashCode;
 }
 
 class LevelUpCelebration {
@@ -102,4 +177,21 @@ class LevelUpCelebration {
     required this.title,
     required this.titleChanged,
   });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LevelUpCelebration &&
+          runtimeType == other.runtimeType &&
+          newLevel == other.newLevel &&
+          previousLevel == other.previousLevel &&
+          title == other.title &&
+          titleChanged == other.titleChanged;
+
+  @override
+  int get hashCode =>
+      newLevel.hashCode ^
+      previousLevel.hashCode ^
+      title.hashCode ^
+      titleChanged.hashCode;
 }
