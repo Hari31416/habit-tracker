@@ -81,7 +81,7 @@ class HabitTrackerApp extends ConsumerStatefulWidget {
 
 class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
     with WidgetsBindingObserver {
-  static const _widgetsChannel = MethodChannel('com.productivity.habits/widgets');
+  static const _widgetsChannel = MethodChannel('app.phial.habits/widgets');
 
   @override
   void initState() {

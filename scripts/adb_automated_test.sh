@@ -3,7 +3,7 @@ set -e
 
 ANDROID_HOME="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
 ADB="$(which adb 2>/dev/null || echo "$ANDROID_HOME/platform-tools/adb")"
-PACKAGE_NAME="com.productivity.habits"
+PACKAGE_NAME="app.phial.habits"
 MAIN_ACTIVITY="$PACKAGE_NAME.MainActivity"
 SCREENSHOT_DIR="build/screenshots"
 

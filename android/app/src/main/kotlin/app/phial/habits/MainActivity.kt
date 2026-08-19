@@ -1,4 +1,4 @@
-package com.productivity.habits
+package app.phial.habits
 
 import android.app.NotificationManager
 import android.appwidget.AppWidgetManager
@@ -7,14 +7,14 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
-import com.productivity.habits.widgets.*
+import app.phial.habits.widgets.*
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-    private val WIDGETS_CHANNEL = "com.productivity.habits/widgets"
-    private val TIMER_CHANNEL = "com.productivity.habits/focus_timer"
+    private val WIDGETS_CHANNEL = "app.phial.habits/widgets"
+    private val TIMER_CHANNEL = "app.phial.habits/focus_timer"
 
     private var initialDeepLink: String? = null
     private var widgetsChannel: MethodChannel? = null

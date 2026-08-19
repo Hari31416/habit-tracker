@@ -23,11 +23,11 @@ class NotificationPayload {
       'Timely reminders to complete your scheduled habits';
 
   static const String actionMarkDone =
-      'com.productivity.habits.ACTION_MARK_DONE';
+      'app.phial.habits.ACTION_MARK_DONE';
   static const String actionAddDelta =
-      'com.productivity.habits.ACTION_ADD_DELTA';
+      'app.phial.habits.ACTION_ADD_DELTA';
   static const String actionViewHabit =
-      'com.productivity.habits.ACTION_VIEW_HABIT';
+      'app.phial.habits.ACTION_VIEW_HABIT';
 
   final int notificationId;
   final String title;
@@ -54,7 +54,7 @@ class NotificationPayload {
     int reminderIndex,
   ) {
     final notificationId = requestCodeFor(habit.id, reminderIndex);
-    final deepLinkUri = 'app://habits/detail/${habit.id}';
+    final deepLinkUri = 'phial://habits/detail/${habit.id}';
     final actions = <NotificationActionPayload>[];
     String bodyText;
 

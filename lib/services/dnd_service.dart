@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 
 class DndService {
   static const MethodChannel _channel =
-      MethodChannel('com.productivity.habits/focus_timer');
+      MethodChannel('app.phial.habits/focus_timer');
 
   /// Checks if Notification Policy / DND access has been granted by the user on Android.
   /// Returns true on non-Android platforms or if access is granted.

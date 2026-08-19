@@ -144,7 +144,7 @@ class FocusTimerBackgroundService {
 
   void _callNativeTimer(String method, [Map<String, dynamic>? args]) {
     try {
-      const channel = MethodChannel('com.productivity.habits/focus_timer');
+      const channel = MethodChannel('app.phial.habits/focus_timer');
       channel.invokeMethod(method, args).catchError((_) => null);
     } catch (_) {}
   }

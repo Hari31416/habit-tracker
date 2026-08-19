@@ -1,4 +1,4 @@
-package com.productivity.habits.widgets
+package app.phial.habits.widgets
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
@@ -11,9 +11,9 @@ import android.graphics.Paint
 import android.net.Uri
 import android.view.View
 import android.widget.RemoteViews
-import com.productivity.habits.FocusTimerService
-import com.productivity.habits.MainActivity
-import com.productivity.habits.R
+import app.phial.habits.FocusTimerService
+import app.phial.habits.MainActivity
+import app.phial.habits.R
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Locale
@@ -72,7 +72,7 @@ abstract class BaseHabitWidgetProvider(protected val layoutResId: Int) : AppWidg
 
 class TodaysHabitsWidgetReceiver : BaseHabitWidgetProvider(R.layout.widget_todays_habits) {
     companion object {
-        const val ACTION_TOGGLE_HABIT = "com.productivity.habits.widget.ACTION_TOGGLE_HABIT"
+        const val ACTION_TOGGLE_HABIT = "app.phial.habits.widget.ACTION_TOGGLE_HABIT"
         const val EXTRA_HABIT_ID = "extra_habit_id"
         const val EXTRA_AUTH_TOKEN = "extra_auth_token"
 

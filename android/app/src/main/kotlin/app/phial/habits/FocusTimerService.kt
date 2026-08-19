@@ -1,4 +1,4 @@
-package com.productivity.habits
+package app.phial.habits
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -40,12 +40,12 @@ class FocusTimerService : Service() {
         const val NOTIFICATION_ID = 1001
         const val COMPLETION_NOTIFICATION_ID = 1002
 
-        const val ACTION_START = "com.productivity.habits.ACTION_START"
-        const val ACTION_PAUSE = "com.productivity.habits.ACTION_PAUSE"
-        const val ACTION_RESUME = "com.productivity.habits.ACTION_RESUME"
-        const val ACTION_STOP = "com.productivity.habits.ACTION_STOP"
-        const val ACTION_RESET = "com.productivity.habits.ACTION_RESET"
-        const val ACTION_ADJUST = "com.productivity.habits.ACTION_ADJUST"
+        const val ACTION_START = "app.phial.habits.ACTION_START"
+        const val ACTION_PAUSE = "app.phial.habits.ACTION_PAUSE"
+        const val ACTION_RESUME = "app.phial.habits.ACTION_RESUME"
+        const val ACTION_STOP = "app.phial.habits.ACTION_STOP"
+        const val ACTION_RESET = "app.phial.habits.ACTION_RESET"
+        const val ACTION_ADJUST = "app.phial.habits.ACTION_ADJUST"
 
         const val EXTRA_HABIT_ID = "extra_habit_id"
         const val EXTRA_HABIT_TITLE = "extra_habit_title"

@@ -50,7 +50,7 @@ void main() {
 
     expect(payload.title, 'Floss Teeth');
     expect(payload.body, 'Ready for your daily check-in?');
-    expect(payload.deepLinkUri, 'app://habits/detail/h_bool');
+    expect(payload.deepLinkUri, 'phial://habits/detail/h_bool');
     expect(payload.actions.length, 2);
     expect(payload.actions[0].actionId, NotificationPayload.actionMarkDone);
     expect(payload.actions[0].label, 'Check-In');

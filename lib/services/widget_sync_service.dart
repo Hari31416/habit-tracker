@@ -271,7 +271,7 @@ class WidgetSyncService {
       progressFraction: progressFraction,
     );
     try {
-      const channel = MethodChannel('com.productivity.habits/widgets');
+      const channel = MethodChannel('app.phial.habits/widgets');
       await channel.invokeMethod('updateWidgetData', {
         'widgetType': 'focus_timer',
         'jsonData': jsonEncode(lastFocusTimer!.toJson()),
@@ -282,7 +282,7 @@ class WidgetSyncService {
 
   Future<void> consumePendingWidgetActions() async {
     try {
-      const channel = MethodChannel('com.productivity.habits/widgets');
+      const channel = MethodChannel('app.phial.habits/widgets');
       final dynamic checkIns =
           await channel.invokeMethod('getPendingWidgetCheckIns');
       final now = DateTime.now();
@@ -593,7 +593,7 @@ class WidgetSyncService {
 
     // Platform sync via MethodChannel
     try {
-      const channel = MethodChannel('com.productivity.habits/widgets');
+      const channel = MethodChannel('app.phial.habits/widgets');
       if (lastDailyFocus != null) {
         await channel.invokeMethod('updateWidgetData', {
           'widgetType': 'daily_focus',

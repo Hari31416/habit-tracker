@@ -11,7 +11,7 @@ ifneq ($(wildcard $(RELEASE_CREDENTIALS)),)
   export ANDROID_KEYSTORE_PATH ANDROID_KEY_ALIAS ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_PASSWORD
 endif
 
-PACKAGE_NAME := com.productivity.habits
+PACKAGE_NAME := app.phial.habits
 MAIN_ACTIVITY := $(PACKAGE_NAME).MainActivity
 DEFAULT_AVD := $(shell $(EMULATOR) -list-avds 2>/dev/null | head -n 1)
 AVD ?= $(DEFAULT_AVD)

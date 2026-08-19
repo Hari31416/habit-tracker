@@ -68,7 +68,7 @@ class TimerState {
 
 class TimerStateHolderNotifier extends StateNotifier<TimerState> {
   static const MethodChannel _nativeChannel =
-      MethodChannel('com.productivity.habits/focus_timer');
+      MethodChannel('app.phial.habits/focus_timer');
 
   final HabitRepository? _repository;
   Timer? _ticker;
@@ -524,7 +524,7 @@ class TimerStateHolder {
 
   static void _callNativeStaticTimer(String method, [Map<String, dynamic>? args]) {
     try {
-      const channel = MethodChannel('com.productivity.habits/focus_timer');
+      const channel = MethodChannel('app.phial.habits/focus_timer');
       channel.invokeMethod(method, args).catchError((_) => null);
     } catch (_) {}
   }
