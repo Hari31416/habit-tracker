@@ -45,9 +45,54 @@ function initTabs() {
   });
 }
 
+// 3. Mobile Navigation Menu Toggle
+function initMobileMenu() {
+  const menuBtn = document.getElementById('mobile-menu-btn');
+  const navDrawer = document.getElementById('mobile-nav-drawer');
+  const menuIcon = document.getElementById('mobile-menu-icon');
+
+  if (!menuBtn || !navDrawer) return;
+
+  function toggleMenu() {
+    const isOpen = navDrawer.classList.toggle('open');
+    if (menuIcon) {
+      menuIcon.innerHTML = isOpen
+        ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>'
+        : '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>';
+    }
+  }
+
+  menuBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleMenu();
+  });
+
+  // Close menu when clicking on any nav link inside drawer
+  const links = navDrawer.querySelectorAll('a');
+  links.forEach(link => {
+    link.addEventListener('click', () => {
+      navDrawer.classList.remove('open');
+      if (menuIcon) {
+        menuIcon.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>';
+      }
+    });
+  });
+
+  // Close when clicking outside
+  document.addEventListener('click', (e) => {
+    if (navDrawer.classList.contains('open') && !navDrawer.contains(e.target) && e.target !== menuBtn) {
+      navDrawer.classList.remove('open');
+      if (menuIcon) {
+        menuIcon.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>';
+      }
+    }
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initTabs();
+  initMobileMenu();
 
   const themeToggle = document.getElementById('theme-toggle-btn');
   if (themeToggle) {
