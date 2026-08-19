@@ -31,6 +31,13 @@ abstract class Screen {
     }
     final clean = uriString.trim();
 
+    if (clean.startsWith('phial://habits/')) {
+      final subPath = clean.replaceFirst('phial://habits/', '');
+      return _normalizeSubPath(subPath);
+    }
+    if (clean.startsWith('phial://habits')) {
+      return daily;
+    }
     if (clean.startsWith('app://habits/')) {
       final subPath = clean.replaceFirst('app://habits/', '');
       return _normalizeSubPath(subPath);

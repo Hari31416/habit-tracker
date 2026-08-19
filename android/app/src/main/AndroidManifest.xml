@@ -44,6 +44,9 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:host="habits"
+                    android:scheme="phial" />
+                <data
+                    android:host="habits"
                     android:scheme="app" />
             </intent-filter>
         </activity>

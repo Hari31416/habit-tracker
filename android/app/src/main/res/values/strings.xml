@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Habit Tracker</string>
+    <string name="app_name">Phial</string>
 
     <!-- Widget 1: Today's Habits -->
     <string name="todays_habits_widget_name">Today\'s Habits</string>

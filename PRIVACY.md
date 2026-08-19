@@ -1,6 +1,6 @@
 # Privacy Policy
 
-Habit Tracker is built with a local-first, privacy-respecting architecture.
+Phial is built with a local-first, privacy-respecting architecture.
 
 ## Data Storage and Networking
 

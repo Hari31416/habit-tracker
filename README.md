@@ -1,10 +1,10 @@
-# Habit Tracker
+# Phial: Habit Tracker & Focus
 
-A modern, standalone habit tracking application built with Flutter, Riverpod, Drift persistence, and Material 3 design, with full feature and logic parity to the native Android Kotlin architecture.
+A modern, standalone habit tracking and focus companion built with Flutter, Riverpod, Drift persistence, and Material 3 design.
 
 ## Overview
 
-Habit Tracker provides flexible tracking across multiple habit models:
+Phial provides flexible tracking across multiple habit models:
 
 - Daily Habits with rolling date navigation and active streak preservation
 - Weekly Habits with ISO Monday–Sunday week boundaries and week-unit streaks

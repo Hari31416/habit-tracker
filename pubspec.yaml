@@ -1,8 +1,8 @@
 name: habit_tracker
-description: "A standalone Habit Tracker application with 100% parity to the Kotlin Habit Tracker."
+description: "Phial: Habit Tracker & Focus - Fully offline habit tracker & focus companion."
 publish_to: 'none'
 
-version: 0.7.0+8
+version: 0.8.0-alpha.1+9
 
 environment:
   sdk: ^3.13.0

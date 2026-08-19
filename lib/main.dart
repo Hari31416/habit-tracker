@@ -163,7 +163,7 @@ class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
 
     return MaterialApp(
       navigatorKey: appNavigatorKey,
-      title: 'Habit Tracker',
+      title: 'Phial',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: flutterThemeMode,
