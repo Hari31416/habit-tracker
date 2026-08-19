@@ -244,6 +244,15 @@ class HabitRepositoryImpl implements HabitRepository {
     return rows.map(_logRowToDomain).toList();
   }
 
+  Future<void> _rescheduleHabitRemindersIfActive(String habitId) async {
+    try {
+      final habit = await getHabitByIdOnce(habitId);
+      if (habit != null && !habit.archived && habit.reminderTimes.isNotEmpty) {
+        await reminderScheduler.schedule(habit);
+      }
+    } catch (_) {}
+  }
+
   @override
   Future<void> logCheckIn({
     required String habitId,
@@ -273,6 +282,7 @@ class HabitRepositoryImpl implements HabitRepository {
       updatedAt: Value(now),
     );
     await habitLogDao.upsertLog(log);
+    await _rescheduleHabitRemindersIfActive(habitId);
   }
 
   @override
@@ -407,6 +417,7 @@ class HabitRepositoryImpl implements HabitRepository {
         }
       }
     });
+    await _rescheduleHabitRemindersIfActive(habitId);
   }
 
   @override
@@ -438,6 +449,7 @@ class HabitRepositoryImpl implements HabitRepository {
       );
       await habitLogDao.upsertLog(log);
     });
+    await _rescheduleHabitRemindersIfActive(habitId);
   }
 
   @override
@@ -480,6 +492,7 @@ class HabitRepositoryImpl implements HabitRepository {
       );
       await habitLogDao.upsertLog(log);
     });
+    await _rescheduleHabitRemindersIfActive(habitId);
   }
 
   @override
@@ -506,11 +519,13 @@ class HabitRepositoryImpl implements HabitRepository {
         await habitLogDao.upsertLog(log);
       }
     });
+    await _rescheduleHabitRemindersIfActive(habitId);
   }
 
   @override
   Future<void> deleteLogsForHabitAndDate(String habitId, DateTime date) async {
     await habitLogDao.deleteLogsForHabitAndDate(habitId, _dateFormatter.format(date));
+    await _rescheduleHabitRemindersIfActive(habitId);
   }
 
   // Shields & Grace Days

@@ -1,3 +1,4 @@
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../domain/models/habit.dart';
@@ -67,10 +68,24 @@ class FlutterHabitReminderScheduler implements HabitReminderScheduler {
 
       final payload = NotificationPayload.buildNotification(habit, index);
 
+      final DateTimeComponents? matchDateTimeComponents;
+      switch (habit.frequencyType) {
+        case HabitFrequencyType.daily:
+        case HabitFrequencyType.timesPerDay:
+        case HabitFrequencyType.subdayInterval:
+        case HabitFrequencyType.weekly:
+          matchDateTimeComponents = DateTimeComponents.time;
+          break;
+        case HabitFrequencyType.customDays:
+          matchDateTimeComponents = null;
+          break;
+      }
+
       await NotificationService.scheduleNotification(
         id: requestCode,
         payload: payload,
         scheduledDate: scheduledDate,
+        matchDateTimeComponents: matchDateTimeComponents,
       );
       scheduledCount++;
     }
@@ -127,6 +142,14 @@ class FlutterHabitReminderScheduler implements HabitReminderScheduler {
       updatedAt: row.updatedAt,
     );
   }
+
+  /// Calculate the next occurrence for a reminder time.
+  DateTime calculateNextOccurrence(
+    Habit habit,
+    DateTime reminderTime, [
+    DateTime? referenceDateTime,
+  ]) =>
+      _calculateNextOccurrence(habit, reminderTime, referenceDateTime);
 
   /// Reused from [LocalNotificationsScheduler.calculateNextOccurrence].
   DateTime _calculateNextOccurrence(

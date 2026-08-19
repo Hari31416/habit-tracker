@@ -7,7 +7,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../data/local/app_database.dart';
 import '../data/repositories/habit_repository_impl.dart';
-import '../data/schedulers/no_op_habit_reminder_scheduler.dart';
+import '../data/schedulers/flutter_habit_reminder_scheduler.dart';
 import '../data/schedulers/notification_action_handler.dart';
 import '../data/schedulers/notification_channel_handler.dart';
 
@@ -150,12 +150,14 @@ class NotificationService {
     required int id,
     required NotificationPayload payload,
     required tz.TZDateTime scheduledDate,
+    DateTimeComponents? matchDateTimeComponents,
   }) async {
     if (mockMode) {
       mockScheduledNotifications.add({
         'id': id,
         'payload': payload,
         'scheduledDate': scheduledDate,
+        'matchDateTimeComponents': matchDateTimeComponents,
       });
       return;
     }
@@ -221,6 +223,7 @@ class NotificationService {
         notificationDetails: details,
         payload: actionPayloadJson,
         androidScheduleMode: scheduleMode,
+        matchDateTimeComponents: matchDateTimeComponents,
       );
     } catch (e) {
       debugPrint('Failed to schedule notification $id: $e');
@@ -344,14 +347,15 @@ class NotificationService {
       DartPluginRegistrant.ensureInitialized();
 
       final db = AppDatabase.backgroundInstance();
+      final scheduler = FlutterHabitReminderScheduler(db.habitDao);
       final repo = HabitRepositoryImpl(
         habitDao: db.habitDao,
         habitLogDao: db.habitLogDao,
         habitShieldDao: db.habitShieldDao,
         habitCategoryDao: db.habitCategoryDao,
-        reminderScheduler: const NoOpHabitReminderScheduler(),
+        reminderScheduler: scheduler,
       );
-      final handler = NotificationActionHandler(repo);
+      final handler = NotificationActionHandler(repo, null, scheduler);
       await handler.handleAction(
         action: action,
         habitId: habitId,

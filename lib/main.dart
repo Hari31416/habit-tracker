@@ -96,6 +96,7 @@ class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
     if (state == AppLifecycleState.resumed) {
       ref.read(widgetSyncServiceProvider).consumePendingWidgetActions();
       ref.read(timerStateHolderProvider.notifier).syncFromNative();
+      ref.read(habitReminderSchedulerProvider).rescheduleAll();
       _handlePendingDeepLink();
     }
   }
