@@ -16,7 +16,7 @@ MAIN_ACTIVITY := $(PACKAGE_NAME).MainActivity
 DEFAULT_AVD := $(shell $(EMULATOR) -list-avds 2>/dev/null | head -n 1)
 AVD ?= $(DEFAULT_AVD)
 
-.PHONY: help build build-release build-release-universal build-appbundle test lint clean install uninstall emulator-list emulator-start emulator-stop emulator-wait start stop restart run debug logcat flutter-run flutter-run-android flutter-build-apk flutter-build-release flutter-build-appbundle flutter-test flutter-analyze flutter-codegen codegen adb-test
+.PHONY: help build build-release build-release-universal build-appbundle test lint clean install uninstall emulator-list emulator-start emulator-stop emulator-wait start stop restart run debug profile logcat flutter-run flutter-run-profile flutter-run-android flutter-build-apk flutter-build-release flutter-build-appbundle flutter-test flutter-analyze flutter-codegen codegen adb-test perf-test benchmark
 
 help: ## Show this help message
 	@echo "Usage: make [target] [AVD=avd_name]"
@@ -28,8 +28,14 @@ help: ## Show this help message
 	@echo "  make test            - Run all Flutter unit and widget tests"
 	@echo "  make lint            - Run Flutter code analysis"
 	@echo "  make clean           - Clean Flutter and Gradle build artifacts"
-	@echo "  make run             - Complete pipeline: ensure emulator, build, and launch Flutter app"
+	@echo "  make run             - Complete pipeline: ensure emulator, build, and launch Flutter app in debug mode"
+	@echo "  make profile         - Launch Flutter app in profile mode for benchmarking"
 	@echo "  make codegen         - Run build_runner for Drift/Riverpod codegen"
+	@echo "  make perf-test       - Run automated memory, CPU, and rendering footprint benchmark"
+	@echo "  make benchmark       - Run Python benchmark runner with plots and Markdown report via uv"
+	@echo "  make adb-test        - Run automated ADB UI and regression test suite"
+
+
 	@echo ""
 	@echo "Flutter Aliases:"
 	@echo "  make flutter-run     - Ensure emulator, then run Flutter app on Android"
@@ -139,10 +145,30 @@ run: ## Ensure device, build, install, and launch Flutter app
 
 debug: run ## Alias for run
 
+profile: ## Ensure device, build, install, and launch Flutter app in profile mode
+	@DEVICES=$$($(ADB) devices | grep -v "List" | grep "device" | wc -l | tr -d ' '); \
+	if [ "$$DEVICES" -eq "0" ]; then \
+		echo "No active Android device/emulator detected."; \
+		$(MAKE) emulator-start; \
+		$(MAKE) emulator-wait; \
+	fi; \
+	ANDROID_DEVICE=$$($(ADB) devices | grep -v "List" | grep "device" | head -n 1 | awk '{print $$1}'); \
+	if [ -n "$$ANDROID_DEVICE" ]; then \
+		echo "Running Flutter app in profile mode on Android device: $$ANDROID_DEVICE"; \
+		flutter run --profile -d "$$ANDROID_DEVICE" --android-skip-build-dependency-validation; \
+	else \
+		flutter run --profile -d android-arm64 --android-skip-build-dependency-validation; \
+	fi
+
+
+
 logcat: ## Stream app logs
 	$(ADB) logcat -v color --pid=$$($(ADB) shell pidof -s $(PACKAGE_NAME)) || $(ADB) logcat | grep --color=auto $(PACKAGE_NAME)
 
 flutter-run: run ## Ensure emulator and run Flutter app on Android
+
+flutter-run-profile: profile ## Ensure emulator and run Flutter app in profile mode
+
 
 flutter-run-android: run ## Alias for flutter-run
 
@@ -163,3 +189,7 @@ adb-test: ## Run automated ADB UI and regression test suite
 	@chmod +x scripts/adb_automated_test.sh
 	@./scripts/adb_automated_test.sh
 
+perf-test: benchmark ## Alias for benchmark
+
+benchmark: ## Run full Python benchmark runner with plots and Markdown report via uv
+	uv run scripts/benchmark_runner.py

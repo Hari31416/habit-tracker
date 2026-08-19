@@ -42,8 +42,8 @@ void main() {
   Future.microtask(() async {
     try {
       tz_data.initializeTimeZones();
-      final timeZoneName = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(timeZoneName));
+      final timeZoneInfo = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(timeZoneInfo.identifier));
     } catch (e, stack) {
       AppLogger.w('Timezone initialization failed, using default timezone', error: e, stackTrace: stack);
     }
