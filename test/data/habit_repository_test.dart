@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:habit_tracker/data/local/app_database.dart';
@@ -19,6 +20,7 @@ void main() {
       habitLogDao: db.habitLogDao,
       habitShieldDao: db.habitShieldDao,
       habitCategoryDao: db.habitCategoryDao,
+      gamificationDao: db.gamificationDao,
       reminderScheduler: const NoOpHabitReminderScheduler(),
     );
   });
@@ -193,5 +195,74 @@ void main() {
     // Remove shield
     await repository.removeShield(habit.id, today);
     expect(await repository.isDateShielded(habit.id, today), isFalse);
+  });
+
+  test('insertShields batch inserts multiple shields', () async {
+    final now = DateTime.now().toUtc();
+    final habit = Habit(
+      id: 'test-shield-batch-habit',
+      title: 'Batch Shield Habit',
+      color: '#10B981',
+      frequencyType: HabitFrequencyType.daily,
+      targetType: HabitTargetType.boolean,
+      createdAt: now,
+      updatedAt: now,
+    );
+    await repository.upsertHabit(habit);
+
+    final companions = [
+      HabitShieldsCompanion(
+        id: const Value('shield-batch-1'),
+        habitId: const Value('test-shield-batch-habit'),
+        date: const Value('2026-08-17'),
+        autoApplied: const Value(true),
+        createdAt: Value(now),
+        updatedAt: Value(now),
+      ),
+      HabitShieldsCompanion(
+        id: const Value('shield-batch-2'),
+        habitId: const Value('test-shield-batch-habit'),
+        date: const Value('2026-08-18'),
+        autoApplied: const Value(false),
+        createdAt: Value(now),
+        updatedAt: Value(now),
+      ),
+    ];
+
+    await db.habitShieldDao.insertShields(companions);
+    final all = await db.habitShieldDao.getAllShieldsOnce();
+    expect(all.any((s) => s.id == 'shield-batch-1'), isTrue);
+    expect(all.any((s) => s.id == 'shield-batch-2'), isTrue);
+  });
+
+  test('autoProtectMissedDays protects active habit with yesterday streak', () async {
+    final now = DateTime.now().toUtc();
+    final habit = Habit(
+      id: 'auto-protect-habit',
+      title: 'Workout',
+      color: '#10B981',
+      frequencyType: HabitFrequencyType.daily,
+      targetType: HabitTargetType.boolean,
+      createdAt: now,
+      updatedAt: now,
+    );
+    await repository.upsertHabit(habit);
+
+    // Give habit a completion yesterday
+    final yesterday = DateTime(2026, 8, 17);
+    final today = DateTime(2026, 8, 18);
+    await repository.logCheckIn(
+      habitId: habit.id,
+      date: yesterday,
+      completed: true,
+    );
+
+    // Initial shield state
+    expect(await repository.isDateShielded(habit.id, today), isFalse);
+
+    // Auto protect for today (missed)
+    final autoApplied = await repository.autoProtectMissedDays(today);
+    expect(autoApplied, greaterThan(0));
+    expect(await repository.isDateShielded(habit.id, today), isTrue);
   });
 }

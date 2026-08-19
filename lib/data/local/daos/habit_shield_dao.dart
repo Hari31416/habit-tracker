@@ -60,6 +60,12 @@ class HabitShieldDao extends DatabaseAccessor<AppDatabase> with _$HabitShieldDao
     return into(habitShields).insertOnConflictUpdate(entity);
   }
 
+  Future<void> insertShields(List<HabitShieldsCompanion> shieldList) async {
+    await batch((b) {
+      b.insertAllOnConflictUpdate(habitShields, shieldList);
+    });
+  }
+
   Future<void> deleteShield(String habitId, String date) {
     return (delete(habitShields)
           ..where((s) => s.habitId.equals(habitId) & s.date.equals(date)))

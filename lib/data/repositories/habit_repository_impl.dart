@@ -308,173 +308,204 @@ class HabitRepositoryImpl implements HabitRepository {
 
   @override
   Future<void> toggleBooleanCheckIn(String habitId, DateTime date) async {
-    final dateStr = _dateFormatter.format(date);
-    final habit = await getHabitByIdOnce(habitId);
-    final existingRows = await habitLogDao.getLogsForHabitAndDateOnce(habitId, dateStr);
-    final existingLogs = existingRows.map(_logRowToDomain).toList();
+    await habitDao.attachedDatabase.transaction(() async {
+      final dateStr = _dateFormatter.format(date);
+      final habit = await getHabitByIdOnce(habitId);
+      final existingRows = await habitLogDao.getLogsForHabitAndDateOnce(habitId, dateStr);
+      final existingLogs = existingRows.map(_logRowToDomain).toList();
 
-    final wasCompleted = habit != null
-        ? StreakCalculator.isHabitCompletedOnDate(habit, existingLogs)
-        : existingLogs.any((l) => l.completed);
+      final wasCompleted = habit != null
+          ? StreakCalculator.isHabitCompletedOnDate(habit, existingLogs)
+          : existingLogs.any((l) => l.completed);
 
-    if (wasCompleted) {
-      await habitLogDao.deleteLogsForHabitAndDate(habitId, dateStr);
-    } else {
-      await habitLogDao.deleteLogsForHabitAndDate(habitId, dateStr);
-      final now = DateTime.now().toUtc();
-      if (habit != null) {
-        switch (habit.targetType) {
-          case HabitTargetType.boolean:
-            switch (habit.frequencyType) {
-              case HabitFrequencyType.timesPerDay:
-              case HabitFrequencyType.subdayInterval:
-                final slots = habit.timesPerDay ?? habit.targetValue?.toInt() ?? 1;
-                for (var i = 0; i < slots; i++) {
-                  final slotLog = HabitLogsCompanion(
+      if (wasCompleted) {
+        await habitLogDao.deleteLogsForHabitAndDate(habitId, dateStr);
+      } else {
+        await habitLogDao.deleteLogsForHabitAndDate(habitId, dateStr);
+        final now = DateTime.now().toUtc();
+        if (habit != null) {
+          switch (habit.targetType) {
+            case HabitTargetType.boolean:
+              switch (habit.frequencyType) {
+                case HabitFrequencyType.timesPerDay:
+                case HabitFrequencyType.subdayInterval:
+                  final slots = habit.timesPerDay ?? habit.targetValue?.toInt() ?? 1;
+                  final slotLogs = <HabitLogsCompanion>[];
+                  for (var i = 0; i < slots; i++) {
+                    slotLogs.add(
+                      HabitLogsCompanion(
+                        id: Value(_uuid.v4()),
+                        habitId: Value(habitId),
+                        date: Value(dateStr),
+                        timestamp: Value(now),
+                        intervalIndex: Value(i),
+                        completed: const Value(true),
+                        createdAt: Value(now),
+                        updatedAt: Value(now),
+                      ),
+                    );
+                  }
+                  await habitLogDao.insertLogs(slotLogs);
+                  break;
+                default:
+                  final log = HabitLogsCompanion(
                     id: Value(_uuid.v4()),
                     habitId: Value(habitId),
                     date: Value(dateStr),
                     timestamp: Value(now),
-                    intervalIndex: Value(i),
                     completed: const Value(true),
                     createdAt: Value(now),
                     updatedAt: Value(now),
                   );
-                  await habitLogDao.upsertLog(slotLog);
-                }
-                break;
-              default:
-                final log = HabitLogsCompanion(
-                  id: Value(_uuid.v4()),
-                  habitId: Value(habitId),
-                  date: Value(dateStr),
-                  timestamp: Value(now),
-                  completed: const Value(true),
-                  createdAt: Value(now),
-                  updatedAt: Value(now),
-                );
-                await habitLogDao.upsertLog(log);
-            }
-            break;
+                  await habitLogDao.upsertLog(log);
+              }
+              break;
 
-          case HabitTargetType.numeric:
-            final target = habit.targetValue ?? 1.0;
-            final log = HabitLogsCompanion(
-              id: Value(_uuid.v4()),
-              habitId: Value(habitId),
-              date: Value(dateStr),
-              timestamp: Value(now),
-              completed: const Value(true),
-              value: Value(target),
-              createdAt: Value(now),
-              updatedAt: Value(now),
-            );
-            await habitLogDao.upsertLog(log);
-            break;
+            case HabitTargetType.numeric:
+              final target = habit.targetValue ?? 1.0;
+              final log = HabitLogsCompanion(
+                id: Value(_uuid.v4()),
+                habitId: Value(habitId),
+                date: Value(dateStr),
+                timestamp: Value(now),
+                completed: const Value(true),
+                value: Value(target),
+                createdAt: Value(now),
+                updatedAt: Value(now),
+              );
+              await habitLogDao.upsertLog(log);
+              break;
 
-          case HabitTargetType.timer:
-            final targetMin = habit.targetValue ?? 25.0;
-            final totalSec = (targetMin * 60).toInt();
-            final log = HabitLogsCompanion(
-              id: Value(_uuid.v4()),
-              habitId: Value(habitId),
-              date: Value(dateStr),
-              timestamp: Value(now),
-              completed: const Value(true),
-              value: Value(targetMin),
-              durationSeconds: Value(totalSec),
-              createdAt: Value(now),
-              updatedAt: Value(now),
-            );
-            await habitLogDao.upsertLog(log);
-            break;
+            case HabitTargetType.timer:
+              final targetMin = habit.targetValue ?? 25.0;
+              final totalSec = (targetMin * 60).toInt();
+              final log = HabitLogsCompanion(
+                id: Value(_uuid.v4()),
+                habitId: Value(habitId),
+                date: Value(dateStr),
+                timestamp: Value(now),
+                completed: const Value(true),
+                value: Value(targetMin),
+                durationSeconds: Value(totalSec),
+                createdAt: Value(now),
+                updatedAt: Value(now),
+              );
+              await habitLogDao.upsertLog(log);
+              break;
+          }
+        } else {
+          final log = HabitLogsCompanion(
+            id: Value(_uuid.v4()),
+            habitId: Value(habitId),
+            date: Value(dateStr),
+            timestamp: Value(now),
+            completed: const Value(true),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          );
+          await habitLogDao.upsertLog(log);
         }
-      } else {
-        final log = HabitLogsCompanion(
-          id: Value(_uuid.v4()),
-          habitId: Value(habitId),
-          date: Value(dateStr),
-          timestamp: Value(now),
-          completed: const Value(true),
-          createdAt: Value(now),
-          updatedAt: Value(now),
-        );
-        await habitLogDao.upsertLog(log);
       }
-    }
+    });
   }
 
   @override
   Future<void> updateNumericValue(String habitId, DateTime date, double value) async {
-    final dateStr = _dateFormatter.format(date);
-    final habit = await getHabitByIdOnce(habitId);
-    final target = habit?.targetValue ?? 1.0;
-    final isComplete = value >= target;
-    final existingLogs = await habitLogDao.getLogsForHabitAndDateOnce(habitId, dateStr);
-    final now = DateTime.now().toUtc();
-    final durationSec =
-        habit?.targetType == HabitTargetType.timer ? (value * 60).toInt() : null;
+    await habitDao.attachedDatabase.transaction(() async {
+      final dateStr = _dateFormatter.format(date);
+      final habit = await getHabitByIdOnce(habitId);
+      final target = habit?.targetValue ?? 1.0;
+      final isComplete = value >= target;
+      final existingLogs = await habitLogDao.getLogsForHabitAndDateOnce(habitId, dateStr);
+      final now = DateTime.now().toUtc();
+      final durationSec =
+          habit?.targetType == HabitTargetType.timer ? (value * 60).toInt() : null;
 
-    if (existingLogs.length > 1) {
-      await habitLogDao.deleteLogsForHabitAndDate(habitId, dateStr);
-    }
+      if (existingLogs.length > 1) {
+        await habitLogDao.deleteLogsForHabitAndDate(habitId, dateStr);
+      }
 
-    final log = HabitLogsCompanion(
-      id: Value(existingLogs.length == 1 ? existingLogs.first.id : _uuid.v4()),
-      habitId: Value(habitId),
-      date: Value(dateStr),
-      timestamp: Value(now),
-      completed: Value(isComplete),
-      value: Value(value),
-      durationSeconds: Value(durationSec),
-      createdAt: Value(existingLogs.isNotEmpty ? existingLogs.first.createdAt : now),
-      updatedAt: Value(now),
-    );
-    await habitLogDao.upsertLog(log);
+      final log = HabitLogsCompanion(
+        id: Value(existingLogs.length == 1 ? existingLogs.first.id : _uuid.v4()),
+        habitId: Value(habitId),
+        date: Value(dateStr),
+        timestamp: Value(now),
+        completed: Value(isComplete),
+        value: Value(value),
+        durationSeconds: Value(durationSec),
+        createdAt: Value(existingLogs.isNotEmpty ? existingLogs.first.createdAt : now),
+        updatedAt: Value(now),
+      );
+      await habitLogDao.upsertLog(log);
+    });
   }
 
   @override
   Future<void> addNumericDelta(String habitId, DateTime date, double delta) async {
-    final dateStr = _dateFormatter.format(date);
-    final habit = await getHabitByIdOnce(habitId);
-    final target = habit?.targetValue ?? 1.0;
-    final existingLogs = await habitLogDao.getLogsForHabitAndDateOnce(habitId, dateStr);
-    final currentValue = existingLogs.fold<double>(
-      0.0,
-      (sum, l) {
-        if (l.durationSeconds != null && l.durationSeconds! > 0) {
-          return sum + (l.durationSeconds! / 60.0);
-        } else {
-          return sum + (l.value ?? (l.completed ? target : 0.0));
-        }
-      },
-    );
-    final newValue = max(0.0, currentValue + delta);
-    await updateNumericValue(habitId, date, newValue);
+    await habitDao.attachedDatabase.transaction(() async {
+      final dateStr = _dateFormatter.format(date);
+      final habit = await getHabitByIdOnce(habitId);
+      final target = habit?.targetValue ?? 1.0;
+      final existingLogs = await habitLogDao.getLogsForHabitAndDateOnce(habitId, dateStr);
+      final currentValue = existingLogs.fold<double>(
+        0.0,
+        (sum, l) {
+          if (l.durationSeconds != null && l.durationSeconds! > 0) {
+            return sum + (l.durationSeconds! / 60.0);
+          } else {
+            return sum + (l.value ?? (l.completed ? target : 0.0));
+          }
+        },
+      );
+      final newValue = max(0.0, currentValue + delta);
+      final isComplete = newValue >= target;
+      final now = DateTime.now().toUtc();
+      final durationSec =
+          habit?.targetType == HabitTargetType.timer ? (newValue * 60).toInt() : null;
+
+      if (existingLogs.length > 1) {
+        await habitLogDao.deleteLogsForHabitAndDate(habitId, dateStr);
+      }
+
+      final log = HabitLogsCompanion(
+        id: Value(existingLogs.length == 1 ? existingLogs.first.id : _uuid.v4()),
+        habitId: Value(habitId),
+        date: Value(dateStr),
+        timestamp: Value(now),
+        completed: Value(isComplete),
+        value: Value(newValue),
+        durationSeconds: Value(durationSec),
+        createdAt: Value(existingLogs.isNotEmpty ? existingLogs.first.createdAt : now),
+        updatedAt: Value(now),
+      );
+      await habitLogDao.upsertLog(log);
+    });
   }
 
   @override
   Future<void> toggleSlotCheckIn(String habitId, DateTime date, int slotIndex) async {
-    final dateStr = _dateFormatter.format(date);
-    final existingLogs = await habitLogDao.getLogsForHabitAndDateOnce(habitId, dateStr);
-    final slotLog = existingLogs.where((l) => l.intervalIndex == slotIndex).firstOrNull;
+    await habitDao.attachedDatabase.transaction(() async {
+      final dateStr = _dateFormatter.format(date);
+      final existingLogs = await habitLogDao.getLogsForHabitAndDateOnce(habitId, dateStr);
+      final slotLog = existingLogs.where((l) => l.intervalIndex == slotIndex).firstOrNull;
 
-    if (slotLog != null && slotLog.completed) {
-      await habitLogDao.deleteSlotLog(habitId, dateStr, slotIndex);
-    } else {
-      final now = DateTime.now().toUtc();
-      final log = HabitLogsCompanion(
-        id: Value(slotLog?.id ?? _uuid.v4()),
-        habitId: Value(habitId),
-        date: Value(dateStr),
-        timestamp: Value(now),
-        intervalIndex: Value(slotIndex),
-        completed: const Value(true),
-        createdAt: Value(slotLog?.createdAt ?? now),
-        updatedAt: Value(now),
-      );
-      await habitLogDao.upsertLog(log);
-    }
+      if (slotLog != null && slotLog.completed) {
+        await habitLogDao.deleteSlotLog(habitId, dateStr, slotIndex);
+      } else {
+        final now = DateTime.now().toUtc();
+        final log = HabitLogsCompanion(
+          id: Value(slotLog?.id ?? _uuid.v4()),
+          habitId: Value(habitId),
+          date: Value(dateStr),
+          timestamp: Value(now),
+          intervalIndex: Value(slotIndex),
+          completed: const Value(true),
+          createdAt: Value(slotLog?.createdAt ?? now),
+          updatedAt: Value(now),
+        );
+        await habitLogDao.upsertLog(log);
+      }
+    });
   }
 
   @override
@@ -574,7 +605,7 @@ class HabitRepositoryImpl implements HabitRepository {
 
   @override
   Future<int> autoProtectMissedDays(DateTime date) async {
-    final habits = (await habitDao.watchActiveHabits().first).map(_habitRowToDomain).toList();
+    final habits = (await habitDao.getActiveHabitsOnce()).map(_habitRowToDomain).toList();
     final allLogs = await getAllLogsOnce();
     final allShields = await getAllShieldsOnce();
 
@@ -584,7 +615,7 @@ class HabitRepositoryImpl implements HabitRepository {
 
     if (!autoConsume) return 0;
 
-    var currentBankState = ShieldBankingEngine.calculateBankState(
+    final currentBankState = ShieldBankingEngine.calculateBankState(
       habits: habits,
       logs: allLogs,
       shields: allShields,
@@ -595,9 +626,11 @@ class HabitRepositoryImpl implements HabitRepository {
 
     if (currentBankState.availableShields <= 0) return 0;
 
+    var availableShields = currentBankState.availableShields;
     var autoAppliedCount = 0;
     final targetDate = DateTime(date.year, date.month, date.day);
     final targetDateStr = _dateFormatter.format(targetDate);
+    final now = DateTime.now().toUtc();
 
     final logsByHabit = <String, List<HabitLog>>{};
     for (final log in allLogs) {
@@ -609,8 +642,10 @@ class HabitRepositoryImpl implements HabitRepository {
       shieldsByHabit.putIfAbsent(s.habitId, () => []).add(s);
     }
 
+    final newShieldsToInsert = <HabitShieldsCompanion>[];
+
     for (final habit in habits) {
-      if (currentBankState.availableShields <= 0) break;
+      if (availableShields <= 0) break;
 
       final isScheduled = StreakCalculator.isHabitScheduledOnDate(habit, targetDate);
       if (!isScheduled) continue;
@@ -633,25 +668,34 @@ class HabitRepositoryImpl implements HabitRepository {
         );
 
         if (yesterdayStreak.currentStreak > 0) {
-          await applyShield(
-            habitId: habit.id,
-            date: targetDate,
-            autoApplied: true,
+          newShieldsToInsert.add(
+            HabitShieldsCompanion(
+              id: Value(_uuid.v4()),
+              habitId: Value(habit.id),
+              date: Value(targetDateStr),
+              autoApplied: const Value(true),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
           );
+          shieldsByHabit.putIfAbsent(habit.id, () => []).add(
+            HabitShield(
+              id: 'temp',
+              habitId: habit.id,
+              date: targetDateStr,
+              autoApplied: true,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+          availableShields--;
           autoAppliedCount++;
-
-          // Update bank state after applying
-          final updatedShields = await getAllShieldsOnce();
-          currentBankState = ShieldBankingEngine.calculateBankState(
-            habits: habits,
-            logs: allLogs,
-            shields: updatedShields,
-            maxCapacity: maxCapacity,
-            autoConsumeEnabled: autoConsume,
-            referenceDate: date,
-          );
         }
       }
+    }
+
+    if (newShieldsToInsert.isNotEmpty) {
+      await habitShieldDao.insertShields(newShieldsToInsert);
     }
 
     return autoAppliedCount;

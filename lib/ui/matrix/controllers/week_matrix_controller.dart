@@ -202,18 +202,26 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
       _recalculate();
     });
 
-    _logsSub = _repository.getAllLogs().listen((logs) {
+    _categoriesSub = _repository.getAllCategories().listen((categories) {
+      _categories = categories;
+      _recalculate();
+    });
+
+    _subscribeWeekData();
+  }
+
+  void _subscribeWeekData() {
+    _logsSub?.cancel();
+    _shieldsSub?.cancel();
+
+    final weekEnd = _weekStart.add(const Duration(days: 6));
+    _logsSub = _repository.getLogsForDateRange(_weekStart, weekEnd).listen((logs) {
       _logs = logs;
       _recalculate();
     });
 
-    _shieldsSub = _repository.getAllShields().listen((shields) {
+    _shieldsSub = _repository.getShieldsForDateRange(_weekStart, weekEnd).listen((shields) {
       _shields = shields;
-      _recalculate();
-    });
-
-    _categoriesSub = _repository.getAllCategories().listen((categories) {
-      _categories = categories;
       _recalculate();
     });
   }
@@ -395,17 +403,17 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
 
   void previousWeek() {
     _weekStart = _weekStart.subtract(const Duration(days: 7));
-    _recalculate();
+    _subscribeWeekData();
   }
 
   void nextWeek() {
     _weekStart = _weekStart.add(const Duration(days: 7));
-    _recalculate();
+    _subscribeWeekData();
   }
 
   void currentWeek() {
     _weekStart = StreakCalculator.isoWeekStart(DateTime.now());
-    _recalculate();
+    _subscribeWeekData();
   }
 
   Future<void> toggleCell(String habitId, DateTime date) async {
