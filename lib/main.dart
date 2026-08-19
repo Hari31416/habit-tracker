@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
@@ -36,7 +37,7 @@ void main() {
         );
   });
 
-  // Non-blocking background startup pipeline: timezones, notifications, widget sync, and reminder schedule
+  // Non-blocking background startup pipeline: timezones, notifications, widget sync, reminder schedule, and day rollover
   Future.microtask(() async {
     try {
       tz_data.initializeTimeZones();
@@ -75,10 +76,13 @@ class HabitTrackerApp extends ConsumerStatefulWidget {
 
 class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
     with WidgetsBindingObserver {
+  static const _widgetsChannel = MethodChannel('com.productivity.habits/widgets');
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _widgetsChannel.setMethodCallHandler(_handleNativeWidgetsCall);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(timerStateHolderProvider.notifier).syncFromNative();
       _handlePendingDeepLink();
@@ -89,6 +93,18 @@ class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  Future<void> _handleNativeWidgetsCall(MethodCall call) async {
+    if (call.method == 'onDeepLink') {
+      final uri = call.arguments as String?;
+      if (uri != null && uri.isNotEmpty) {
+        final route = Screen.fromUri(uri);
+        if (route != Screen.daily) {
+          appNavigatorKey.currentState?.pushNamed(route);
+        }
+      }
+    }
   }
 
   @override
@@ -102,11 +118,24 @@ class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
     }
   }
 
-  void _handlePendingDeepLink() {
-    final deepLink = NotificationService.pendingDeepLink;
+  Future<void> _handlePendingDeepLink() async {
+    var deepLink = NotificationService.pendingDeepLink;
+    NotificationService.pendingDeepLink = null;
+
+    if (deepLink == null) {
+      try {
+        final initialUri = await _widgetsChannel.invokeMethod<String>('getInitialDeepLink');
+        if (initialUri != null && initialUri.isNotEmpty) {
+          deepLink = initialUri;
+        }
+      } catch (_) {}
+    }
+
     if (deepLink != null) {
-      NotificationService.pendingDeepLink = null;
-      appNavigatorKey.currentState?.pushNamed(deepLink);
+      final route = Screen.fromUri(deepLink);
+      if (route != Screen.daily) {
+        appNavigatorKey.currentState?.pushNamed(route);
+      }
     }
   }
 
@@ -135,29 +164,11 @@ class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
       themeMode: flutterThemeMode,
       initialRoute: Screen.daily,
       onGenerateRoute: (settings) {
-        final name = settings.name ?? Screen.daily;
+        final route = Screen.fromUri(settings.name);
 
-        if (name == Screen.daily) {
+        if (route == Screen.matrix) {
           return MaterialPageRoute(
-            builder: (ctx) => DailyTrackerScreen(
-              onNavigateToDetail: (habitId) {
-                Navigator.of(ctx).pushNamed(Screen.detailRoute(habitId));
-              },
-              onNavigateToMatrix: () {
-                Navigator.of(ctx).pushReplacementNamed(Screen.matrix);
-              },
-              onNavigateToAnalytics: () {
-                Navigator.of(ctx).pushReplacementNamed(Screen.analytics);
-              },
-              onNavigateToBadges: () {
-                Navigator.of(ctx).pushReplacementNamed(Screen.badges);
-              },
-            ),
-          );
-        }
-
-        if (name == Screen.matrix) {
-          return MaterialPageRoute(
+            settings: settings,
             builder: (ctx) => HabitWeekMatrixScreen(
               onNavigateToDaily: () {
                 Navigator.of(ctx).pushReplacementNamed(Screen.daily);
@@ -175,8 +186,9 @@ class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
           );
         }
 
-        if (name == Screen.analytics) {
+        if (route == Screen.analytics) {
           return MaterialPageRoute(
+            settings: settings,
             builder: (ctx) => HabitAnalyticsScreen(
               onNavigateToDaily: () {
                 Navigator.of(ctx).pushReplacementNamed(Screen.daily);
@@ -194,8 +206,9 @@ class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
           );
         }
 
-        if (name == Screen.badges) {
+        if (route == Screen.badges) {
           return MaterialPageRoute(
+            settings: settings,
             builder: (ctx) => BadgesShowcaseScreen(
               onNavigateToDaily: () {
                 Navigator.of(ctx).pushReplacementNamed(Screen.daily);
@@ -210,30 +223,37 @@ class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
           );
         }
 
-        if (name.startsWith('detail/')) {
-          final habitId = name.replaceFirst('detail/', '');
-          return MaterialPageRoute(
-            builder: (ctx) => HabitDetailScreen(
-              habitId: habitId,
-              onBack: () => Navigator.of(ctx).pop(),
-              onNavigateToFocusScreen: (id) {
-                Navigator.of(ctx).pushNamed(Screen.focusTimerRoute(id));
-              },
-            ),
-          );
+        if (route.startsWith('detail/')) {
+          final habitId = route.replaceFirst('detail/', '');
+          if (habitId.isNotEmpty) {
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (ctx) => HabitDetailScreen(
+                habitId: habitId,
+                onBack: () => Navigator.of(ctx).pop(),
+                onNavigateToFocusScreen: (id) {
+                  Navigator.of(ctx).pushNamed(Screen.focusTimerRoute(id));
+                },
+              ),
+            );
+          }
         }
 
-        if (name.startsWith('focus_timer/')) {
-          final habitId = name.replaceFirst('focus_timer/', '');
-          return MaterialPageRoute(
-            builder: (ctx) => FocusTimerScreen(
-              habitId: habitId,
-              onBack: () => Navigator.of(ctx).pop(),
-            ),
-          );
+        if (route.startsWith('focus_timer/')) {
+          final habitId = route.replaceFirst('focus_timer/', '');
+          if (habitId.isNotEmpty) {
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (ctx) => FocusTimerScreen(
+                habitId: habitId,
+                onBack: () => Navigator.of(ctx).pop(),
+              ),
+            );
+          }
         }
 
         return MaterialPageRoute(
+          settings: settings,
           builder: (ctx) => DailyTrackerScreen(
             onNavigateToDetail: (habitId) {
               Navigator.of(ctx).pushNamed(Screen.detailRoute(habitId));

@@ -16,13 +16,36 @@ class MainActivity : FlutterActivity() {
     private val WIDGETS_CHANNEL = "com.productivity.habits/widgets"
     private val TIMER_CHANNEL = "com.productivity.habits/focus_timer"
 
+    private var initialDeepLink: String? = null
+    private var widgetsChannel: MethodChannel? = null
+
+    override fun onCreate(savedInstanceState: android.os.Bundle?) {
+        super.onCreate(savedInstanceState)
+        initialDeepLink = intent?.data?.toString()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val deepLink = intent.data?.toString()
+        if (!deepLink.isNullOrEmpty()) {
+            widgetsChannel?.invokeMethod("onDeepLink", deepLink)
+        }
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         timerChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, TIMER_CHANNEL)
 
         // Widgets Method Channel
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, WIDGETS_CHANNEL).setMethodCallHandler { call, result ->
+        widgetsChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, WIDGETS_CHANNEL)
+        widgetsChannel?.setMethodCallHandler { call, result ->
             when (call.method) {
+                "getInitialDeepLink" -> {
+                    val uri = initialDeepLink
+                    initialDeepLink = null
+                    result.success(uri)
+                }
                 "updateWidgetData" -> {
                     val widgetType = call.argument<String>("widgetType")
                     val jsonData = call.argument<String>("jsonData")
