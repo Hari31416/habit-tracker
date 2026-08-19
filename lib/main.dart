@@ -52,6 +52,7 @@ void main() {
     } catch (_) {}
 
     try {
+      await container.read(dayRolloverTaskProvider).executeRollover();
       await container.read(widgetSyncServiceProvider).consumePendingWidgetActions();
       await container.read(widgetSyncServiceProvider).syncAllWidgetsImmediate();
       await container.read(habitReminderSchedulerProvider).rescheduleAll();
@@ -94,6 +95,7 @@ class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      ref.read(dayRolloverTaskProvider).executeRollover();
       ref.read(widgetSyncServiceProvider).consumePendingWidgetActions();
       ref.read(timerStateHolderProvider.notifier).syncFromNative();
       ref.read(habitReminderSchedulerProvider).rescheduleAll();
