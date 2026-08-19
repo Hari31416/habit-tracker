@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../data/preferences/theme_preferences.dart';
+import '../../domain/models/habit.dart';
 import '../common/haptics_helper.dart';
 import '../common/theme_toggle_button.dart';
 import '../form/habit_form_bottom_sheet.dart';
@@ -34,23 +36,80 @@ class DailyTrackerScreen extends ConsumerStatefulWidget {
   ConsumerState<DailyTrackerScreen> createState() => _DailyTrackerScreenState();
 }
 
-class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen> {
+class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
+    with SingleTickerProviderStateMixin {
   bool _isSearchExpanded = false;
   late final TextEditingController _searchController;
   late final TextEditingController _nameInputController;
+
+  late final AnimationController _toastAnimationController;
+  late final Animation<double> _toastFadeAnimation;
+  late final Animation<Offset> _toastSlideAnimation;
+  Timer? _toastTimer;
+  Habit? _activeReflectionHabit;
 
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController();
     _nameInputController = TextEditingController();
+
+    _toastAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    _toastFadeAnimation = CurvedAnimation(
+      parent: _toastAnimationController,
+      curve: Curves.easeInOut,
+    );
+    _toastSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.4),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _toastAnimationController,
+        curve: Curves.easeOutBack,
+      ),
+    );
   }
 
   @override
   void dispose() {
+    _toastTimer?.cancel();
+    _toastAnimationController.dispose();
     _searchController.dispose();
     _nameInputController.dispose();
     super.dispose();
+  }
+
+  void _showReflectionToast(Habit habit) {
+    _toastTimer?.cancel();
+    setState(() {
+      _activeReflectionHabit = habit;
+    });
+    _toastAnimationController.forward(from: 0.0);
+    _toastTimer = Timer(const Duration(milliseconds: 2500), () {
+      if (mounted) {
+        _toastAnimationController.reverse().then((_) {
+          if (mounted) {
+            setState(() {
+              _activeReflectionHabit = null;
+            });
+          }
+        });
+      }
+    });
+  }
+
+  void _dismissReflectionToast() {
+    _toastTimer?.cancel();
+    _toastAnimationController.reverse().then((_) {
+      if (mounted) {
+        setState(() {
+          _activeReflectionHabit = null;
+        });
+      }
+    });
   }
 
   String _getTimeGreeting() {
@@ -136,177 +195,178 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
-            // Top App Bar & Greeting
-            Material(
-              color: theme.colorScheme.surface,
-              elevation: 1,
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Greeting (Clickable for name edit)
-                    Expanded(
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(8),
-                        onTap: () => _showNameDialog(currentUserName),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  displayGreeting,
-                                  style:
-                                      theme.textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: theme.colorScheme.onSurface,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              if (currentUserName.isEmpty) ...[
-                                const SizedBox(width: 6),
-                                Icon(
-                                  Icons.edit,
-                                  size: 16,
-                                  color: theme.colorScheme.primary,
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Actions: Shield bank, Theme toggle, Search icon, Sort menu
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
+            Column(
+              children: [
+                // Top App Bar & Greeting
+                Material(
+                  color: theme.colorScheme.surface,
+                  elevation: 1,
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.shield_outlined),
-                          tooltip: 'Streak Shields Bank',
-                          onPressed: () {
-                            HapticsHelper.performLightHaptic();
-                            ShieldBankBottomSheet.show(context);
-                          },
-                        ),
-                        ThemeToggleButton(
-                          currentTheme: currentThemeMode,
-                          onThemeSelected: (mode) {
-                            ref
-                                .read(themeModeProvider.notifier)
-                                .setThemeMode(mode);
-                          },
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            Icons.search,
-                            color: _isSearchExpanded
-                                ? theme.colorScheme.primary
-                                : theme.colorScheme.onSurfaceVariant,
-                          ),
-                          tooltip: 'Search Habits',
-                          onPressed: () {
-                            HapticsHelper.performLightHaptic();
-                            setState(() {
-                              _isSearchExpanded = !_isSearchExpanded;
-                              if (!_isSearchExpanded) {
-                                _searchController.clear();
-                                controller.setSearchQuery('');
-                              }
-                            });
-                          },
-                        ),
-                        PopupMenuButton<HabitSortOption>(
-                          icon: Icon(
-                            Icons.sort,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                          tooltip: 'Sort Habits',
-                          onSelected: (option) {
-                            HapticsHelper.performLightHaptic();
-                            controller.setSortOption(option);
-                          },
-                          itemBuilder: (context) {
-                            return HabitSortOption.values.map((option) {
-                              final isSelected = uiState.sortOption == option;
-                              return PopupMenuItem<HabitSortOption>(
-                                value: option,
-                                child: Text(
-                                  option.displayName,
-                                  style: TextStyle(
-                                    fontWeight: isSelected
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                    color: isSelected
-                                        ? theme.colorScheme.primary
-                                        : theme.colorScheme.onSurface,
+                        // Greeting (Clickable for name edit)
+                        Expanded(
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () => _showNameDialog(currentUserName),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      displayGreeting,
+                                      style:
+                                          theme.textTheme.titleLarge?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: theme.colorScheme.onSurface,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
-                                ),
-                              );
-                            }).toList();
-                          },
+                                  if (currentUserName.isEmpty) ...[
+                                    const SizedBox(width: 6),
+                                    Icon(
+                                      Icons.edit,
+                                      size: 16,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Actions: Shield bank, Theme toggle, Search icon, Sort menu
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.shield_outlined),
+                              tooltip: 'Streak Shields Bank',
+                              onPressed: () {
+                                HapticsHelper.performLightHaptic();
+                                ShieldBankBottomSheet.show(context);
+                              },
+                            ),
+                            ThemeToggleButton(
+                              currentTheme: currentThemeMode,
+                              onThemeSelected: (mode) {
+                                ref
+                                    .read(themeModeProvider.notifier)
+                                    .setThemeMode(mode);
+                              },
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.search,
+                                color: _isSearchExpanded
+                                    ? theme.colorScheme.primary
+                                    : theme.colorScheme.onSurfaceVariant,
+                              ),
+                              tooltip: 'Search Habits',
+                              onPressed: () {
+                                HapticsHelper.performLightHaptic();
+                                setState(() {
+                                  _isSearchExpanded = !_isSearchExpanded;
+                                  if (!_isSearchExpanded) {
+                                    _searchController.clear();
+                                    controller.setSearchQuery('');
+                                  }
+                                });
+                              },
+                            ),
+                            PopupMenuButton<HabitSortOption>(
+                              icon: Icon(
+                                Icons.sort,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                              tooltip: 'Sort Habits',
+                              onSelected: (option) {
+                                HapticsHelper.performLightHaptic();
+                                controller.setSortOption(option);
+                              },
+                              itemBuilder: (context) {
+                                return HabitSortOption.values.map((option) {
+                                  final isSelected = uiState.sortOption == option;
+                                  return PopupMenuItem<HabitSortOption>(
+                                    value: option,
+                                    child: Text(
+                                      option.displayName,
+                                      style: TextStyle(
+                                        fontWeight: isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                        color: isSelected
+                                            ? theme.colorScheme.primary
+                                            : theme.colorScheme.onSurface,
+                                      ),
+                                    ),
+                                  );
+                                }).toList();
+                              },
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
 
-            // Expandable Search Bar
-            AnimatedCrossFade(
-              firstChild: const SizedBox.shrink(),
-              secondChild: Material(
-                color: theme.colorScheme.surface,
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                  child: TextField(
-                    controller: _searchController,
-                    onChanged: controller.setSearchQuery,
-                    decoration: InputDecoration(
-                      hintText: 'Search by title or description...',
-                      prefixIcon: Icon(
-                        Icons.search,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      suffixIcon: _searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                _searchController.clear();
-                                controller.setSearchQuery('');
-                              },
-                            )
-                          : null,
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color:
-                              theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                // Expandable Search Bar
+                AnimatedCrossFade(
+                  firstChild: const SizedBox.shrink(),
+                  secondChild: Material(
+                    color: theme.colorScheme.surface,
+                    child: Padding(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      child: TextField(
+                        controller: _searchController,
+                        onChanged: controller.setSearchQuery,
+                        decoration: InputDecoration(
+                          hintText: 'Search by title or description...',
+                          prefixIcon: Icon(
+                            Icons.search,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    controller.setSearchQuery('');
+                                  },
+                                )
+                              : null,
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
+                  crossFadeState: _isSearchExpanded
+                      ? CrossFadeState.showSecond
+                      : CrossFadeState.showFirst,
+                  duration: const Duration(milliseconds: 200),
                 ),
-              ),
-              crossFadeState: _isSearchExpanded
-                  ? CrossFadeState.showSecond
-                  : CrossFadeState.showFirst,
-              duration: const Duration(milliseconds: 200),
-            ),
 
             // Historical Date Banner
             HistoricalBanner(
@@ -431,7 +491,18 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen> {
             ),
           ],
         ),
-      ),
+
+        // Floating Reflection Toast
+        if (_activeReflectionHabit != null)
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 12,
+            child: _buildReflectionToast(theme, uiState.selectedDate),
+          ),
+      ],
+    ),
+  ),
       bottomNavigationBar: HabitBottomNavigation(
         currentRoute: Screen.daily,
         onNavigate: (route) {
@@ -616,20 +687,8 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen> {
           onToggleCheckIn: () {
             final wasCompleted = habitWithProgress.isCompletedOnDate;
             controller.toggleCheckIn(habitWithProgress.habit);
-            if (!wasCompleted) {
-              Future.delayed(const Duration(milliseconds: 350), () {
-                if (context.mounted) {
-                  final log = habitWithProgress.logsForDate.firstOrNull;
-                  ReflectionBottomSheet.show(
-                    context,
-                    habit: habitWithProgress.habit,
-                    date: uiState.selectedDate,
-                    initialEnergyLevel: log?.energyLevel,
-                    initialMood: log?.mood,
-                    initialNote: log?.note,
-                  );
-                }
-              });
+            if (!wasCompleted && habitWithProgress.habit.promptReflection) {
+              _showReflectionToast(habitWithProgress.habit);
             }
           },
           onReflect: () {
@@ -663,6 +722,93 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildReflectionToast(ThemeData theme, DateTime selectedDate) {
+    final habit = _activeReflectionHabit;
+    if (habit == null) return const SizedBox.shrink();
+
+    return SlideTransition(
+      position: _toastSlideAnimation,
+      child: FadeTransition(
+        opacity: _toastFadeAnimation,
+        child: Dismissible(
+          key: ValueKey('reflection_toast_${habit.id}'),
+          direction: DismissDirection.horizontal,
+          onDismissed: (_) => _dismissReflectionToast(),
+          child: Material(
+            elevation: 8,
+            shadowColor: Colors.black45,
+            color: const Color(0xFF1E293B),
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.12),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.check_circle,
+                    size: 20,
+                    color: Color(0xFF10B981),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Completed "${habit.title}"',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      backgroundColor:
+                          theme.colorScheme.primary.withValues(alpha: 0.2),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onPressed: () {
+                      _dismissReflectionToast();
+                      ReflectionBottomSheet.show(
+                        context,
+                        habit: habit,
+                        date: selectedDate,
+                      );
+                    },
+                    child: Text(
+                      'Reflect',
+                      style: TextStyle(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

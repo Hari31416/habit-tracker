@@ -61,4 +61,54 @@ void main() {
     expect(find.text('Health'), findsWidgets);
     expect(find.byType(HabitBottomNavigation), findsOneWidget);
   });
+
+  testWidgets('DailyTrackerScreen shows SnackBar with Reflect action only for opt-in habits',
+      (WidgetTester tester) async {
+    final habitWithReflection = Habit(
+      id: 'h-reflect',
+      title: 'Mindful Meditation',
+      color: '#10B981',
+      frequencyType: HabitFrequencyType.daily,
+      targetType: HabitTargetType.boolean,
+      promptReflection: true,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+
+    final fakeRepo = FakeHabitRepository(
+      initialHabits: [habitWithReflection],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          dailyTrackerControllerProvider.overrideWith(
+            (ref) => DailyTrackerController(fakeRepo),
+          ),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: const DailyTrackerScreen(),
+        ),
+      ),
+    );
+
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // Tap check in on the habit card
+    await tester.tap(find.byType(AnimatedContainer).first);
+    await tester.pumpAndSettle();
+
+    // Verify floating toast with Reflect action is shown
+    expect(find.text('Completed "Mindful Meditation"'), findsOneWidget);
+    expect(find.text('Reflect'), findsOneWidget);
+
+    // Advance time by 2.6 seconds to trigger auto-fadeout
+    await tester.pump(const Duration(milliseconds: 2600));
+    await tester.pumpAndSettle();
+
+    // Verify reflection toast automatically dismissed
+    expect(find.text('Completed "Mindful Meditation"'), findsNothing);
+    expect(find.text('Reflect'), findsNothing);
+  });
 }
