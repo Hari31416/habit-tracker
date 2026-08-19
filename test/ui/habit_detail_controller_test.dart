@@ -150,18 +150,27 @@ class FakeHabitRepository implements HabitRepository {
   @override
   Future<void> toggleBooleanCheckIn(String habitId, DateTime date) async {
     final dateStr = StreakCalculator.dateFormatter.format(date);
-    final existingIdx =
-        _logs.indexWhere((l) => l.habitId == habitId && l.date == dateStr);
+    final habit = _habits.where((h) => h.id == habitId).firstOrNull;
+    final existingLogs =
+        _logs.where((l) => l.habitId == habitId && l.date == dateStr).toList();
+    final wasCompleted = habit != null
+        ? StreakCalculator.isHabitCompletedOnDate(habit, existingLogs)
+        : existingLogs.any((l) => l.completed);
+
     final now = DateTime.now();
-    if (existingIdx != -1) {
-      _logs.removeAt(existingIdx);
-    } else {
+    _logs.removeWhere((l) => l.habitId == habitId && l.date == dateStr);
+
+    if (!wasCompleted) {
       _logs.add(HabitLog(
         id: 'log-${now.millisecondsSinceEpoch}',
         habitId: habitId,
         date: dateStr,
         timestamp: now,
         completed: true,
+        value: habit?.targetValue ?? 1.0,
+        durationSeconds: habit?.targetType == HabitTargetType.timer
+            ? ((habit?.targetValue ?? 25.0).toInt() * 60)
+            : null,
         createdAt: now,
         updatedAt: now,
       ));

@@ -29,6 +29,18 @@ class CircularFocusTimer extends ConsumerStatefulWidget {
 }
 
 class _CircularFocusTimerState extends ConsumerState<CircularFocusTimer> {
+  double? _customDurationMinutes;
+
+  @override
+  void didUpdateWidget(covariant CircularFocusTimer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.remainingUnloggedMinutes != widget.remainingUnloggedMinutes ||
+        oldWidget.habitId != widget.habitId ||
+        oldWidget.defaultDurationMinutes != widget.defaultDurationMinutes) {
+      _customDurationMinutes = null;
+    }
+  }
+
   void _showEditMinutesDialog(int currentMinutes, bool isRunningOrPaused) {
     final textController =
         TextEditingController(text: currentMinutes.toString());
@@ -65,6 +77,9 @@ class _CircularFocusTimerState extends ConsumerState<CircularFocusTimer> {
                 if (isRunningOrPaused) {
                   timerNotifier.setRemainingMinutes(parsed);
                 } else {
+                  setState(() {
+                    _customDurationMinutes = parsed.toDouble();
+                  });
                   timerNotifier.setDuration(
                     widget.habitId,
                     widget.habitTitle,
@@ -94,37 +109,38 @@ class _CircularFocusTimerState extends ConsumerState<CircularFocusTimer> {
     final isRunningOrPausedForThisHabit = timerState.habitId == widget.habitId &&
         (timerState.status == TimerStatus.running ||
             timerState.status == TimerStatus.paused);
-    final isCompletedForThisHabit = timerState.habitId == widget.habitId &&
-        timerState.status == TimerStatus.completed;
+
+    final isHabitCompletedToday = widget.remainingUnloggedMinutes <= 0;
 
     final defaultDurationSec =
         (widget.defaultDurationMinutes * 60).toInt().clamp(60, 24 * 3600);
 
+    final remainingMinutesToUse =
+        _customDurationMinutes ?? widget.remainingUnloggedMinutes;
+    final remainingUnloggedSec =
+        (remainingMinutesToUse * 60).toInt().clamp(0, 24 * 3600);
+
     final remainingSec = isRunningOrPausedForThisHabit
         ? timerState.remainingSeconds
-        : isCompletedForThisHabit
+        : (isHabitCompletedToday && _customDurationMinutes == null)
             ? 0
-            : (timerState.habitId == widget.habitId &&
-                    timerState.status == TimerStatus.idle)
-                ? timerState.remainingSeconds
-                : defaultDurationSec;
+            : remainingUnloggedSec;
 
-    final totalSec = (isRunningOrPausedForThisHabit ||
-            isCompletedForThisHabit ||
-            (timerState.habitId == widget.habitId &&
-                timerState.status == TimerStatus.idle))
+    final totalSec = isRunningOrPausedForThisHabit
         ? timerState.totalSeconds
-        : defaultDurationSec;
+        : _customDurationMinutes != null
+            ? (_customDurationMinutes! * 60).toInt().clamp(60, 24 * 3600)
+            : defaultDurationSec;
 
     final status = isRunningOrPausedForThisHabit
         ? timerState.status
-        : isCompletedForThisHabit
+        : (isHabitCompletedToday && _customDurationMinutes == null)
             ? TimerStatus.completed
             : TimerStatus.idle;
 
     final progress = totalSec > 0
         ? ((totalSec - remainingSec) / totalSec).clamp(0.0, 1.0)
-        : 0.0;
+        : (status == TimerStatus.completed ? 1.0 : 0.0);
 
     final minutes = remainingSec ~/ 60;
     final seconds = remainingSec % 60;
@@ -138,7 +154,9 @@ class _CircularFocusTimerState extends ConsumerState<CircularFocusTimer> {
       TimerStatus.idle => 'Ready',
     };
 
-    final currentGoalMins = (totalSec / 60).toInt();
+    final currentDisplayMins =
+        remainingSec > 0 ? (remainingSec / 60).round() : widget.defaultDurationMinutes.round();
+    final goalMins = widget.defaultDurationMinutes.round();
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -199,7 +217,7 @@ class _CircularFocusTimerState extends ConsumerState<CircularFocusTimer> {
                     onPressed: () {
                       HapticsHelper.performLightHaptic();
                       _showEditMinutesDialog(
-                        currentGoalMins,
+                        currentDisplayMins,
                         isRunningOrPausedForThisHabit,
                       );
                     },
@@ -267,6 +285,9 @@ class _CircularFocusTimerState extends ConsumerState<CircularFocusTimer> {
                   customBorder: const CircleBorder(),
                   onTap: () {
                     HapticsHelper.performLightHaptic();
+                    setState(() {
+                      _customDurationMinutes = null;
+                    });
                     timerNotifier.reset();
                   },
                   child: const SizedBox(
@@ -316,8 +337,8 @@ class _CircularFocusTimerState extends ConsumerState<CircularFocusTimer> {
                         break;
                       case TimerStatus.completed:
                       case TimerStatus.idle:
-                        final durationMins = totalSec > 0
-                            ? totalSec / 60.0
+                        final durationMins = remainingSec > 0
+                            ? remainingSec / 60.0
                             : widget.defaultDurationMinutes;
                         timerNotifier.start(
                           widget.habitId,
@@ -334,49 +355,219 @@ class _CircularFocusTimerState extends ConsumerState<CircularFocusTimer> {
 
           const SizedBox(height: 16),
 
-          // Quick Adjustment Chips: -10m, -5m, [Goal], +5m, +10m
+          // Quick Adjustment Chips: -10m, -5m, [Remaining], [Goal], +5m, +10m
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [-10, -5, 0, 5, 10].map((delta) {
-                final isGoal = delta == 0;
-                final label = isGoal
-                    ? '${currentGoalMins}m Goal'
-                    : (delta > 0 ? '+$delta m' : '$delta m');
-
-                return Padding(
+              children: [
+                // -10m
+                Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: FilterChip(
-                    selected: isGoal,
+                    selected: false,
+                    label: const Text('-10 m'),
+                    onSelected: (_) {
+                      HapticsHelper.performLightHaptic();
+                      final currentMins = remainingSec > 0
+                          ? (remainingSec / 60).round()
+                          : widget.defaultDurationMinutes.round();
+                      final newMins = max(1, currentMins - 10);
+                      if (isRunningOrPausedForThisHabit) {
+                        timerNotifier.setRemainingMinutes(newMins);
+                      } else {
+                        setState(() {
+                          _customDurationMinutes = newMins.toDouble();
+                        });
+                        timerNotifier.setDuration(
+                          widget.habitId,
+                          widget.habitTitle,
+                          newMins.toDouble(),
+                        );
+                      }
+                    },
+                  ),
+                ),
+                // -5m
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: FilterChip(
+                    selected: false,
+                    label: const Text('-5 m'),
+                    onSelected: (_) {
+                      HapticsHelper.performLightHaptic();
+                      final currentMins = remainingSec > 0
+                          ? (remainingSec / 60).round()
+                          : widget.defaultDurationMinutes.round();
+                      final newMins = max(1, currentMins - 5);
+                      if (isRunningOrPausedForThisHabit) {
+                        timerNotifier.setRemainingMinutes(newMins);
+                      } else {
+                        setState(() {
+                          _customDurationMinutes = newMins.toDouble();
+                        });
+                        timerNotifier.setDuration(
+                          widget.habitId,
+                          widget.habitTitle,
+                          newMins.toDouble(),
+                        );
+                      }
+                    },
+                  ),
+                ),
+                // Autofill Remaining Chip (shown when partial progress exists)
+                if (widget.remainingUnloggedMinutes > 0 &&
+                    widget.remainingUnloggedMinutes < widget.defaultDurationMinutes)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: FilterChip(
+                      selected: _customDurationMinutes == null &&
+                          !isRunningOrPausedForThisHabit &&
+                          status != TimerStatus.completed,
+                      label: Text(
+                        '${widget.remainingUnloggedMinutes.toInt()}m Remaining',
+                        style: TextStyle(
+                          fontWeight: (_customDurationMinutes == null &&
+                                  !isRunningOrPausedForThisHabit &&
+                                  status != TimerStatus.completed)
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                          color: (_customDurationMinutes == null &&
+                                  !isRunningOrPausedForThisHabit &&
+                                  status != TimerStatus.completed)
+                              ? widget.accentColor
+                              : theme.colorScheme.onSurface,
+                        ),
+                      ),
+                      onSelected: (_) {
+                        HapticsHelper.performLightHaptic();
+                        if (isRunningOrPausedForThisHabit) {
+                          timerNotifier.setRemainingMinutes(
+                            widget.remainingUnloggedMinutes.toInt(),
+                          );
+                        } else {
+                          setState(() {
+                            _customDurationMinutes = null;
+                          });
+                          timerNotifier.setDuration(
+                            widget.habitId,
+                            widget.habitTitle,
+                            widget.remainingUnloggedMinutes,
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                // Goal Chip
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: FilterChip(
+                    selected: (widget.remainingUnloggedMinutes >=
+                                widget.defaultDurationMinutes &&
+                            _customDurationMinutes == null &&
+                            !isRunningOrPausedForThisHabit) ||
+                        (_customDurationMinutes != null &&
+                            _customDurationMinutes ==
+                                widget.defaultDurationMinutes &&
+                            !isRunningOrPausedForThisHabit),
                     label: Text(
-                      label,
+                      '${goalMins}m Goal',
                       style: TextStyle(
-                        fontWeight:
-                            isGoal ? FontWeight.bold : FontWeight.w500,
-                        color: isGoal
+                        fontWeight: ((widget.remainingUnloggedMinutes >=
+                                        widget.defaultDurationMinutes &&
+                                    _customDurationMinutes == null &&
+                                    !isRunningOrPausedForThisHabit) ||
+                                (_customDurationMinutes != null &&
+                                    _customDurationMinutes ==
+                                        widget.defaultDurationMinutes &&
+                                    !isRunningOrPausedForThisHabit))
+                            ? FontWeight.bold
+                            : FontWeight.w500,
+                        color: ((widget.remainingUnloggedMinutes >=
+                                        widget.defaultDurationMinutes &&
+                                    _customDurationMinutes == null &&
+                                    !isRunningOrPausedForThisHabit) ||
+                                (_customDurationMinutes != null &&
+                                    _customDurationMinutes ==
+                                        widget.defaultDurationMinutes &&
+                                    !isRunningOrPausedForThisHabit))
                             ? widget.accentColor
                             : theme.colorScheme.onSurface,
                       ),
                     ),
                     onSelected: (_) {
-                      if (!isGoal) {
-                        HapticsHelper.performLightHaptic();
-                        final newMins = max(1, (totalSec ~/ 60) + delta);
-                        if (isRunningOrPausedForThisHabit) {
-                          timerNotifier.setRemainingMinutes(newMins);
-                        } else {
-                          timerNotifier.setDuration(
-                            widget.habitId,
-                            widget.habitTitle,
-                            newMins.toDouble(),
-                          );
-                        }
+                      HapticsHelper.performLightHaptic();
+                      if (isRunningOrPausedForThisHabit) {
+                        timerNotifier.setRemainingMinutes(goalMins);
+                      } else {
+                        setState(() {
+                          _customDurationMinutes =
+                              widget.defaultDurationMinutes;
+                        });
+                        timerNotifier.setDuration(
+                          widget.habitId,
+                          widget.habitTitle,
+                          widget.defaultDurationMinutes,
+                        );
                       }
                     },
                   ),
-                );
-              }).toList(),
+                ),
+                // +5m
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: FilterChip(
+                    selected: false,
+                    label: const Text('+5 m'),
+                    onSelected: (_) {
+                      HapticsHelper.performLightHaptic();
+                      final currentMins = remainingSec > 0
+                          ? (remainingSec / 60).round()
+                          : widget.defaultDurationMinutes.round();
+                      final newMins = max(1, currentMins + 5);
+                      if (isRunningOrPausedForThisHabit) {
+                        timerNotifier.setRemainingMinutes(newMins);
+                      } else {
+                        setState(() {
+                          _customDurationMinutes = newMins.toDouble();
+                        });
+                        timerNotifier.setDuration(
+                          widget.habitId,
+                          widget.habitTitle,
+                          newMins.toDouble(),
+                        );
+                      }
+                    },
+                  ),
+                ),
+                // +10m
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: FilterChip(
+                    selected: false,
+                    label: const Text('+10 m'),
+                    onSelected: (_) {
+                      HapticsHelper.performLightHaptic();
+                      final currentMins = remainingSec > 0
+                          ? (remainingSec / 60).round()
+                          : widget.defaultDurationMinutes.round();
+                      final newMins = max(1, currentMins + 10);
+                      if (isRunningOrPausedForThisHabit) {
+                        timerNotifier.setRemainingMinutes(newMins);
+                      } else {
+                        setState(() {
+                          _customDurationMinutes = newMins.toDouble();
+                        });
+                        timerNotifier.setDuration(
+                          widget.habitId,
+                          widget.habitTitle,
+                          newMins.toDouble(),
+                        );
+                      }
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
 

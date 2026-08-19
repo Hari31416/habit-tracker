@@ -252,6 +252,166 @@ void main() {
     expect(find.text('Reading makes you wiser'), findsOneWidget);
     expect(find.byIcon(Icons.more_vert), findsOneWidget);
   });
+
+  testWidgets('CircularFocusTimer syncs with remainingUnloggedMinutes and completion state',
+      (tester) async {
+    TimerStateHolder.stop();
+
+    // 1. Partial progress (14m done out of 45m -> 31m remaining)
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          home: Scaffold(
+            body: CircularFocusTimer(
+              habitId: 'habit-deep-work',
+              habitTitle: 'Deep Work Session',
+              defaultDurationMinutes: 45.0,
+              remainingUnloggedMinutes: 31.0,
+              accentColor: Colors.blue,
+              onFocusScreenClick: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Focus Timer'), findsOneWidget);
+    expect(find.text('31:00'), findsOneWidget);
+    expect(find.text('Ready'), findsOneWidget);
+    expect(find.text('31m Remaining'), findsOneWidget);
+    expect(find.text('45m Goal'), findsOneWidget);
+
+    // 2. Completed progress (0m remaining)
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          home: Scaffold(
+            body: CircularFocusTimer(
+              habitId: 'habit-deep-work',
+              habitTitle: 'Deep Work Session',
+              defaultDurationMinutes: 45.0,
+              remainingUnloggedMinutes: 0.0,
+              accentColor: Colors.blue,
+              onFocusScreenClick: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('00:00'), findsOneWidget);
+    expect(find.text('Completed!'), findsOneWidget);
+
+    // 3. Previous timer session completed in state, but habit has 4m remaining (91% progress)
+    TimerStateHolder.start('habit-deep-work', 'Deep Work Session', 25.0);
+    TimerStateHolder.tick(0); // Marks completed in state
+
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          home: Scaffold(
+            body: CircularFocusTimer(
+              habitId: 'habit-deep-work',
+              habitTitle: 'Deep Work Session',
+              defaultDurationMinutes: 45.0,
+              remainingUnloggedMinutes: 4.0,
+              accentColor: Colors.blue,
+              onFocusScreenClick: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('04:00'), findsOneWidget);
+    expect(find.text('Ready'), findsOneWidget);
+    expect(find.text('4m Remaining'), findsOneWidget);
+    expect(find.text('45m Goal'), findsOneWidget);
+  });
+
+  testWidgets('HabitDetailScreen for TIMER habit synchronizes focus timer with 10-dot progress and check-in',
+      (tester) async {
+    TimerStateHolder.stop();
+
+    final timerHabit = Habit(
+      id: 'habit-timer-test',
+      title: 'Deep Work Session',
+      description: 'Focus session',
+      color: '#3B82F6',
+      icon: 'zap',
+      frequencyType: HabitFrequencyType.daily,
+      targetType: HabitTargetType.timer,
+      targetValue: 45.0,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    final fakeRepo = FakeHabitRepository(
+      initialHabits: [timerHabit],
+      initialCategories: [testCategory],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          habitRepositoryProvider.overrideWithValue(fakeRepo),
+          gamificationRepositoryProvider.overrideWithValue(FakeGamificationRepository()),
+        ],
+        child: MaterialApp(
+          home: HabitDetailScreen(
+            habitId: 'habit-timer-test',
+            onBack: _noop,
+            onNavigateToFocusScreen: (_) {},
+          ),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // Initial state: 45:00 Ready
+    expect(find.text('Deep Work Session'), findsWidgets);
+    expect(find.text('45:00'), findsOneWidget);
+    expect(find.text('Ready'), findsOneWidget);
+
+    // Tap dot 3 on 10-dot progress (ceil(3/10 * 45) = 14.0 mins logged -> 31.0 mins remaining)
+    final dot3Finder = find.descendant(
+      of: find.byType(TenDotProgressBar),
+      matching: find.text('3'),
+    );
+    await tester.tap(dot3Finder);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('31:00'), findsOneWidget);
+    expect(find.text('31m Remaining'), findsOneWidget);
+
+    // Tap check-in circle in Hero header (marks complete for today)
+    final checkButtonFinder = find.byWidgetPredicate(
+      (widget) => widget is Icon && widget.icon == Icons.check && widget.size == 20.0,
+    );
+    await tester.tap(checkButtonFinder);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+
+    expect(find.text('00:00'), findsOneWidget);
+    expect(find.text('Completed!'), findsOneWidget);
+
+    // Dismiss reflection bottom sheet if shown
+    if (find.byType(BottomSheet).evaluate().isNotEmpty) {
+      await tester.tapAt(const Offset(20, 20));
+      await tester.pumpAndSettle();
+    }
+
+    // Tap check-in again to uncheck
+    await tester.tap(checkButtonFinder);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+
+    expect(find.text('45:00'), findsOneWidget);
+    expect(find.text('Ready'), findsOneWidget);
+  });
 }
 
 void _noop() {}
