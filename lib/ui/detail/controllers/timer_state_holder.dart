@@ -304,7 +304,8 @@ class TimerStateHolderNotifier extends StateNotifier<TimerState> {
   void recalculateOnResume() {
     if (state.isRunning && state.targetEndTime != null) {
       final now = DateTime.now();
-      final diff = state.targetEndTime!.difference(now).inSeconds;
+      final diffMicroseconds = state.targetEndTime!.difference(now).inMicroseconds;
+      final diff = (diffMicroseconds + 999999) ~/ 1000000;
       tick(diff);
     }
   }
@@ -312,7 +313,8 @@ class TimerStateHolderNotifier extends StateNotifier<TimerState> {
   void _startTicker() {
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       if (state.targetEndTime != null) {
-        final diff = state.targetEndTime!.difference(DateTime.now()).inSeconds;
+        final diffMicroseconds = state.targetEndTime!.difference(DateTime.now()).inMicroseconds;
+        final diff = (diffMicroseconds + 999999) ~/ 1000000;
         tick(diff);
       } else {
         tick(state.remainingSeconds - 1);
@@ -566,7 +568,8 @@ class TimerStateHolder {
   static void recalculateOnResume() {
     if (_state.isRunning && _state.targetEndTime != null) {
       final now = DateTime.now();
-      final diff = _state.targetEndTime!.difference(now).inSeconds;
+      final diffMicroseconds = _state.targetEndTime!.difference(now).inMicroseconds;
+      final diff = (diffMicroseconds + 999999) ~/ 1000000;
       tick(diff);
     }
   }
@@ -574,7 +577,8 @@ class TimerStateHolder {
   static void _startTicker() {
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       if (_state.targetEndTime != null) {
-        final diff = _state.targetEndTime!.difference(DateTime.now()).inSeconds;
+        final diffMicroseconds = _state.targetEndTime!.difference(DateTime.now()).inMicroseconds;
+        final diff = (diffMicroseconds + 999999) ~/ 1000000;
         tick(diff);
       } else {
         tick(_state.remainingSeconds - 1);

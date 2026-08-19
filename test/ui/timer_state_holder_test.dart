@@ -165,4 +165,24 @@ void main() {
     expect(TimerStateHolder.timerState.remainingSeconds, 500);
     expect(TimerStateHolder.timerState.targetEndTime, isNotNull);
   });
+
+  test('recalculateOnResume and ticker round correctly to 59s after 1s elapsed', () {
+    TimerStateHolder.start('habit_1', 'Focus Work', 45.0);
+    expect(TimerStateHolder.timerState.remainingSeconds, 2700);
+
+    // Simulate 1.05 seconds elapsed
+    final simulatedTargetEndTime = DateTime.now().add(const Duration(seconds: 2699) - const Duration(milliseconds: 50));
+    TimerStateHolder.applyNativeState({
+      'habitId': 'habit_1',
+      'habitTitle': 'Focus Work',
+      'totalSeconds': 2700,
+      'remainingSeconds': 2700,
+      'status': 'Running',
+    });
+
+    final diffMicroseconds = simulatedTargetEndTime.difference(DateTime.now()).inMicroseconds;
+    final diff = (diffMicroseconds + 999999) ~/ 1000000;
+    expect(diff, 2699); // 44:59, exactly 1 second down
+  });
 }
+

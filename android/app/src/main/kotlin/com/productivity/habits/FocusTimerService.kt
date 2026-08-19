@@ -232,7 +232,7 @@ class FocusTimerService : Service() {
                 if (!isRunning) return
 
                 val millisLeft = targetEndTimeMillis - System.currentTimeMillis()
-                val secondsLeft = (millisLeft / 1000).coerceAtLeast(0)
+                val secondsLeft = ((millisLeft + 999) / 1000).coerceAtLeast(0)
                 remainingSeconds = secondsLeft
 
                 saveStateToPreferences("Running")
