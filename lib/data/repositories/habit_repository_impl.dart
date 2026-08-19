@@ -14,6 +14,7 @@ import '../../domain/models/habit_target_type.dart';
 import '../../domain/repositories/habit_repository.dart';
 import '../../domain/schedulers/habit_reminder_scheduler.dart';
 import '../local/app_database.dart';
+import '../local/database_seeder.dart';
 import '../local/daos/gamification_dao.dart';
 import '../local/daos/habit_category_dao.dart';
 import '../local/daos/habit_dao.dart';
@@ -190,6 +191,12 @@ class HabitRepositoryImpl implements HabitRepository {
         await reminderScheduler.schedule(habit, catchUpIfDue: true);
       }
     }
+  }
+
+  @override
+  Future<void> seedDemoHabits() async {
+    await DatabaseSeeder.seedDemoHabits(habitDao.attachedDatabase);
+    await reminderScheduler.rescheduleAll();
   }
 
   // Logs

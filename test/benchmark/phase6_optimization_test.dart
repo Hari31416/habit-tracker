@@ -102,7 +102,7 @@ void main() {
       final achievements = results[1] as List<AchievementStatus>;
       final bank = results[2];
 
-      expect(progression.level, 1);
+      expect(progression.level, 2);
       expect(achievements, isNotEmpty);
       expect(bank, isNotNull);
     });

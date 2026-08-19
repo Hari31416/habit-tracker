@@ -46,6 +46,14 @@ class DatabaseSeeder {
   static Future<void> seedIfEmpty(AppDatabase db) async {
     try {
       await db.habitCategoryDao.insertDefaultCategories(defaultCategories);
+    } catch (_) {
+      // Ignore on race condition / pre-existing
+    }
+  }
+
+  static Future<void> seedDemoHabits(AppDatabase db) async {
+    try {
+      await db.habitCategoryDao.insertDefaultCategories(defaultCategories);
 
       final existingHabits = await db.habitDao.getActiveHabitsOnce();
       if (existingHabits.isEmpty) {
@@ -128,7 +136,7 @@ class DatabaseSeeder {
         await db.habitDao.insertHabits(seedHabits);
       }
     } catch (_) {
-      // Ignore on race condition / pre-existing
+      // Ignore on race condition
     }
   }
 }

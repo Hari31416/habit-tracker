@@ -460,6 +460,11 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
     _widgetSyncService?.syncAllWidgets(state.selectedDate);
   }
 
+  Future<void> loadDemoHabits() async {
+    await _repository.seedDemoHabits();
+    _widgetSyncService?.syncAllWidgets(state.selectedDate);
+  }
+
   @override
   void dispose() {
     _habitsSubscription?.cancel();

@@ -117,4 +117,38 @@ void main() {
     expect(find.text('Completed "Mindful Meditation"'), findsNothing);
     expect(find.text('Reflect'), findsNothing);
   });
+
+  testWidgets('DailyTrackerScreen empty state provides Create Habit and Load Demo Habits actions',
+      (WidgetTester tester) async {
+    final fakeRepo = FakeHabitRepository(
+      initialHabits: [],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          dailyTrackerControllerProvider.overrideWith(
+            (ref) => DailyTrackerController(fakeRepo),
+          ),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: const DailyTrackerScreen(),
+        ),
+      ),
+    );
+
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('No habits scheduled for this day'), findsOneWidget);
+    expect(find.text('Create Habit'), findsOneWidget);
+    expect(find.text('Load Demo Habits'), findsOneWidget);
+
+    // Tap Load Demo Habits button
+    await tester.tap(find.text('Load Demo Habits'));
+    await tester.pumpAndSettle();
+
+    // Verify demo habit is now rendered
+    expect(find.text('Demo Habit'), findsOneWidget);
+  });
 }

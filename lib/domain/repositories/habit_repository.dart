@@ -16,6 +16,7 @@ abstract class HabitRepository {
   Future<void> deleteHabit(Habit habit);
   Future<void> setPinned(String id, bool pinned);
   Future<void> setArchived(String id, bool archived);
+  Future<void> seedDemoHabits();
 
   // Logs
   Stream<List<HabitLog>> getLogsForHabit(String habitId);

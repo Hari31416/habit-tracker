@@ -53,7 +53,7 @@ void main() {
     await habitRepository.toggleBooleanCheckIn(habit.id, today);
 
     final progression = await gamificationRepository.getPlayerProgression().first;
-    expect(progression.level, 1);
+    expect(progression.level, 2);
     expect(progression.title, PlayerTitle.novice);
 
     final achievements = await gamificationRepository.getAchievements().first;

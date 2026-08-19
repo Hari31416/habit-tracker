@@ -1013,6 +1013,19 @@ class _DailyHabitsList extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  searchQuery.isNotEmpty ? Icons.search_off : Icons.track_changes_outlined,
+                  size: 40,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: 16),
               Text(
                 searchQuery.isNotEmpty
                     ? 'No matching habits found'
@@ -1025,12 +1038,48 @@ class _DailyHabitsList extends ConsumerWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                "Tap '+' in the bottom bar to create a new habit",
+                searchQuery.isNotEmpty
+                    ? 'Try searching for a different keyword or category'
+                    : 'Create your own habit or load starter habits to explore features.',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.outline,
                 ),
                 textAlign: TextAlign.center,
               ),
+              if (searchQuery.isEmpty) ...[
+                const SizedBox(height: 20),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 10,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    FilledButton.icon(
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('Create Habit'),
+                      onPressed: () {
+                        HapticsHelper.performLightHaptic();
+                        HabitFormBottomSheet.show(context);
+                      },
+                    ),
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.auto_awesome, size: 18),
+                      label: const Text('Load Demo Habits'),
+                      onPressed: () async {
+                        HapticsHelper.performLightHaptic();
+                        await controller.loadDemoHabits();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Starter demo habits loaded!'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),

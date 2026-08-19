@@ -44,7 +44,7 @@ void main() {
     await repository.upsertHabit(habit);
     final active = await repository.getActiveHabits().first;
 
-    expect(active.length, 6); // 5 seed habits + 1 new habit
+    expect(active.length, 1); // Clean install starts empty + 1 new habit
     expect(active.any((h) => h.id == 'test-h1'), isTrue);
     final found = active.firstWhere((h) => h.id == 'test-h1');
     expect(found.title, 'Workout');

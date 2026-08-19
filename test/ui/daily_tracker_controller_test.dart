@@ -86,6 +86,25 @@ class FakeHabitRepository implements HabitRepository {
   }
 
   @override
+  Future<void> seedDemoHabits() async {
+    final now = DateTime.now();
+    _habits.add(
+      Habit(
+        id: 'seed_demo',
+        title: 'Demo Habit',
+        description: null,
+        color: '#10B981',
+        icon: 'check',
+        frequencyType: HabitFrequencyType.daily,
+        targetType: HabitTargetType.boolean,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    _notify();
+  }
+
+  @override
   Future<void> toggleBooleanCheckIn(String habitId, DateTime date) async {
     final dateStr = StreakCalculator.dateFormatter.format(date);
     final existingIdx =
