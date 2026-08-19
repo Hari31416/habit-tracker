@@ -5,12 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.8.0-alpha.1] - 2026-08-19
 
-### Changed
+### Added
 
-- Replaced automatic post-check-in modal bottom sheet with an opt-in habit reflection setting and non-intrusive floating SnackBar action.
-- Added `promptReflection` column to habits schema with database migration to version 4.
+- Phial branding across launcher name, Play store metadata, deep links, and package identifier (`app.phial.habits`).
+- On-demand "Load Demo Habits" option in the empty daily tracker screen for tester exploration.
+- Structured `AppLogger` utility wrapping `dart:developer.log` for error and warning telemetry.
+- Support for `phial://habits/...` and `app://habits/...` deep link routing with empty ID validation.
+- Dedicated privacy policy documentation in `PRIVACY.md`.
+- `flutter analyze` gate in CI workflow.
+
+### Fixed
+
+- Habit reminder scheduling now uses repeating zoned alarm components and recalculates on in-app check-ins and app resume.
+- Day rollover task now executes idempotently on startup and resume, auto-protecting missed days with available streak shields.
+- Removed Play-restricted `USE_EXACT_ALARM` permission and relocated notification/alarm permission requests to contextual habit creation.
+- Disabled Android cloud backup and database auto-extraction (`android:allowBackup="false"`).
+- Hardened widget toggle broadcast receivers with installation-scoped auth tokens.
+- Resolved all analyzer warnings and benchmark print lints.
 
 ## [0.7.0] - 2026-08-18
 
