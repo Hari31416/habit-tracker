@@ -146,4 +146,6 @@ make kotlin-test
 make kotlin-build
 ```
 
+## Privacy Policy
 
+Habit Tracker is completely offline and stores all data locally. For details, see [PRIVACY.md](PRIVACY.md).
