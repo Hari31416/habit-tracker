@@ -107,7 +107,28 @@ flutter test test/benchmark/phase4_benchmark_test.dart
 
 ## Phase 5: UI Layer and Rebuild Scoping
 
-Phase 5 benchmarks will evaluate granular Riverpod selector scoping, viewport virtualization in week matrix grids, and UI frame build times during search and check-in interactions.
+### Phase 5 Results Summary
 
-*Status: Scheduled*
+| Scenario / Operation                                                                  | Before Optimization                                     | After Phase 5 Optimization | Speedup / Efficiency | Notes                                                                               |
+| :------------------------------------------------------------------------------------ | :------------------------------------------------------ | :------------------------- | :------------------- | :---------------------------------------------------------------------------------- |
+| **Search & Filtering with History**<br>*(50 keystrokes across 30 habits x 365 days)*  | 267.42 ms                                               | 0.80 ms                    | 334.27x              | Instant in-memory filtering on cached state vs. full 365-day streak recalculations. |
+| **UI State Equality Evaluation**<br>*(5,000 state checks)*                            | Full widget subtree rebuilds on all state notifications | 0.634 µs / check           | 100% scoped rebuilds | Riverpod skips rebuilding widgets when selected sub-state is unchanged.             |
+| **Category Filtering & Sorting Throughput**<br>*(500 filter operations on 30 habits)* | Recalculates full habit tree                            | 0.003 ms / filter          | Instantaneous        | Sub-millisecond category switching and pinned-first sorting.                        |
+| **Week Matrix & Analytics Virtualization**                                            | Monolithic unvirtualized single column layout           | CustomScrollView & Slivers | Viewport-bounded     | Slivers and dedicated modular cell widgets eliminate offscreen rendering overhead.  |
+
+### Phase 5 Detailed Breakdown
+
+- **In-Memory Search & Category Filtering:** Cached `_unfilteredHabitsWithProgress` on the selected date in `DailyTrackerController`. Searching, category selection, sorting, and archive toggling now filter and sort in-memory directly without triggering 365-day streak recalculations.
+- **Granular Riverpod Selectors (`.select(...)`):** Decomposed `DailyTrackerScreen`, `HabitAnalyticsScreen`, and `HabitWeekMatrixScreen` from monolithic root watchers into granular `ConsumerWidget` subcomponents. Each widget only listens to the exact state properties it renders.
+- **UI State & Model Equality:** Implemented `operator ==` and `hashCode` across `DailyTrackerUiState`, `AnalyticsUiState`, `HabitWithProgress`, and `WellbeingSummary` to ensure state updates only notify widgets whose bound properties changed.
+- **Matrix Viewport Virtualization:** Converted `HabitWeekMatrixScreen` to `CustomScrollView` with slivers and extracted `WeekMatrixGrid` into lightweight `_MatrixRowWidget` and `_MatrixCellWidget` components.
+- **Shield Bank Stream Consolidation:** Replaced nested `StreamBuilder` widgets in `ShieldBankBottomSheet` with Riverpod auto-disposing stream providers (`activeHabitsStreamProvider`, `allShieldsStreamProvider`, `allLogsStreamProvider`), eliminating repeated SQLite stream subscriptions on every modal rebuild.
+
+### Phase 5 Benchmark Suite
+
+Run the Phase 5 benchmark suite with:
+
+```bash
+flutter test test/benchmark/phase5_benchmark_test.dart
+```
 

@@ -13,6 +13,9 @@ import '../data/schedulers/local_notifications_scheduler.dart';
 import '../data/schedulers/notification_action_handler.dart';
 import '../domain/engines/shield_banking_engine.dart';
 import '../domain/gamification/gamification_models.dart';
+import '../domain/models/habit.dart';
+import '../domain/models/habit_log.dart';
+import '../domain/models/habit_shield.dart';
 import '../domain/repositories/gamification_repository.dart';
 import '../domain/repositories/habit_repository.dart';
 import '../domain/schedulers/habit_reminder_scheduler.dart';
@@ -90,6 +93,21 @@ final pendingCelebrationStreamProvider =
 final shieldBankStateStreamProvider =
     StreamProvider<ShieldBankState>((ref) {
   return ref.watch(gamificationRepositoryProvider).getShieldBankState();
+});
+
+final activeHabitsStreamProvider =
+    StreamProvider.autoDispose<List<Habit>>((ref) {
+  return ref.watch(habitRepositoryProvider).getActiveHabits();
+});
+
+final allShieldsStreamProvider =
+    StreamProvider.autoDispose<List<HabitShield>>((ref) {
+  return ref.watch(habitRepositoryProvider).getAllShields();
+});
+
+final allLogsStreamProvider =
+    StreamProvider.autoDispose<List<HabitLog>>((ref) {
+  return ref.watch(habitRepositoryProvider).getAllLogs();
 });
 
 final localNotificationsSchedulerProvider =

@@ -35,8 +35,6 @@ class _HabitAnalyticsScreenState extends ConsumerState<HabitAnalyticsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final uiState = ref.watch(analyticsControllerProvider);
-    final controller = ref.read(analyticsControllerProvider.notifier);
 
     return Scaffold(
       bottomNavigationBar: HabitBottomNavigation(
@@ -78,34 +76,7 @@ class _HabitAnalyticsScreenState extends ConsumerState<HabitAnalyticsScreen> {
                         color: theme.colorScheme.onSurface,
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.check_circle_outline,
-                            size: 15,
-                            color: theme.colorScheme.onPrimaryContainer,
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            '${uiState.completedTodayCount}/${uiState.scheduledTodayCount} Today',
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: theme.colorScheme.onPrimaryContainer,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    const _AnalyticsTopBarPill(),
                   ],
                 ),
               ),
@@ -113,70 +84,131 @@ class _HabitAnalyticsScreenState extends ConsumerState<HabitAnalyticsScreen> {
 
             // Scrollable Content
             Expanded(
-              child: uiState.isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // 1. Hero Consistency Card
-                          _buildHeroConsistencyCard(context, uiState),
-
-                          const SizedBox(height: 14),
-
-                          // 2. Secondary Metrics Row
-                          _buildSecondaryMetricsRow(context, uiState),
-
-                          const SizedBox(height: 14),
-
-                          // 3. Top Habits Leaderboard
-                          if (uiState.leaderboard.isNotEmpty) ...[
-                            _buildLeaderboardCard(context, uiState.leaderboard),
-                            const SizedBox(height: 14),
-                          ],
-
-                          // 4. Adherence Trend Section
-                          AdherenceAreaChart(
-                            dataPoints: uiState.trendDataPoints,
-                            selectedRange: uiState.trendRange,
-                            onRangeSelected: controller.setTrendRange,
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          // 5. Wellbeing & Energy Correlation Section
-                          WellbeingCorrelationCard(
-                            summary: uiState.wellbeingSummary,
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          // 6. Monthly Activity Heatmap
-                          MonthlyHeatmapGrid(
-                            month: uiState.heatmapMonth,
-                            dayDataMap: uiState.heatmapData,
-                            onPreviousMonth: controller.previousHeatmapMonth,
-                            onNextMonth: controller.nextHeatmapMonth,
-                          ),
-
-                          const SizedBox(height: 16),
-                        ],
-                      ),
-                    ),
+              child: _AnalyticsContent(
+                onNavigateToDetail: widget.onNavigateToDetail,
+              ),
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildHeroConsistencyCard(
-    BuildContext context,
-    AnalyticsUiState uiState,
-  ) {
+class _AnalyticsTopBarPill extends ConsumerWidget {
+  const _AnalyticsTopBarPill();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final delta = uiState.consistencyDelta30Days;
+    final completed = ref.watch(
+      analyticsControllerProvider.select((s) => s.completedTodayCount),
+    );
+    final scheduled = ref.watch(
+      analyticsControllerProvider.select((s) => s.scheduledTodayCount),
+    );
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 5,
+      ),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.check_circle_outline,
+            size: 15,
+            color: theme.colorScheme.onPrimaryContainer,
+          ),
+          const SizedBox(width: 5),
+          Text(
+            '$completed/$scheduled Today',
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onPrimaryContainer,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AnalyticsContent extends ConsumerWidget {
+  final ValueChanged<String>? onNavigateToDetail;
+
+  const _AnalyticsContent({
+    this.onNavigateToDetail,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isLoading = ref.watch(
+      analyticsControllerProvider.select((s) => s.isLoading),
+    );
+
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 1. Hero Consistency Card
+          const _HeroConsistencyCard(),
+
+          const SizedBox(height: 14),
+
+          // 2. Secondary Metrics Row
+          const _SecondaryMetricsRow(),
+
+          const SizedBox(height: 14),
+
+          // 3. Top Habits Leaderboard
+          _LeaderboardCard(
+            onNavigateToDetail: onNavigateToDetail,
+          ),
+
+          // 4. Adherence Trend Section
+          const _AdherenceTrendSection(),
+
+          const SizedBox(height: 20),
+
+          // 5. Wellbeing & Energy Correlation Section
+          const _WellbeingCorrelationSection(),
+
+          const SizedBox(height: 20),
+
+          // 6. Monthly Activity Heatmap
+          const _MonthlyHeatmapSection(),
+
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroConsistencyCard extends ConsumerWidget {
+  const _HeroConsistencyCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final consistency30Days = ref.watch(
+      analyticsControllerProvider.select((s) => s.consistency30Days),
+    );
+    final delta = ref.watch(
+      analyticsControllerProvider.select((s) => s.consistencyDelta30Days),
+    );
+
     final isPositiveOrZero = delta >= 0;
     final deltaColor =
         isPositiveOrZero ? theme.colorScheme.primary : theme.colorScheme.error;
@@ -188,7 +220,7 @@ class _HabitAnalyticsScreenState extends ConsumerState<HabitAnalyticsScreen> {
         : '$delta% vs last 30 days';
 
     final consistencyFraction =
-        (uiState.consistency30Days / 100.0).clamp(0.0, 1.0);
+        (consistency30Days / 100.0).clamp(0.0, 1.0);
 
     return Card(
       shape: RoundedRectangleBorder(
@@ -216,7 +248,7 @@ class _HabitAnalyticsScreenState extends ConsumerState<HabitAnalyticsScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${uiState.consistency30Days}%',
+                    '$consistency30Days%',
                     style: theme.textTheme.headlineLarge?.copyWith(
                       fontWeight: FontWeight.w800,
                       color: theme.colorScheme.onSurface,
@@ -266,12 +298,20 @@ class _HabitAnalyticsScreenState extends ConsumerState<HabitAnalyticsScreen> {
       ),
     );
   }
+}
 
-  Widget _buildSecondaryMetricsRow(
-    BuildContext context,
-    AnalyticsUiState uiState,
-  ) {
+class _SecondaryMetricsRow extends ConsumerWidget {
+  const _SecondaryMetricsRow();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final bestStreak = ref.watch(
+      analyticsControllerProvider.select((s) => s.bestStreakRecord),
+    );
+    final completedToday = ref.watch(
+      analyticsControllerProvider.select((s) => s.completedTodayCount),
+    );
 
     return Row(
       children: [
@@ -280,7 +320,7 @@ class _HabitAnalyticsScreenState extends ConsumerState<HabitAnalyticsScreen> {
             context,
             icon: Icons.local_fire_department,
             iconTint: theme.colorScheme.tertiary,
-            value: '${uiState.bestStreakRecord}',
+            value: '$bestStreak',
             label: 'Best Streak',
           ),
         ),
@@ -290,7 +330,7 @@ class _HabitAnalyticsScreenState extends ConsumerState<HabitAnalyticsScreen> {
             context,
             icon: Icons.check,
             iconTint: theme.colorScheme.primary,
-            value: '${uiState.completedTodayCount}',
+            value: '$completedToday',
             label: 'Completed',
           ),
         ),
@@ -308,7 +348,7 @@ class _HabitAnalyticsScreenState extends ConsumerState<HabitAnalyticsScreen> {
     );
   }
 
-  Widget _buildMetricCard(
+  static Widget _buildMetricCard(
     BuildContext context, {
     required IconData icon,
     required Color iconTint,
@@ -361,119 +401,193 @@ class _HabitAnalyticsScreenState extends ConsumerState<HabitAnalyticsScreen> {
       ),
     );
   }
+}
 
-  Widget _buildLeaderboardCard(
-    BuildContext context,
-    List<LeaderboardItem> leaderboard,
-  ) {
+class _LeaderboardCard extends ConsumerWidget {
+  final ValueChanged<String>? onNavigateToDetail;
+
+  const _LeaderboardCard({
+    this.onNavigateToDetail,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final leaderboard = ref.watch(
+      analyticsControllerProvider.select((s) => s.leaderboard),
+    );
 
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
-        ),
-      ),
-      color: theme.colorScheme.surface,
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Top Habits (30 Days)',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+    if (leaderboard.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      children: [
+        Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
             ),
-            const SizedBox(height: 12),
-            ...leaderboard.asMap().entries.map((entry) {
-              final index = entry.key;
-              final item = entry.value;
-              final habitColor = ColorUtils.parseHexColor(item.habit.color);
-              final iconData = HabitIconRegistry.getIcon(item.habit.icon);
-              final progressFraction = item.bestStreak > 0
-                  ? (item.currentStreak / item.bestStreak).clamp(0.1, 1.0)
-                  : 0.5;
+          ),
+          color: theme.colorScheme.surface,
+          elevation: 1,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Top Habits (30 Days)',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ...leaderboard.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final item = entry.value;
+                  final habitColor = ColorUtils.parseHexColor(item.habit.color);
+                  final iconData = HabitIconRegistry.getIcon(item.habit.icon);
+                  final progressFraction = item.bestStreak > 0
+                      ? (item.currentStreak / item.bestStreak).clamp(0.1, 1.0)
+                      : 0.5;
 
-              return InkWell(
-                onTap: () => widget.onNavigateToDetail?.call(item.habit.id),
-                borderRadius: BorderRadius.circular(10),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 20,
-                        child: Text(
-                          '${index + 1}',
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.onSurfaceVariant,
+                  return InkWell(
+                    onTap: () => onNavigateToDetail?.call(item.habit.id),
+                    borderRadius: BorderRadius.circular(10),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 20,
+                            child: Text(
+                              '${index + 1}',
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: habitColor.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Center(
-                          child: Icon(iconData, size: 18, color: habitColor),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: habitColor.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Center(
+                              child: Icon(iconData, size: 18, color: habitColor),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
                               children: [
-                                Expanded(
-                                  child: Text(
-                                    item.habit.title,
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.w600,
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        item.habit.title,
+                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                                    Text(
+                                      '${item.currentStreak} ${item.unitLabel}',
+                                      style: theme.textTheme.labelSmall?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                Text(
-                                  '${item.currentStreak} ${item.unitLabel}',
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: theme.colorScheme.primary,
+                                const SizedBox(height: 4),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(2),
+                                  child: LinearProgressIndicator(
+                                    value: progressFraction,
+                                    minHeight: 4,
+                                    color: habitColor,
+                                    backgroundColor:
+                                        theme.colorScheme.surfaceContainerHighest,
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 4),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(2),
-                              child: LinearProgressIndicator(
-                                value: progressFraction,
-                                minHeight: 4,
-                                color: habitColor,
-                                backgroundColor:
-                                    theme.colorScheme.surfaceContainerHighest,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-          ],
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
         ),
-      ),
+        const SizedBox(height: 14),
+      ],
+    );
+  }
+}
+
+class _AdherenceTrendSection extends ConsumerWidget {
+  const _AdherenceTrendSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final trendPoints = ref.watch(
+      analyticsControllerProvider.select((s) => s.trendDataPoints),
+    );
+    final trendRange = ref.watch(
+      analyticsControllerProvider.select((s) => s.trendRange),
+    );
+    final controller = ref.read(analyticsControllerProvider.notifier);
+
+    return AdherenceAreaChart(
+      dataPoints: trendPoints,
+      selectedRange: trendRange,
+      onRangeSelected: controller.setTrendRange,
+    );
+  }
+}
+
+class _WellbeingCorrelationSection extends ConsumerWidget {
+  const _WellbeingCorrelationSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final wellbeingSummary = ref.watch(
+      analyticsControllerProvider.select((s) => s.wellbeingSummary),
+    );
+
+    return WellbeingCorrelationCard(
+      summary: wellbeingSummary,
+    );
+  }
+}
+
+class _MonthlyHeatmapSection extends ConsumerWidget {
+  const _MonthlyHeatmapSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final heatmapMonth = ref.watch(
+      analyticsControllerProvider.select((s) => s.heatmapMonth),
+    );
+    final heatmapData = ref.watch(
+      analyticsControllerProvider.select((s) => s.heatmapData),
+    );
+    final controller = ref.read(analyticsControllerProvider.notifier);
+
+    return MonthlyHeatmapGrid(
+      month: heatmapMonth,
+      dayDataMap: heatmapData,
+      onPreviousMonth: controller.previousHeatmapMonth,
+      onNextMonth: controller.nextHeatmapMonth,
     );
   }
 }

@@ -328,7 +328,6 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final uiState = ref.watch(dailyTrackerControllerProvider);
     final controller = ref.read(dailyTrackerControllerProvider.notifier);
     final currentUserName = ref.watch(userNameProvider);
     final currentThemeMode = ref.watch(themeModeProvider);
@@ -447,39 +446,7 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
                                   setState(() {});
                                 },
                               ),
-                            PopupMenuButton<HabitSortOption>(
-                              iconSize: 20,
-                              padding: EdgeInsets.zero,
-                              icon: Icon(
-                                Icons.sort,
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                              tooltip: 'Sort Habits',
-                              onSelected: (option) {
-                                HapticsHelper.performLightHaptic();
-                                controller.setSortOption(option);
-                              },
-                              itemBuilder: (context) {
-                                return HabitSortOption.values.map((option) {
-                                  final isSelected =
-                                      uiState.sortOption == option;
-                                  return PopupMenuItem<HabitSortOption>(
-                                    value: option,
-                                    child: Text(
-                                      option.displayName,
-                                      style: TextStyle(
-                                        fontWeight: isSelected
-                                            ? FontWeight.bold
-                                            : FontWeight.normal,
-                                        color: isSelected
-                                            ? theme.colorScheme.primary
-                                            : theme.colorScheme.onSurface,
-                                      ),
-                                    ),
-                                  );
-                                }).toList();
-                              },
-                            ),
+                            const _DailySortMenuButton(),
                           ],
                         ),
                       ],
@@ -487,141 +454,50 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
                   ),
                 ),
 
-            // Historical Date Banner
-            HistoricalBanner(
-              selectedDate: uiState.selectedDate,
-              onReturnToToday: controller.selectToday,
-            ),
+                // Historical Date Banner
+                const _DailyHistoricalBanner(),
 
-            // Compact Date Selector: ‹ Mon, Aug 17 › [Calendar]
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      IconButton(
-                        iconSize: 20,
-                        constraints: const BoxConstraints(
-                          minWidth: 36,
-                          minHeight: 36,
-                        ),
-                        padding: EdgeInsets.zero,
-                        icon: Icon(
-                          Icons.chevron_left,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        onPressed: () {
-                          HapticsHelper.performLightHaptic();
-                          controller.previousDay();
-                        },
-                      ),
-                      Text(
-                        DateFormat('EEE, MMM d').format(uiState.selectedDate),
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onSurface,
-                        ),
-                      ),
-                      IconButton(
-                        iconSize: 20,
-                        constraints: const BoxConstraints(
-                          minWidth: 36,
-                          minHeight: 36,
-                        ),
-                        padding: EdgeInsets.zero,
-                        icon: Icon(
-                          Icons.chevron_right,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        onPressed: () {
-                          HapticsHelper.performLightHaptic();
-                          controller.nextDay();
-                        },
-                      ),
-                    ],
-                  ),
-                  IconButton(
-                    iconSize: 22,
-                    constraints: const BoxConstraints(
-                      minWidth: 36,
-                      minHeight: 36,
-                    ),
-                    icon: Icon(
-                      Icons.calendar_month,
-                      color: theme.colorScheme.primary,
-                    ),
-                    tooltip: 'Select Date',
-                    onPressed: () {
-                      HapticsHelper.performLightHaptic();
-                      _selectDatePicker(uiState.selectedDate);
-                    },
-                  ),
-                ],
-              ),
-            ),
-
-            // Today's Progress Card
-            _buildProgressCard(context, theme, uiState),
-
-            // Category Chips Row
-            if (uiState.categories.isNotEmpty)
-              SizedBox(
-                height: 40,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: FilterChip(
-                        selected: uiState.selectedCategoryId == null,
-                        label: Text('All (${uiState.totalScheduledForSelectedDate})'),
-                        onSelected: (_) {
-                          HapticsHelper.performLightHaptic();
-                          controller.selectCategory(null);
-                        },
-                      ),
-                    ),
-                    ...uiState.categories.map((cat) {
-                      final isSelected = uiState.selectedCategoryId == cat.id;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: FilterChip(
-                          selected: isSelected,
-                          label: Text(cat.name),
-                          onSelected: (_) {
-                            HapticsHelper.performLightHaptic();
-                            controller.selectCategory(cat.id);
-                          },
-                        ),
-                      );
-                    }),
-                  ],
+                // Compact Date Selector: ‹ Mon, Aug 17 › [Calendar]
+                _DailyDateSelector(
+                  onSelectDatePicker: _selectDatePicker,
                 ),
-              ),
 
-            const SizedBox(height: 6),
+                // Today's Progress Card
+                const _DailyProgressCard(),
 
-            // Habits List
-            Expanded(
-              child: _buildHabitsList(context, theme, uiState, controller),
+                // Category Chips Row
+                const _DailyCategoryChipsRow(),
+
+                const SizedBox(height: 6),
+
+                // Habits List
+                Expanded(
+                  child: _DailyHabitsList(
+                    onNavigateToDetail: widget.onNavigateToDetail,
+                    onShowReflectionToast: _showReflectionToast,
+                  ),
+                ),
+              ],
             ),
+
+            // Floating Reflection Toast
+            if (_activeReflectionHabit != null)
+              Consumer(
+                builder: (context, ref, _) {
+                  final selectedDate = ref.watch(
+                    dailyTrackerControllerProvider.select((s) => s.selectedDate),
+                  );
+                  return Positioned(
+                    left: 16,
+                    right: 16,
+                    bottom: 12,
+                    child: _buildReflectionToast(theme, selectedDate),
+                  );
+                },
+              ),
           ],
         ),
-
-        // Floating Reflection Toast
-        if (_activeReflectionHabit != null)
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 12,
-            child: _buildReflectionToast(theme, uiState.selectedDate),
-          ),
-      ],
-    ),
-  ),
+      ),
       bottomNavigationBar: HabitBottomNavigation(
         currentRoute: Screen.daily,
         onNavigate: (route) {
@@ -641,206 +517,6 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
           }
         },
       ),
-    );
-  }
-
-  Widget _buildProgressCard(
-    BuildContext context,
-    ThemeData theme,
-    DailyTrackerUiState uiState,
-  ) {
-    final total = uiState.totalScheduledForSelectedDate;
-    final completed = uiState.totalCompletedForSelectedDate;
-    final percent = total > 0 ? ((completed / total) * 100).toInt() : 0;
-    final earnedXp = completed * 25;
-    final progressFraction = total > 0 ? (completed / total).clamp(0.0, 1.0) : 0.0;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-          side: BorderSide(
-            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
-          ),
-        ),
-        color: theme.colorScheme.surface,
-        elevation: 1,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              // Circular Progress Ring (90x90)
-              SizedBox(
-                width: 90,
-                height: 90,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    CustomPaint(
-                      size: const Size(86, 86),
-                      painter: _ProgressRingPainter(
-                        progress: progressFraction,
-                        trackColor: theme.colorScheme.surfaceContainerHighest,
-                        progressColor: theme.colorScheme.primary,
-                        strokeWidth: 8,
-                      ),
-                    ),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '$completed / $total',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.onSurface,
-                          ),
-                        ),
-                        Text(
-                          'completed',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-
-              // Percentage & XP Text
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '$percent%',
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                    ),
-                    Text(
-                      "Today's Progress",
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '+$earnedXp XP earned',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHabitsList(
-    BuildContext context,
-    ThemeData theme,
-    DailyTrackerUiState uiState,
-    DailyTrackerController controller,
-  ) {
-    if (uiState.isLoading) {
-      return Center(
-        child: CircularProgressIndicator(
-          color: theme.colorScheme.primary,
-        ),
-      );
-    }
-
-    if (uiState.habits.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                uiState.searchQuery.isNotEmpty
-                    ? 'No matching habits found'
-                    : 'No habits scheduled for this day',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 6),
-              Text(
-                "Tap '+' in the bottom bar to create a new habit",
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.outline,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      itemCount: uiState.habits.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        final habitWithProgress = uiState.habits[index];
-        return HabitCard(
-          key: ValueKey(habitWithProgress.habit.id),
-          habitWithProgress: habitWithProgress,
-          onHabitClick: (id) {
-            widget.onNavigateToDetail?.call(id);
-          },
-          onToggleCheckIn: () {
-            final wasCompleted = habitWithProgress.isCompletedOnDate;
-            controller.toggleCheckIn(habitWithProgress.habit);
-            if (!wasCompleted && habitWithProgress.habit.promptReflection) {
-              _showReflectionToast(habitWithProgress.habit);
-            }
-          },
-          onReflect: () {
-            final log = habitWithProgress.logsForDate.firstOrNull;
-            ReflectionBottomSheet.show(
-              context,
-              habit: habitWithProgress.habit,
-              date: uiState.selectedDate,
-              initialEnergyLevel: log?.energyLevel,
-              initialMood: log?.mood,
-              initialNote: log?.note,
-            );
-          },
-          onToggleShield: () {
-            controller.toggleShield(habitWithProgress.habit);
-          },
-          onValueChange: (val) {
-            controller.updateNumericValue(habitWithProgress.habit.id, val);
-          },
-          onDeltaAdd: (delta) {
-            controller.addNumericDelta(habitWithProgress.habit.id, delta);
-          },
-          onToggleSlot: (slotIndex) {
-            controller.toggleSlot(habitWithProgress.habit.id, slotIndex);
-          },
-          onTogglePin: () {
-            controller.togglePinned(habitWithProgress.habit);
-          },
-          onStartFocus: () {
-            widget.onNavigateToDetail?.call(habitWithProgress.habit.id);
-          },
-        );
-      },
     );
   }
 
@@ -981,5 +657,437 @@ class _ProgressRingPainter extends CustomPainter {
         oldDelegate.trackColor != trackColor ||
         oldDelegate.progressColor != progressColor ||
         oldDelegate.strokeWidth != strokeWidth;
+  }
+}
+
+class _DailySortMenuButton extends ConsumerWidget {
+  const _DailySortMenuButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final currentSort = ref.watch(
+      dailyTrackerControllerProvider.select((s) => s.sortOption),
+    );
+    final controller = ref.read(dailyTrackerControllerProvider.notifier);
+
+    return PopupMenuButton<HabitSortOption>(
+      iconSize: 20,
+      padding: EdgeInsets.zero,
+      icon: Icon(
+        Icons.sort,
+        color: theme.colorScheme.onSurfaceVariant,
+      ),
+      tooltip: 'Sort Habits',
+      onSelected: (option) {
+        HapticsHelper.performLightHaptic();
+        controller.setSortOption(option);
+      },
+      itemBuilder: (context) {
+        return HabitSortOption.values.map((option) {
+          final isSelected = currentSort == option;
+          return PopupMenuItem<HabitSortOption>(
+            value: option,
+            child: Text(
+              option.displayName,
+              style: TextStyle(
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.onSurface,
+              ),
+            ),
+          );
+        }).toList();
+      },
+    );
+  }
+}
+
+class _DailyHistoricalBanner extends ConsumerWidget {
+  const _DailyHistoricalBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedDate = ref.watch(
+      dailyTrackerControllerProvider.select((s) => s.selectedDate),
+    );
+    final controller = ref.read(dailyTrackerControllerProvider.notifier);
+
+    return HistoricalBanner(
+      selectedDate: selectedDate,
+      onReturnToToday: controller.selectToday,
+    );
+  }
+}
+
+class _DailyDateSelector extends ConsumerWidget {
+  final Future<void> Function(DateTime selectedDate) onSelectDatePicker;
+
+  const _DailyDateSelector({
+    required this.onSelectDatePicker,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final selectedDate = ref.watch(
+      dailyTrackerControllerProvider.select((s) => s.selectedDate),
+    );
+    final controller = ref.read(dailyTrackerControllerProvider.notifier);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              IconButton(
+                iconSize: 20,
+                constraints: const BoxConstraints(
+                  minWidth: 36,
+                  minHeight: 36,
+                ),
+                padding: EdgeInsets.zero,
+                icon: Icon(
+                  Icons.chevron_left,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                onPressed: () {
+                  HapticsHelper.performLightHaptic();
+                  controller.previousDay();
+                },
+              ),
+              Text(
+                DateFormat('EEE, MMM d').format(selectedDate),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+              IconButton(
+                iconSize: 20,
+                constraints: const BoxConstraints(
+                  minWidth: 36,
+                  minHeight: 36,
+                ),
+                padding: EdgeInsets.zero,
+                icon: Icon(
+                  Icons.chevron_right,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                onPressed: () {
+                  HapticsHelper.performLightHaptic();
+                  controller.nextDay();
+                },
+              ),
+            ],
+          ),
+          IconButton(
+            iconSize: 22,
+            constraints: const BoxConstraints(
+              minWidth: 36,
+              minHeight: 36,
+            ),
+            icon: Icon(
+              Icons.calendar_month,
+              color: theme.colorScheme.primary,
+            ),
+            tooltip: 'Select Date',
+            onPressed: () {
+              HapticsHelper.performLightHaptic();
+              onSelectDatePicker(selectedDate);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DailyProgressCard extends ConsumerWidget {
+  const _DailyProgressCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final total = ref.watch(
+      dailyTrackerControllerProvider
+          .select((s) => s.totalScheduledForSelectedDate),
+    );
+    final completed = ref.watch(
+      dailyTrackerControllerProvider
+          .select((s) => s.totalCompletedForSelectedDate),
+    );
+
+    final percent = total > 0 ? ((completed / total) * 100).toInt() : 0;
+    final earnedXp = completed * 25;
+    final progressFraction = total > 0 ? (completed / total).clamp(0.0, 1.0) : 0.0;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
+          ),
+        ),
+        color: theme.colorScheme.surface,
+        elevation: 1,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              // Circular Progress Ring (90x90)
+              SizedBox(
+                width: 90,
+                height: 90,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    CustomPaint(
+                      size: const Size(86, 86),
+                      painter: _ProgressRingPainter(
+                        progress: progressFraction,
+                        trackColor: theme.colorScheme.surfaceContainerHighest,
+                        progressColor: theme.colorScheme.primary,
+                        strokeWidth: 8,
+                      ),
+                    ),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '$completed / $total',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        Text(
+                          'completed',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+
+              // Percentage & XP Text
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '$percent%',
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    Text(
+                      "Today's Progress",
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '+$earnedXp XP earned',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DailyCategoryChipsRow extends ConsumerWidget {
+  const _DailyCategoryChipsRow();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final categories = ref.watch(
+      dailyTrackerControllerProvider.select((s) => s.categories),
+    );
+    final selectedCategoryId = ref.watch(
+      dailyTrackerControllerProvider.select((s) => s.selectedCategoryId),
+    );
+    final totalScheduled = ref.watch(
+      dailyTrackerControllerProvider
+          .select((s) => s.totalScheduledForSelectedDate),
+    );
+    final controller = ref.read(dailyTrackerControllerProvider.notifier);
+
+    if (categories.isEmpty) return const SizedBox.shrink();
+
+    return SizedBox(
+      height: 40,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: FilterChip(
+              selected: selectedCategoryId == null,
+              label: Text('All ($totalScheduled)'),
+              onSelected: (_) {
+                HapticsHelper.performLightHaptic();
+                controller.selectCategory(null);
+              },
+            ),
+          ),
+          ...categories.map((cat) {
+            final isSelected = selectedCategoryId == cat.id;
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: FilterChip(
+                selected: isSelected,
+                label: Text(cat.name),
+                onSelected: (_) {
+                  HapticsHelper.performLightHaptic();
+                  controller.selectCategory(cat.id);
+                },
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+}
+
+class _DailyHabitsList extends ConsumerWidget {
+  final ValueChanged<String>? onNavigateToDetail;
+  final void Function(Habit habit) onShowReflectionToast;
+
+  const _DailyHabitsList({
+    required this.onNavigateToDetail,
+    required this.onShowReflectionToast,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isLoading = ref.watch(
+      dailyTrackerControllerProvider.select((s) => s.isLoading),
+    );
+    final habits = ref.watch(
+      dailyTrackerControllerProvider.select((s) => s.habits),
+    );
+    final searchQuery = ref.watch(
+      dailyTrackerControllerProvider.select((s) => s.searchQuery),
+    );
+    final selectedDate = ref.watch(
+      dailyTrackerControllerProvider.select((s) => s.selectedDate),
+    );
+    final controller = ref.read(dailyTrackerControllerProvider.notifier);
+
+    if (isLoading) {
+      return Center(
+        child: CircularProgressIndicator(
+          color: theme.colorScheme.primary,
+        ),
+      );
+    }
+
+    if (habits.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                searchQuery.isNotEmpty
+                    ? 'No matching habits found'
+                    : 'No habits scheduled for this day',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                "Tap '+' in the bottom bar to create a new habit",
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.outline,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      itemCount: habits.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        final habitWithProgress = habits[index];
+        return HabitCard(
+          key: ValueKey(habitWithProgress.habit.id),
+          habitWithProgress: habitWithProgress,
+          onHabitClick: (id) {
+            onNavigateToDetail?.call(id);
+          },
+          onToggleCheckIn: () {
+            final wasCompleted = habitWithProgress.isCompletedOnDate;
+            controller.toggleCheckIn(habitWithProgress.habit);
+            if (!wasCompleted && habitWithProgress.habit.promptReflection) {
+              onShowReflectionToast(habitWithProgress.habit);
+            }
+          },
+          onReflect: () {
+            final log = habitWithProgress.logsForDate.firstOrNull;
+            ReflectionBottomSheet.show(
+              context,
+              habit: habitWithProgress.habit,
+              date: selectedDate,
+              initialEnergyLevel: log?.energyLevel,
+              initialMood: log?.mood,
+              initialNote: log?.note,
+            );
+          },
+          onToggleShield: () {
+            controller.toggleShield(habitWithProgress.habit);
+          },
+          onValueChange: (val) {
+            controller.updateNumericValue(habitWithProgress.habit.id, val);
+          },
+          onDeltaAdd: (delta) {
+            controller.addNumericDelta(habitWithProgress.habit.id, delta);
+          },
+          onToggleSlot: (slotIndex) {
+            controller.toggleSlot(habitWithProgress.habit.id, slotIndex);
+          },
+          onTogglePin: () {
+            controller.togglePinned(habitWithProgress.habit);
+          },
+          onStartFocus: () {
+            onNavigateToDetail?.call(habitWithProgress.habit.id);
+          },
+        );
+      },
+    );
   }
 }

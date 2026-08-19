@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../../di/providers.dart';
@@ -91,6 +92,40 @@ class DailyTrackerUiState {
       isLoading: isLoading ?? this.isLoading,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DailyTrackerUiState &&
+          runtimeType == other.runtimeType &&
+          selectedDate == other.selectedDate &&
+          isToday == other.isToday &&
+          searchQuery == other.searchQuery &&
+          selectedCategoryId == other.selectedCategoryId &&
+          sortOption == other.sortOption &&
+          showArchived == other.showArchived &&
+          listEquals(categories, other.categories) &&
+          listEquals(habits, other.habits) &&
+          mapEquals(weekLogs, other.weekLogs) &&
+          totalScheduledForSelectedDate == other.totalScheduledForSelectedDate &&
+          totalCompletedForSelectedDate == other.totalCompletedForSelectedDate &&
+          totalShieldedForSelectedDate == other.totalShieldedForSelectedDate &&
+          isLoading == other.isLoading;
+
+  @override
+  int get hashCode =>
+      selectedDate.hashCode ^
+      isToday.hashCode ^
+      searchQuery.hashCode ^
+      selectedCategoryId.hashCode ^
+      sortOption.hashCode ^
+      showArchived.hashCode ^
+      Object.hashAll(categories) ^
+      Object.hashAll(habits) ^
+      totalScheduledForSelectedDate.hashCode ^
+      totalCompletedForSelectedDate.hashCode ^
+      totalShieldedForSelectedDate.hashCode ^
+      isLoading.hashCode;
 }
 
 class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
@@ -105,6 +140,7 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
   List<HabitLog> _allLogs = [];
   List<HabitShield> _allShields = [];
   List<HabitCategory> _allCategories = [];
+  List<HabitWithProgress> _unfilteredHabitsWithProgress = [];
   bool _recomputeScheduled = false;
 
   DailyTrackerController(
@@ -180,21 +216,11 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
       shieldsByHabitDate.putIfAbsent(s.habitId, () => {}).add(s.date);
     }
 
-    final filteredHabits = _allHabits.where((habit) {
-      final matchArchived = state.showArchived ? true : !habit.archived;
-      final matchCategory = state.selectedCategoryId == null ||
-          habit.categoryId == state.selectedCategoryId;
-      final query = state.searchQuery.trim().toLowerCase();
-      final matchSearch = query.isEmpty ||
-          habit.title.toLowerCase().contains(query) ||
-          (habit.description != null &&
-              habit.description!.toLowerCase().contains(query));
-      final matchScheduled = StreakCalculator.isHabitScheduledOnDate(habit, date);
-
-      return matchArchived && matchCategory && matchSearch && matchScheduled;
+    final scheduledHabits = _allHabits.where((habit) {
+      return StreakCalculator.isHabitScheduledOnDate(habit, date);
     }).toList();
 
-    final habitsWithProgress = filteredHabits.map((habit) {
+    _unfilteredHabitsWithProgress = scheduledHabits.map((habit) {
       final habitLogs = logsByHabit[habit.id] ?? const [];
       final habitShields = shieldsByHabit[habit.id] ?? const [];
       final logsOnDate = logsByHabitDate[habit.id]?[dateStr] ?? const [];
@@ -255,7 +281,47 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
       );
     }).toList();
 
-    habitsWithProgress.sort((a, b) {
+    final weekLogsMap = <DateTime, int>{};
+    for (var offset = -3; offset <= 3; offset++) {
+      final d = date.add(Duration(days: offset));
+      final dClean = DateTime(d.year, d.month, d.day);
+      final dStr = StreakCalculator.formatIsoDate(dClean);
+      final completedCount = _allHabits.where((h) {
+        if (h.archived) return false;
+        if (!StreakCalculator.isHabitScheduledOnDate(h, dClean)) return false;
+        final hLogs = logsByHabitDate[h.id]?[dStr] ?? const [];
+        return StreakCalculator.isHabitCompletedOnDate(h, hLogs);
+      }).length;
+      weekLogsMap[dClean] = completedCount;
+    }
+
+    state = state.copyWith(
+      selectedDate: date,
+      isToday: isToday,
+      categories: _allCategories,
+      weekLogs: weekLogsMap,
+      isLoading: false,
+    );
+
+    _applyFilterAndSort();
+  }
+
+  void _applyFilterAndSort() {
+    final query = state.searchQuery.trim().toLowerCase();
+    final filteredHabits = _unfilteredHabitsWithProgress.where((item) {
+      final habit = item.habit;
+      final matchArchived = state.showArchived ? true : !habit.archived;
+      final matchCategory = state.selectedCategoryId == null ||
+          habit.categoryId == state.selectedCategoryId;
+      final matchSearch = query.isEmpty ||
+          habit.title.toLowerCase().contains(query) ||
+          (habit.description != null &&
+              habit.description!.toLowerCase().contains(query));
+
+      return matchArchived && matchCategory && matchSearch;
+    }).toList();
+
+    filteredHabits.sort((a, b) {
       // Pinned always comes first
       if (a.habit.pinned != b.habit.pinned) {
         return a.habit.pinned ? -1 : 1;
@@ -286,36 +352,17 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
       }
     });
 
-    final weekLogsMap = <DateTime, int>{};
-    for (var offset = -3; offset <= 3; offset++) {
-      final d = date.add(Duration(days: offset));
-      final dClean = DateTime(d.year, d.month, d.day);
-      final dStr = StreakCalculator.formatIsoDate(dClean);
-      final completedCount = _allHabits.where((h) {
-        if (h.archived) return false;
-        if (!StreakCalculator.isHabitScheduledOnDate(h, dClean)) return false;
-        final hLogs = logsByHabitDate[h.id]?[dStr] ?? const [];
-        return StreakCalculator.isHabitCompletedOnDate(h, hLogs);
-      }).length;
-      weekLogsMap[dClean] = completedCount;
-    }
-
-    final totalScheduled = habitsWithProgress.length;
+    final totalScheduled = filteredHabits.length;
     final totalCompleted =
-        habitsWithProgress.where((h) => h.isCompletedOnDate).length;
+        filteredHabits.where((h) => h.isCompletedOnDate).length;
     final totalShielded =
-        habitsWithProgress.where((h) => h.isShieldedOnDate).length;
+        filteredHabits.where((h) => h.isShieldedOnDate).length;
 
     state = state.copyWith(
-      selectedDate: date,
-      isToday: isToday,
-      categories: _allCategories,
-      habits: habitsWithProgress,
-      weekLogs: weekLogsMap,
+      habits: filteredHabits,
       totalScheduledForSelectedDate: totalScheduled,
       totalCompletedForSelectedDate: totalCompleted,
       totalShieldedForSelectedDate: totalShielded,
-      isLoading: false,
     );
   }
 
@@ -340,7 +387,7 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
 
   void setSearchQuery(String query) {
     state = state.copyWith(searchQuery: query);
-    _recomputeState();
+    _applyFilterAndSort();
   }
 
   void selectCategory(String? categoryId) {
@@ -349,27 +396,29 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
     } else {
       state = state.copyWith(selectedCategoryId: categoryId);
     }
-    _recomputeState();
+    _applyFilterAndSort();
   }
 
   void setSortOption(HabitSortOption option) {
     state = state.copyWith(sortOption: option);
-    _recomputeState();
+    _applyFilterAndSort();
   }
 
   void setShowArchived(bool show) {
     state = state.copyWith(showArchived: show);
-    _recomputeState();
+    _applyFilterAndSort();
   }
+
 
   Future<void> toggleCheckIn(Habit habit) async {
     await _repository.toggleBooleanCheckIn(habit.id, state.selectedDate);
     _widgetSyncService?.syncAllWidgets(state.selectedDate);
   }
 
-  Future<void> toggleShield(Habit habit) async {
-    await _repository.toggleShield(habit.id, state.selectedDate);
+  Future<bool> toggleShield(Habit habit) async {
+    final success = await _repository.toggleShield(habit.id, state.selectedDate);
     _widgetSyncService?.syncAllWidgets(state.selectedDate);
+    return success;
   }
 
   Future<void> updateNumericValue(String habitId, double value) async {

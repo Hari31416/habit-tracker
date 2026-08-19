@@ -188,7 +188,7 @@ class _ShieldBankBottomSheetState extends ConsumerState<ShieldBankBottomSheet> {
                 const SizedBox(height: 16),
 
                 // Manual Application & Quick Protect Section
-                _buildQuickApplySection(context, habitRepo, available),
+                _QuickApplySection(availableShields: available),
 
                 const SizedBox(height: 16),
 
@@ -342,165 +342,6 @@ class _ShieldBankBottomSheetState extends ConsumerState<ShieldBankBottomSheet> {
       );
   }
 
-  Widget _buildQuickApplySection(
-    BuildContext context,
-    dynamic habitRepo,
-    int availableShields,
-  ) {
-    final theme = Theme.of(context);
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final yesterday = today.subtract(const Duration(days: 1));
-    final yesterdayStr = _dateFormatter.format(yesterday);
-
-    return StreamBuilder<List<Habit>>(
-      stream: habitRepo.getActiveHabits(),
-      builder: (context, habitSnap) {
-        final habits = habitSnap.data ?? [];
-        if (habits.isEmpty) return const SizedBox.shrink();
-
-        return StreamBuilder<List<HabitShield>>(
-          stream: habitRepo.getAllShields(),
-          builder: (context, shieldSnap) {
-            final shields = shieldSnap.data ?? [];
-            return StreamBuilder<List<HabitLog>>(
-              stream: habitRepo.getAllLogs(),
-              builder: (context, logSnap) {
-                final logs = logSnap.data ?? [];
-
-                // Find habits missed yesterday or recently
-                final missedHabitsYesterday = habits.where((h) {
-                  final isScheduled =
-                      StreakCalculator.isHabitScheduledOnDate(h, yesterday);
-                  if (!isScheduled) return false;
-                  final hLogs = logs
-                      .where((l) => l.habitId == h.id && l.date == yesterdayStr)
-                      .toList();
-                  final isCompleted =
-                      StreakCalculator.isHabitCompletedOnDate(h, hLogs);
-                  return !isCompleted;
-                }).toList();
-
-                if (missedHabitsYesterday.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-
-                return Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(
-                      color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
-                    ),
-                  ),
-                  color: theme.colorScheme.surface,
-                  elevation: 0,
-                  child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.history_toggle_off,
-                              size: 18,
-                              color: theme.colorScheme.primary,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Yesterday Missed Habits (${DateFormat('MMM d').format(yesterday)})',
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        ...missedHabitsYesterday.map((habit) {
-                          final isShielded = shields.any(
-                            (s) => s.habitId == habit.id && s.date == yesterdayStr,
-                          );
-                          final accentColor = ColorUtils.parseHexColor(habit.color);
-                          final iconData = HabitIconRegistry.getIcon(habit.icon);
-
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 32,
-                                  height: 32,
-                                  decoration: BoxDecoration(
-                                    color: accentColor.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Icon(iconData, size: 16, color: accentColor),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    habit.title,
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                                if (isShielded)
-                                  OutlinedButton.icon(
-                                    icon: const Icon(Icons.shield, size: 14),
-                                    label: const Text('Protected'),
-                                    style: OutlinedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 6,
-                                      ),
-                                      textStyle: const TextStyle(fontSize: 12),
-                                    ),
-                                    onPressed: () {
-                                      HapticsHelper.performLightHaptic();
-                                      habitRepo.removeShield(habit.id, yesterday);
-                                    },
-                                  )
-                                else
-                                  FilledButton.tonalIcon(
-                                    icon: const Icon(Icons.shield_outlined, size: 14),
-                                    label: const Text('Protect'),
-                                    style: FilledButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 6,
-                                      ),
-                                      textStyle: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    onPressed: availableShields > 0
-                                        ? () {
-                                            HapticsHelper.performHeavyConfirmationHaptic();
-                                            habitRepo.applyShield(
-                                              habitId: habit.id,
-                                              date: yesterday,
-                                            );
-                                          }
-                                        : null,
-                                  ),
-                              ],
-                            ),
-                          );
-                        }),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            );
-          },
-        );
-      },
-    );
-  }
-
   Widget _buildHowToItem(BuildContext context, String title, String desc) {
     final theme = Theme.of(context);
     return Row(
@@ -556,6 +397,156 @@ class _ShieldBankBottomSheetState extends ConsumerState<ShieldBankBottomSheet> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _QuickApplySection extends ConsumerWidget {
+  final int availableShields;
+
+  const _QuickApplySection({
+    required this.availableShields,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final habitRepo = ref.watch(habitRepositoryProvider);
+    final habits = ref.watch(activeHabitsStreamProvider).value ?? const [];
+    final shields = ref.watch(allShieldsStreamProvider).value ?? const [];
+    final logs = ref.watch(allLogsStreamProvider).value ?? const [];
+
+    if (habits.isEmpty) return const SizedBox.shrink();
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final yesterdayStr = StreakCalculator.formatIsoDate(yesterday);
+
+    // Find habits missed yesterday or recently
+    final missedHabitsYesterday = habits.where((h) {
+      final isScheduled =
+          StreakCalculator.isHabitScheduledOnDate(h, yesterday);
+      if (!isScheduled) return false;
+      final hLogs = logs
+          .where((l) => l.habitId == h.id && l.date == yesterdayStr)
+          .toList();
+      final isCompleted =
+          StreakCalculator.isHabitCompletedOnDate(h, hLogs);
+      return !isCompleted;
+    }).toList();
+
+    if (missedHabitsYesterday.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+        ),
+      ),
+      color: theme.colorScheme.surface,
+      elevation: 0,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.history_toggle_off,
+                  size: 18,
+                  color: theme.colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Yesterday Missed Habits (${DateFormat('MMM d').format(yesterday)})',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            ...missedHabitsYesterday.map((habit) {
+              final isShielded = shields.any(
+                (s) => s.habitId == habit.id && s.date == yesterdayStr,
+              );
+              final accentColor = ColorUtils.parseHexColor(habit.color);
+              final iconData = HabitIconRegistry.getIcon(habit.icon);
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: accentColor.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(iconData, size: 16, color: accentColor),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        habit.title,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    if (isShielded)
+                      OutlinedButton.icon(
+                        icon: const Icon(Icons.shield, size: 14),
+                        label: const Text('Protected'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          textStyle: const TextStyle(fontSize: 12),
+                        ),
+                        onPressed: () {
+                          HapticsHelper.performLightHaptic();
+                          habitRepo.removeShield(habit.id, yesterday);
+                        },
+                      )
+                    else
+                      FilledButton.tonalIcon(
+                        icon: const Icon(Icons.shield_outlined, size: 14),
+                        label: const Text('Protect'),
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        onPressed: availableShields > 0
+                            ? () {
+                                HapticsHelper.performHeavyConfirmationHaptic();
+                                habitRepo.applyShield(
+                                  habitId: habit.id,
+                                  date: yesterday,
+                                );
+                              }
+                            : null,
+                      ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
     );
   }
 }

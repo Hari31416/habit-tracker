@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../di/providers.dart';
@@ -180,6 +181,42 @@ class AnalyticsUiState {
       isLoading: isLoading ?? this.isLoading,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AnalyticsUiState &&
+          runtimeType == other.runtimeType &&
+          consistency30Days == other.consistency30Days &&
+          consistencyDelta30Days == other.consistencyDelta30Days &&
+          bestStreakRecord == other.bestStreakRecord &&
+          bestStreakHabitTitle == other.bestStreakHabitTitle &&
+          bestStreakUnit == other.bestStreakUnit &&
+          completedTodayCount == other.completedTodayCount &&
+          scheduledTodayCount == other.scheduledTodayCount &&
+          listEquals(leaderboard, other.leaderboard) &&
+          trendRange == other.trendRange &&
+          listEquals(trendDataPoints, other.trendDataPoints) &&
+          heatmapMonth == other.heatmapMonth &&
+          mapEquals(heatmapData, other.heatmapData) &&
+          wellbeingSummary == other.wellbeingSummary &&
+          isLoading == other.isLoading;
+
+  @override
+  int get hashCode =>
+      consistency30Days.hashCode ^
+      consistencyDelta30Days.hashCode ^
+      bestStreakRecord.hashCode ^
+      bestStreakHabitTitle.hashCode ^
+      bestStreakUnit.hashCode ^
+      completedTodayCount.hashCode ^
+      scheduledTodayCount.hashCode ^
+      Object.hashAll(leaderboard) ^
+      trendRange.hashCode ^
+      Object.hashAll(trendDataPoints) ^
+      heatmapMonth.hashCode ^
+      wellbeingSummary.hashCode ^
+      isLoading.hashCode;
 }
 
 final analyticsControllerProvider = StateNotifierProvider.autoDispose<

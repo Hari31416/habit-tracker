@@ -69,6 +69,25 @@ class WellbeingSummary {
     moodCounts: {},
     timelinePoints: [],
   );
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is WellbeingSummary &&
+          runtimeType == other.runtimeType &&
+          avgEnergyOnCompletedDays == other.avgEnergyOnCompletedDays &&
+          avgEnergyOnMissedDays == other.avgEnergyOnMissedDays &&
+          overallAvgEnergy == other.overallAvgEnergy &&
+          totalReflectionsLogged == other.totalReflectionsLogged &&
+          energyBoostPercentage == other.energyBoostPercentage;
+
+  @override
+  int get hashCode =>
+      avgEnergyOnCompletedDays.hashCode ^
+      avgEnergyOnMissedDays.hashCode ^
+      overallAvgEnergy.hashCode ^
+      totalReflectionsLogged.hashCode ^
+      energyBoostPercentage.hashCode;
 }
 
 class WellbeingCorrelationEngine {

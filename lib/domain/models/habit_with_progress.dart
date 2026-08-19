@@ -51,4 +51,27 @@ class HabitWithProgress {
       streak: streak ?? this.streak,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is HabitWithProgress &&
+          runtimeType == other.runtimeType &&
+          habit == other.habit &&
+          category == other.category &&
+          isCompletedOnDate == other.isCompletedOnDate &&
+          isShieldedOnDate == other.isShieldedOnDate &&
+          currentValueOnDate == other.currentValueOnDate &&
+          currentDurationSecondsOnDate == other.currentDurationSecondsOnDate &&
+          streak == other.streak;
+
+  @override
+  int get hashCode =>
+      habit.hashCode ^
+      category.hashCode ^
+      isCompletedOnDate.hashCode ^
+      isShieldedOnDate.hashCode ^
+      currentValueOnDate.hashCode ^
+      currentDurationSecondsOnDate.hashCode ^
+      streak.hashCode;
 }
