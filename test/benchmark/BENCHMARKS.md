@@ -34,9 +34,28 @@ flutter test test/benchmark/phase1_benchmark_test.dart
 
 ## Phase 2: Reactive Data Flow and Gamification Architecture
 
-Phase 2 benchmarks will measure the consolidation of gamification streams, elimination of redundant listeners, single-pass streak caching, and debounced controller state recomputations.
+### Phase 2 Results Summary
 
-*Status: Scheduled*
+| Scenario / Operation                                                      | Before Optimization | After Phase 2 Optimization | Speedup / Reduction   | Notes                                                                                                 |
+| :------------------------------------------------------------------------ | :------------------ | :------------------------- | :-------------------- | :---------------------------------------------------------------------------------------------------- |
+| **Gamification Streak Passes**<br>*(50 runs on 20 habits x 60 days)*      | 605.92 ms           | 174.30 ms                  | 3.48x                 | Single-pass precomputed streak map reused across XP multipliers, achievements, and shield banking.    |
+| **Multi-Table Stream Coalescing**<br>*(500 bursts of 4 table emissions)*  | 2,000 evaluations   | 500 evaluations            | 4.00x (75% fewer)     | Microtask coalescing ensures rapid consecutive emissions trigger one calculation per event loop turn. |
+| **Shared Stream Pipeline**<br>*(25 write cycles with 4 active listeners)* | 24 DAO streams      | 6 shared DAO streams       | 4.00x fewer listeners | 8.08 ms average write cycle under full 4-listener subscription load.                                  |
+
+### Phase 2 Detailed Breakdown
+
+- **Single-Pass Streaks:** Eliminated 4 redundant full-history streak calculation passes in `GamificationRepositoryImpl.evaluateAndEmit()`. Streaks are now computed once per habit and reused in XP multipliers, `AchievementEvaluator`, and `ShieldBankingEngine`.
+- **Stream Event Coalescing:** Multi-stream database emissions during app startup or multi-table updates are coalesced via `scheduleMicrotask`, reducing redundant calculations by 75%.
+- **Stream Consolidation:** Replaced per-method stream creation with a single shared broadcast pipeline (`_getCombinedStream()`), cutting concurrent Drift listeners and eliminating redundant evaluations.
+- **Feedback Loop Elimination:** Guarded achievement persistence to skip re-evaluations when unlocked achievement IDs and progress remain unchanged.
+
+### Phase 2 Benchmark Suite
+
+Run the Phase 2 benchmark suite with:
+
+```bash
+flutter test test/benchmark/phase2_benchmark_test.dart
+```
 
 ## Phase 3: Algorithmic and Computation Optimizations
 
