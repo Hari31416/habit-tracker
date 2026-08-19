@@ -9,21 +9,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Phial branding across launcher name, Play store metadata, deep links, and package identifier (`app.phial.habits`).
-- On-demand "Load Demo Habits" option in the empty daily tracker screen for tester exploration.
-- Structured `AppLogger` utility wrapping `dart:developer.log` for error and warning telemetry.
-- Support for `phial://habits/...` and `app://habits/...` deep link routing with empty ID validation.
+- Phial brand identity across application launcher, Play Store metadata, deep links, and package identifier (`app.phial.habits`).
+- Clean first-run onboarding with empty state and on-demand "Load Demo Habits" option.
+- Non-intrusive animated reflection toast with swipe-to-dismiss and auto-dismissal replacing blocking modal popups.
+- Per-habit reflection opt-in setting (`promptReflection`) supported by Drift database schema version 4 migration.
+- Material 3 `SearchBar` header on Daily screen integrating live habit search and profile bottom sheet.
+- Modernized navigation headers: compact week stepper in Week Matrix, today completion counter in Analytics, and live level/badge pill in Mastery.
+- Deep link routing for `phial://habits/...` and `app://habits/...` URIs with empty ID validation.
+- Structured `AppLogger` utility wrapping `dart:developer.log` for error telemetry and lifecycle logging.
+- Automated Phase 1-6 performance benchmark suites and Python hardware benchmark runner with Markdown reporting and plots (`make benchmark`, `make perf-test`).
+- Automated ADB UI and regression testing harness (`make adb-test`).
 - Dedicated privacy policy documentation in `PRIVACY.md`.
-- `flutter analyze` gate in CI workflow.
+- Fully responsive mobile overhaul for documentation and showcase website.
+- Automated `flutter analyze` code quality gate in CI workflow.
+
+### Performance
+
+- Tuned SQLite database configuration with WAL journal mode, memory temp store, 4MB cache PRAGMAs, and transactional batch mutations.
+- Pre-indexed log, shield, and streak lookups eliminating quadratic scans in UI controllers, gamification evaluators, and widget sync.
+- In-memory cached habit search and category filtering yielding a 334x acceleration in search latency.
+- Decomposed Daily Tracker, Analytics, and Week Matrix screens with granular Riverpod selectors and value equality on UI states.
+- Debounced widget synchronization (500ms coalescing timer) with unawaited check-in updates and async startup initialization.
+- Virtualized week matrix rows with extracted lightweight cell widgets.
 
 ### Fixed
 
-- Habit reminder scheduling now uses repeating zoned alarm components and recalculates on in-app check-ins and app resume.
-- Day rollover task now executes idempotently on startup and resume, auto-protecting missed days with available streak shields.
-- Removed Play-restricted `USE_EXACT_ALARM` permission and relocated notification/alarm permission requests to contextual habit creation.
-- Disabled Android cloud backup and database auto-extraction (`android:allowBackup="false"`).
-- Hardened widget toggle broadcast receivers with installation-scoped auth tokens.
+- Prevented first-second clipping on focus timer countdown by using ceiling duration calculation and fixing integer truncation across Dart and Kotlin tickers.
+- Synchronized focus timer state with native foreground service events and logged completed sessions reliably.
+- Habit reminder scheduling now uses repeating zoned alarm components and recalculates dynamically on check-ins and app resume.
+- Day rollover task now runs idempotently on app startup and resume, automatically protecting missed days with available streak shields.
+- Hardened Android AppWidget toggle broadcast receivers with installation-scoped authentication tokens.
+- Replaced Play-restricted `USE_EXACT_ALARM` permission with contextual notification and alarm permission requests on habit reminder creation.
+- Configured explicit storage domain rules in `data_extraction_rules.xml` and disabled cloud backup (`android:allowBackup="false"`).
+- Resolved mobile text clipping and table overflow on documentation site.
 - Resolved all analyzer warnings and benchmark print lints.
+
 
 ## [0.7.0] - 2026-08-18
 
