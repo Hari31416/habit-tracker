@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../di/providers.dart';
@@ -167,6 +168,35 @@ class WeekMatrixUiState {
       isLoading: isLoading ?? this.isLoading,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is WeekMatrixUiState &&
+          runtimeType == other.runtimeType &&
+          weekStart == other.weekStart &&
+          weekEnd == other.weekEnd &&
+          isCurrentWeek == other.isCurrentWeek &&
+          listEquals(rows, other.rows) &&
+          listEquals(dailyStats, other.dailyStats) &&
+          totalCompleted == other.totalCompleted &&
+          totalShielded == other.totalShielded &&
+          totalScheduled == other.totalScheduled &&
+          adherencePercentage == other.adherencePercentage &&
+          isLoading == other.isLoading;
+
+  @override
+  int get hashCode =>
+      weekStart.hashCode ^
+      weekEnd.hashCode ^
+      isCurrentWeek.hashCode ^
+      Object.hashAll(rows) ^
+      Object.hashAll(dailyStats) ^
+      totalCompleted.hashCode ^
+      totalShielded.hashCode ^
+      totalScheduled.hashCode ^
+      adherencePercentage.hashCode ^
+      isLoading.hashCode;
 }
 
 final weekMatrixControllerProvider = StateNotifierProvider.autoDispose<

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../di/providers.dart';
 import '../../../domain/gamification/gamification_models.dart';
@@ -42,6 +43,27 @@ class GamificationUiState {
       isLoading: isLoading ?? this.isLoading,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GamificationUiState &&
+          runtimeType == other.runtimeType &&
+          progression == other.progression &&
+          selectedCategory == other.selectedCategory &&
+          listEquals(allAchievements, other.allAchievements) &&
+          listEquals(filteredAchievements, other.filteredAchievements) &&
+          pendingCelebration == other.pendingCelebration &&
+          isLoading == other.isLoading;
+
+  @override
+  int get hashCode =>
+      progression.hashCode ^
+      selectedCategory.hashCode ^
+      Object.hashAll(allAchievements) ^
+      Object.hashAll(filteredAchievements) ^
+      pendingCelebration.hashCode ^
+      isLoading.hashCode;
 }
 
 final gamificationControllerProvider = StateNotifierProvider.autoDispose<

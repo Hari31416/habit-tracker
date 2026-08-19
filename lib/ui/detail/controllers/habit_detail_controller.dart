@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../di/providers.dart';
@@ -95,6 +96,45 @@ class HabitDetailUiState {
       isDeleted: isDeleted ?? this.isDeleted,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is HabitDetailUiState &&
+          runtimeType == other.runtimeType &&
+          habit == other.habit &&
+          category == other.category &&
+          listEquals(allLogs, other.allLogs) &&
+          listEquals(allShields, other.allShields) &&
+          listEquals(logsForSelectedDate, other.logsForSelectedDate) &&
+          selectedDate == other.selectedDate &&
+          currentMonth == other.currentMonth &&
+          streak == other.streak &&
+          isCompletedOnSelectedDate == other.isCompletedOnSelectedDate &&
+          isShieldedOnSelectedDate == other.isShieldedOnSelectedDate &&
+          currentValueOnSelectedDate == other.currentValueOnSelectedDate &&
+          shieldBank == other.shieldBank &&
+          wellbeingSummary == other.wellbeingSummary &&
+          isLoading == other.isLoading &&
+          isDeleted == other.isDeleted;
+
+  @override
+  int get hashCode =>
+      habit.hashCode ^
+      category.hashCode ^
+      Object.hashAll(allLogs) ^
+      Object.hashAll(allShields) ^
+      Object.hashAll(logsForSelectedDate) ^
+      selectedDate.hashCode ^
+      currentMonth.hashCode ^
+      streak.hashCode ^
+      isCompletedOnSelectedDate.hashCode ^
+      isShieldedOnSelectedDate.hashCode ^
+      currentValueOnSelectedDate.hashCode ^
+      shieldBank.hashCode ^
+      wellbeingSummary.hashCode ^
+      isLoading.hashCode ^
+      isDeleted.hashCode;
 }
 
 class HabitDetailController extends StateNotifier<HabitDetailUiState> {
