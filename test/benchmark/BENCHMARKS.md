@@ -132,3 +132,30 @@ Run the Phase 5 benchmark suite with:
 flutter test test/benchmark/phase5_benchmark_test.dart
 ```
 
+## Phase 6: Code Review Bottlenecks and Stream Sharing
+
+### Phase 6 Results Summary
+
+| Scenario / Operation                                                                 | Before Optimization                                   | After Phase 6 Optimization                         | Speedup / Efficiency | Notes                                                                                  |
+| :----------------------------------------------------------------------------------- | :---------------------------------------------------- | :------------------------------------------------- | :------------------- | :------------------------------------------------------------------------------------- |
+| **Gamification Stream Sharing**<br>*(4 simultaneous stream consumers)*               | 24 concurrent DAO streams (6 per subscriber)          | 6 shared DAO streams (single broadcast controller) | 4.00x fewer streams  | All listeners share one evaluation pipeline and teardown cleanly when all unsubscribe. |
+| **Reminder Slot Cancellation**<br>*(10 reminder slots)*                              | 10 sequential platform `await` calls                  | Concurrent dispatch via `Future.wait`              | Concurrent IPC       | Eliminates blocking serial round-trips across platform method channels.                |
+| **Domain Log Attribute Integrity**                                                   | `energyLevel` & `mood` dropped in gamification mapper | Full reflection attributes mapped                  | 100% data fidelity   | Complete fidelity for wellbeing analytics and gamification correlation scoring.        |
+| **UI State Value Equality**<br>*(Week Matrix, Habit Detail, Gamification UI states)* | Rebuilt screens on any state notifier update          | Deep equality (`==` / `hashCode` / `listEquals`)   | Scoped re-renders    | Prevents superfluous rebuilds when recalculated state objects have identical contents. |
+
+### Phase 6 Detailed Breakdown
+
+- **Shared Gamification Broadcast Stream:** Consolidated `GamificationRepositoryImpl._getOrCreateGamificationStream()` into a single broadcast stream. `getPlayerProgression()`, `getAchievements()`, `getPendingCelebration()`, and `getShieldBankState()` share a single underlying evaluation pipeline and 6 Drift table listeners.
+- **Concurrent Notification Cancellation:** Refactored `FlutterHabitReminderScheduler.cancel()` to execute all notification cancellations in parallel with `Future.wait`, eliminating sequential platform channel delays.
+- **Reflection Domain Mapping Integrity:** Fixed `_logRowToDomain` in `GamificationRepositoryImpl` to map `energyLevel` and `mood` fields, ensuring full data parity between persistence and domain layers.
+- **Comprehensive UI State Value Equality:** Implemented `operator ==` and `hashCode` with `listEquals` on `WeekMatrixUiState`, `HabitDetailUiState`, `GamificationUiState`, `AchievementDefinition`, `AchievementStatus`, `PlayerProgression`, and `LevelUpCelebration` to prevent redundant rebuilds in Riverpod state notifiers.
+
+### Phase 6 Benchmark Suite
+
+Run the Phase 6 test suite with:
+
+```bash
+flutter test test/benchmark/phase6_optimization_test.dart
+```
+
+

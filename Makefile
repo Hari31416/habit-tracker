@@ -16,7 +16,7 @@ MAIN_ACTIVITY := $(PACKAGE_NAME).MainActivity
 DEFAULT_AVD := $(shell $(EMULATOR) -list-avds 2>/dev/null | head -n 1)
 AVD ?= $(DEFAULT_AVD)
 
-.PHONY: help build build-release build-release-universal build-appbundle test lint clean install uninstall emulator-list emulator-start emulator-stop emulator-wait start stop restart run debug logcat flutter-run flutter-run-android flutter-build-apk flutter-build-release flutter-build-appbundle flutter-test flutter-analyze flutter-codegen codegen
+.PHONY: help build build-release build-release-universal build-appbundle test lint clean install uninstall emulator-list emulator-start emulator-stop emulator-wait start stop restart run debug logcat flutter-run flutter-run-android flutter-build-apk flutter-build-release flutter-build-appbundle flutter-test flutter-analyze flutter-codegen codegen adb-test
 
 help: ## Show this help message
 	@echo "Usage: make [target] [AVD=avd_name]"
@@ -158,4 +158,8 @@ flutter-analyze: lint ## Run Flutter analyzer
 
 flutter-codegen: ## Run build_runner for code generation
 	dart run build_runner build --delete-conflicting-outputs
+
+adb-test: ## Run automated ADB UI and regression test suite
+	@chmod +x scripts/adb_automated_test.sh
+	@./scripts/adb_automated_test.sh
 
