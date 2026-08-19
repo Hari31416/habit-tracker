@@ -33,7 +33,7 @@ logger = logging.getLogger("BenchmarkRunner")
 
 PACKAGE_NAME = "app.phial.habits"
 MAIN_ACTIVITY = f"{PACKAGE_NAME}.MainActivity"
-OUTPUT_DIR = Path("build/benchmark_reports")
+OUTPUT_DIR = Path("docs/benchmarks")
 
 
 @dataclass
@@ -1154,9 +1154,10 @@ def parse_args() -> argparse.Namespace:
         "-o",
         dest="output_dir",
         type=str,
-        default="build/benchmark_reports",
+        default="docs/benchmarks",
         help="Output directory for generated plots and Markdown reports",
     )
+
     # Support positional URI if passed
     parser.add_argument(
         "positional_url",
