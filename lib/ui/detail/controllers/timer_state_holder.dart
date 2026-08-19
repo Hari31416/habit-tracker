@@ -122,6 +122,8 @@ class TimerStateHolderNotifier extends StateNotifier<TimerState> {
 
       if (mapped == TimerStatus.running) {
         _startTicker();
+      } else if (mapped == TimerStatus.completed) {
+        _onTimerCompleted();
       }
     } finally {
       _applyingNativeEvent = false;
@@ -519,6 +521,8 @@ class TimerStateHolder {
 
     if (mapped == TimerStatus.running) {
       _startTicker();
+    } else if (mapped == TimerStatus.completed) {
+      _onTimerCompleted();
     }
   }
 
