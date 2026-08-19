@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../../../di/providers.dart';
 import '../../../domain/engines/shield_banking_engine.dart';
 import '../../../domain/engines/streak_calculator.dart';
@@ -141,7 +140,6 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
   final String habitId;
   final HabitRepository repository;
   final GamificationRepository? gamificationRepository;
-  final DateFormat _dateFormatter = DateFormat('yyyy-MM-dd');
 
   StreamSubscription? _habitSubscription;
   StreamSubscription? _logsSubscription;

@@ -40,6 +40,9 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Run code analysis (lint)
+        run: flutter analyze
+
       - name: Run unit & widget tests
         run: flutter test
 

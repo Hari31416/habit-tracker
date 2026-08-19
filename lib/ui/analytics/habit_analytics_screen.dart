@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../common/color_utils.dart';
 import '../common/habit_icon_registry.dart';
-import '../common/haptics_helper.dart';
 import '../form/habit_form_bottom_sheet.dart';
 import '../navigation/habit_bottom_navigation.dart';
 import '../navigation/screen.dart';

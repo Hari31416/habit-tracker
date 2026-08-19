@@ -241,8 +241,6 @@ class AnalyticsController extends StateNotifier<AnalyticsUiState> {
   StreamSubscription? _logsSub;
   StreamSubscription? _categoriesSub;
 
-  final DateFormat _dateFormatter = DateFormat('yyyy-MM-dd');
-
   AnalyticsController(this._repository)
       : super(AnalyticsUiState(isLoading: true)) {
     _init();

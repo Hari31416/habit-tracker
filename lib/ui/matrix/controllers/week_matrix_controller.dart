@@ -220,8 +220,6 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
   StreamSubscription? _shieldsSub;
   StreamSubscription? _categoriesSub;
 
-  final DateFormat _dateFormatter = DateFormat('yyyy-MM-dd');
-
   WeekMatrixController(this._repository)
       : super(WeekMatrixUiState(isLoading: true)) {
     _init();

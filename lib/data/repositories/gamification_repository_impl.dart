@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:drift/drift.dart';
-import 'package:intl/intl.dart';
 
 import '../../domain/engines/shield_banking_engine.dart';
 import '../../domain/engines/streak_calculator.dart';
@@ -41,7 +40,6 @@ class GamificationRepositoryImpl implements GamificationRepository {
   final HabitShieldDao habitShieldDao;
   final HabitCategoryDao habitCategoryDao;
   final GamificationDao gamificationDao;
-  final DateFormat _dateFormatter = DateFormat('yyyy-MM-dd');
 
   GamificationRepositoryImpl({
     required this.habitDao,

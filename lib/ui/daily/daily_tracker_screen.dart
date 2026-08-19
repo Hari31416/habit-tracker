@@ -7,7 +7,6 @@ import '../../data/preferences/theme_mode.dart';
 import '../../data/preferences/theme_preferences.dart';
 import '../../domain/models/habit.dart';
 import '../common/haptics_helper.dart';
-import '../common/theme_toggle_button.dart';
 import '../form/habit_form_bottom_sheet.dart';
 import '../gamification/dialogs/shield_bank_bottom_sheet.dart';
 import '../navigation/habit_bottom_navigation.dart';

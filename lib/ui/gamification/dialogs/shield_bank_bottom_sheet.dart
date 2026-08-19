@@ -3,9 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../di/providers.dart';
 import '../../../domain/engines/streak_calculator.dart';
-import '../../../domain/models/habit.dart';
-import '../../../domain/models/habit_log.dart';
-import '../../../domain/models/habit_shield.dart';
 import '../../common/color_utils.dart';
 import '../../common/habit_icon_registry.dart';
 import '../../common/haptics_helper.dart';
@@ -28,13 +25,10 @@ class ShieldBankBottomSheet extends ConsumerStatefulWidget {
 }
 
 class _ShieldBankBottomSheetState extends ConsumerState<ShieldBankBottomSheet> {
-  final DateFormat _dateFormatter = DateFormat('yyyy-MM-dd');
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final gamificationRepo = ref.watch(gamificationRepositoryProvider);
-    final habitRepo = ref.watch(habitRepositoryProvider);
     final bankState = ref.watch(shieldBankStateStreamProvider).value;
 
     final available = bankState?.availableShields ?? 0;

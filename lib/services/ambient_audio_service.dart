@@ -39,8 +39,10 @@ class AmbientAudioService {
       await _player?.stop();
       await _player?.setVolume(_currentVolume);
       await _player?.setReleaseMode(ReleaseMode.loop);
-      if (_player != null) {
-        await _player!.play(AssetSource(sound.assetPath!));
+      final player = _player;
+      final assetPath = sound.assetPath;
+      if (player != null && assetPath != null) {
+        await player.play(AssetSource(assetPath));
       }
       _isPlaying = true;
     } catch (_) {
