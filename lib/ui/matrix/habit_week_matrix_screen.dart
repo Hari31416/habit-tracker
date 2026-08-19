@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../data/preferences/theme_preferences.dart';
 import '../common/haptics_helper.dart';
-import '../common/theme_toggle_button.dart';
 import '../form/habit_form_bottom_sheet.dart';
-import '../gamification/dialogs/shield_bank_bottom_sheet.dart';
 import '../navigation/habit_bottom_navigation.dart';
 import '../navigation/screen.dart';
 import 'controllers/week_matrix_controller.dart';
@@ -36,7 +33,9 @@ class _HabitWeekMatrixScreenState extends ConsumerState<HabitWeekMatrixScreen> {
     final theme = Theme.of(context);
     final uiState = ref.watch(weekMatrixControllerProvider);
     final controller = ref.read(weekMatrixControllerProvider.notifier);
-    final themeMode = ref.watch(themeModeProvider);
+
+    final startStr = DateFormat('MMM d').format(uiState.weekStart);
+    final endStr = DateFormat('MMM d').format(uiState.weekEnd);
 
     return Scaffold(
       bottomNavigationBar: HabitBottomNavigation(
@@ -59,14 +58,14 @@ class _HabitWeekMatrixScreenState extends ConsumerState<HabitWeekMatrixScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Top App Bar
+            // Top App Bar with Integrated Week Stepper
             Material(
               color: theme.colorScheme.surface,
               elevation: 1,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 10,
+                  vertical: 8,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -78,26 +77,75 @@ class _HabitWeekMatrixScreenState extends ConsumerState<HabitWeekMatrixScreen> {
                         color: theme.colorScheme.onSurface,
                       ),
                     ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.shield_outlined),
-                          tooltip: 'Habit Shields Bank',
-                          onPressed: () {
-                            HapticsHelper.performLightHaptic();
-                            ShieldBankBottomSheet.show(context);
-                          },
-                        ),
-                        ThemeToggleButton(
-                          currentTheme: themeMode,
-                          onThemeSelected: (mode) {
-                            ref
-                                .read(themeModeProvider.notifier)
-                                .setThemeMode(mode);
-                          },
-                        ),
-                      ],
+                    Container(
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerHigh,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 2,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            iconSize: 18,
+                            visualDensity: VisualDensity.compact,
+                            icon: const Icon(Icons.chevron_left),
+                            tooltip: 'Previous Week',
+                            onPressed: () {
+                              HapticsHelper.performLightHaptic();
+                              controller.previousWeek();
+                            },
+                          ),
+                          Text(
+                            '$startStr – $endStr',
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                          IconButton(
+                            iconSize: 18,
+                            visualDensity: VisualDensity.compact,
+                            icon: const Icon(Icons.chevron_right),
+                            tooltip: 'Next Week',
+                            onPressed: () {
+                              HapticsHelper.performLightHaptic();
+                              controller.nextWeek();
+                            },
+                          ),
+                          if (!uiState.isCurrentWeek) ...[
+                            InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: () {
+                                HapticsHelper.performLightHaptic();
+                                controller.currentWeek();
+                              },
+                              child: Container(
+                                margin: const EdgeInsets.only(right: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.primary,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  'This Week',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: theme.colorScheme.onPrimary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -113,17 +161,12 @@ class _HabitWeekMatrixScreenState extends ConsumerState<HabitWeekMatrixScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // 1. Week Date Range Stepper Bar
-                          _buildWeekStepperCard(context, uiState, controller),
-
-                          const SizedBox(height: 14),
-
-                          // 2. Weekly Adherence Summary Strip
+                          // 1. Weekly Adherence Summary Strip
                           _buildAdherenceSummaryStrip(context, uiState),
 
                           const SizedBox(height: 14),
 
-                          // 3. Interactive Week Matrix Grid
+                          // 2. Interactive Week Matrix Grid
                           WeekMatrixGrid(
                             rows: uiState.rows,
                             onToggleCell: (habitId, date) {
@@ -139,7 +182,7 @@ class _HabitWeekMatrixScreenState extends ConsumerState<HabitWeekMatrixScreen> {
 
                           const SizedBox(height: 14),
 
-                          // 4. Daily Completions Breakdown Bar Chart
+                          // 3. Daily Completions Breakdown Bar Chart
                           _buildDailyCompletionsChart(
                             context,
                             uiState.dailyStats,
@@ -149,74 +192,6 @@ class _HabitWeekMatrixScreenState extends ConsumerState<HabitWeekMatrixScreen> {
                         ],
                       ),
                     ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWeekStepperCard(
-    BuildContext context,
-    WeekMatrixUiState uiState,
-    WeekMatrixController controller,
-  ) {
-    final startStr = DateFormat('MMM d').format(uiState.weekStart);
-    final endStr = DateFormat('MMM d, yyyy').format(uiState.weekEnd);
-
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: BorderSide(
-          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.4),
-        ),
-      ),
-      color: Theme.of(context).colorScheme.surface,
-      elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.keyboard_arrow_left),
-              tooltip: 'Previous Week',
-              onPressed: () {
-                HapticsHelper.performLightHaptic();
-                controller.previousWeek();
-              },
-            ),
-            Text(
-              '$startStr - $endStr',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Row(
-              children: [
-                if (!uiState.isCurrentWeek)
-                  TextButton(
-                    onPressed: () {
-                      HapticsHelper.performLightHaptic();
-                      controller.currentWeek();
-                    },
-                    child: Text(
-                      'This Week',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                IconButton(
-                  icon: const Icon(Icons.keyboard_arrow_right),
-                  tooltip: 'Next Week',
-                  onPressed: () {
-                    HapticsHelper.performLightHaptic();
-                    controller.nextWeek();
-                  },
-                ),
-              ],
             ),
           ],
         ),

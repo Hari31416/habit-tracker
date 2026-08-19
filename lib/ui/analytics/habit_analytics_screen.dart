@@ -1,10 +1,9 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/preferences/theme_preferences.dart';
 import '../common/color_utils.dart';
 import '../common/habit_icon_registry.dart';
-import '../common/theme_toggle_button.dart';
+import '../common/haptics_helper.dart';
 import '../form/habit_form_bottom_sheet.dart';
 import '../navigation/habit_bottom_navigation.dart';
 import '../navigation/screen.dart';
@@ -38,7 +37,6 @@ class _HabitAnalyticsScreenState extends ConsumerState<HabitAnalyticsScreen> {
     final theme = Theme.of(context);
     final uiState = ref.watch(analyticsControllerProvider);
     final controller = ref.read(analyticsControllerProvider.notifier);
-    final themeMode = ref.watch(themeModeProvider);
 
     return Scaffold(
       bottomNavigationBar: HabitBottomNavigation(
@@ -61,14 +59,14 @@ class _HabitAnalyticsScreenState extends ConsumerState<HabitAnalyticsScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Top App Bar
+            // Top App Bar with Quick Timeframe Filter
             Material(
               color: theme.colorScheme.surface,
               elevation: 1,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 10,
+                  vertical: 8,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -80,13 +78,33 @@ class _HabitAnalyticsScreenState extends ConsumerState<HabitAnalyticsScreen> {
                         color: theme.colorScheme.onSurface,
                       ),
                     ),
-                    ThemeToggleButton(
-                      currentTheme: themeMode,
-                      onThemeSelected: (mode) {
-                        ref
-                            .read(themeModeProvider.notifier)
-                            .setThemeMode(mode);
-                      },
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.check_circle_outline,
+                            size: 15,
+                            color: theme.colorScheme.onPrimaryContainer,
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            '${uiState.completedTodayCount}/${uiState.scheduledTodayCount} Today',
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.onPrimaryContainer,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),

@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/preferences/theme_preferences.dart';
 import '../../domain/gamification/gamification_models.dart';
 import '../common/color_utils.dart';
 import '../common/haptics_helper.dart';
-import '../common/theme_toggle_button.dart';
 import '../form/habit_form_bottom_sheet.dart';
 import '../navigation/habit_bottom_navigation.dart';
 import '../navigation/screen.dart';
@@ -35,7 +33,10 @@ class _BadgesShowcaseScreenState extends ConsumerState<BadgesShowcaseScreen> {
     final theme = Theme.of(context);
     final uiState = ref.watch(gamificationControllerProvider);
     final controller = ref.read(gamificationControllerProvider.notifier);
-    final themeMode = ref.watch(themeModeProvider);
+
+    final unlockedBadges =
+        uiState.allAchievements.where((a) => a.isUnlocked).length;
+    final totalBadges = uiState.allAchievements.length;
 
     return Scaffold(
       bottomNavigationBar: HabitBottomNavigation(
@@ -60,7 +61,7 @@ class _BadgesShowcaseScreenState extends ConsumerState<BadgesShowcaseScreen> {
           children: [
             Column(
               children: [
-                // Top App Bar
+                // Top App Bar with Level & Badge Progress Pill
                 Material(
                   color: theme.colorScheme.surface,
                   elevation: 1,
@@ -79,13 +80,33 @@ class _BadgesShowcaseScreenState extends ConsumerState<BadgesShowcaseScreen> {
                             color: theme.colorScheme.onSurface,
                           ),
                         ),
-                        ThemeToggleButton(
-                          currentTheme: themeMode,
-                          onThemeSelected: (mode) {
-                            ref
-                                .read(themeModeProvider.notifier)
-                                .setThemeMode(mode);
-                          },
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.emoji_events,
+                                size: 15,
+                                color: theme.colorScheme.onPrimaryContainer,
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                'Lv. ${uiState.progression.level} • $unlockedBadges/$totalBadges',
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: theme.colorScheme.onPrimaryContainer,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
