@@ -821,6 +821,45 @@ class _HabitFormBottomSheetState extends ConsumerState<HabitFormBottomSheet> {
               ),
             ],
 
+            const SizedBox(height: 20),
+
+            // Reflection & Wellbeing Opt-in
+            Material(
+              color: theme.colorScheme.surfaceContainerHighest
+                  .withValues(alpha: 0.35),
+              borderRadius: BorderRadius.circular(12),
+              clipBehavior: Clip.antiAlias,
+              child: SwitchListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
+                value: formState.promptReflection,
+                onChanged: (val) {
+                  HapticsHelper.performLightHaptic();
+                  controller.onTogglePromptReflection(val);
+                },
+                secondary: Icon(
+                  Icons.psychology_outlined,
+                  color: formState.promptReflection
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.onSurfaceVariant,
+                ),
+                title: Text(
+                  'Reflection on Check-in',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                subtitle: Text(
+                  'Offer energy and mood logging when completing this habit',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ),
+
             const SizedBox(height: 28),
 
             // 5. Footer Actions

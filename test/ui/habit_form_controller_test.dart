@@ -23,6 +23,7 @@ void main() {
       expect(state.targetDaysOfWeek, {0, 1, 2, 3, 4, 5, 6});
       expect(state.reminderTimes, isEmpty);
       expect(state.pinned, isFalse);
+      expect(state.promptReflection, isFalse);
     });
 
     test('Field updates update state and clear error flags', () {
@@ -44,6 +45,9 @@ void main() {
 
       controller.onTogglePinned();
       expect(controller.state.pinned, isTrue);
+
+      controller.onTogglePromptReflection(true);
+      expect(controller.state.promptReflection, isTrue);
     });
 
     test('Target type switches apply sensible defaults', () {
@@ -107,6 +111,7 @@ void main() {
       controller.onTargetTypeChange(HabitTargetType.numeric);
       controller.onTargetValueChange('20');
       controller.onUnitChange('pages');
+      controller.onTogglePromptReflection(true);
 
       final success = await controller.saveHabit();
       expect(success, isTrue);
@@ -116,6 +121,7 @@ void main() {
       expect(habits.first.title, 'Read Book');
       expect(habits.first.targetValue, 20.0);
       expect(habits.first.unit, 'pages');
+      expect(habits.first.promptReflection, isTrue);
     });
 
     test('loadHabit populates state in edit mode', () async {
@@ -129,6 +135,7 @@ void main() {
         unit: 'mins',
         frequencyType: HabitFrequencyType.daily,
         pinned: true,
+        promptReflection: true,
         reminderTimes: const ['07:30'],
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
@@ -144,6 +151,7 @@ void main() {
       expect(state.description, 'Mindfulness');
       expect(state.targetValue, '15');
       expect(state.pinned, isTrue);
+      expect(state.promptReflection, isTrue);
       expect(state.reminderTimes, ['07:30']);
     });
   });

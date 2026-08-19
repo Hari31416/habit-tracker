@@ -29,6 +29,7 @@ class HabitFormState {
   final String timeWindowEnd;
   final List<String> reminderTimes;
   final bool pinned;
+  final bool promptReflection;
   final String? titleError;
   final String? targetValueError;
   final bool isSaving;
@@ -54,6 +55,7 @@ class HabitFormState {
     this.timeWindowEnd = '20:00',
     this.reminderTimes = const [],
     this.pinned = false,
+    this.promptReflection = false,
     this.titleError,
     this.targetValueError,
     this.isSaving = false,
@@ -81,6 +83,7 @@ class HabitFormState {
     String? timeWindowEnd,
     List<String>? reminderTimes,
     bool? pinned,
+    bool? promptReflection,
     String? titleError,
     bool clearTitleError = false,
     String? targetValueError,
@@ -108,6 +111,7 @@ class HabitFormState {
       timeWindowEnd: timeWindowEnd ?? this.timeWindowEnd,
       reminderTimes: reminderTimes ?? this.reminderTimes,
       pinned: pinned ?? this.pinned,
+      promptReflection: promptReflection ?? this.promptReflection,
       titleError: clearTitleError ? null : (titleError ?? this.titleError),
       targetValueError: clearTargetValueError
           ? null
@@ -154,6 +158,7 @@ class HabitFormController extends StateNotifier<HabitFormState> {
       timeWindowEnd: habit.timeWindow?.endTime ?? '20:00',
       reminderTimes: habit.reminderTimes,
       pinned: habit.pinned,
+      promptReflection: habit.promptReflection,
     );
   }
 
@@ -273,6 +278,10 @@ class HabitFormController extends StateNotifier<HabitFormState> {
     state = state.copyWith(pinned: !state.pinned);
   }
 
+  void onTogglePromptReflection(bool value) {
+    state = state.copyWith(promptReflection: value);
+  }
+
   Future<bool> saveHabit() async {
     if (state.title.trim().isEmpty) {
       state = state.copyWith(titleError: 'Title is required');
@@ -342,6 +351,7 @@ class HabitFormController extends StateNotifier<HabitFormState> {
             ? null
             : state.motivationNotes.trim(),
         archived: existingHabit?.archived ?? false,
+        promptReflection: state.promptReflection,
         createdAt: existingHabit?.createdAt ?? now,
         updatedAt: now,
       );
