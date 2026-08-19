@@ -74,13 +74,30 @@ class TodaysHabitsWidgetReceiver : BaseHabitWidgetProvider(R.layout.widget_today
     companion object {
         const val ACTION_TOGGLE_HABIT = "com.productivity.habits.widget.ACTION_TOGGLE_HABIT"
         const val EXTRA_HABIT_ID = "extra_habit_id"
+        const val EXTRA_AUTH_TOKEN = "extra_auth_token"
+
+        fun getOrCreateWidgetToken(context: Context): String {
+            val prefs = context.getSharedPreferences("habit_widget_prefs", Context.MODE_PRIVATE)
+            var token = prefs.getString("widget_auth_token", null)
+            if (token == null) {
+                token = java.util.UUID.randomUUID().toString()
+                prefs.edit().putString("widget_auth_token", token).apply()
+            }
+            return token
+        }
     }
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
         if (intent.action == ACTION_TOGGLE_HABIT) {
+            val token = intent.getStringExtra(EXTRA_AUTH_TOKEN)
+            val expectedToken = getOrCreateWidgetToken(context)
+            if (token == null || token != expectedToken) {
+                return
+            }
+
             val habitId = intent.getStringExtra(EXTRA_HABIT_ID)
-            if (habitId != null) {
+            if (!habitId.isNullOrBlank()) {
                 toggleHabitInPreferences(context, habitId)
             }
         }
@@ -205,7 +222,9 @@ class TodaysHabitsWidgetReceiver : BaseHabitWidgetProvider(R.layout.widget_today
                             // Toggle click pending intent
                             val toggleIntent = Intent(context, TodaysHabitsWidgetReceiver::class.java).apply {
                                 action = ACTION_TOGGLE_HABIT
+                                `package` = context.packageName
                                 putExtra(EXTRA_HABIT_ID, id)
+                                putExtra(EXTRA_AUTH_TOKEN, getOrCreateWidgetToken(context))
                             }
                             val togglePendingIntent = PendingIntent.getBroadcast(
                                 context,
