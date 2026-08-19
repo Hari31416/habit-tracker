@@ -108,7 +108,7 @@ class NotificationService {
     }
   }
 
-  /// Request notification permission on Android 13+ (and exact alarm permission).
+  /// Request notification permission on Android 13+ (and optional exact alarm permission).
   static Future<bool> requestPermission() async {
     if (mockMode) return mockHasPermission;
 
@@ -118,16 +118,25 @@ class NotificationService {
               AndroidFlutterLocalNotificationsPlugin>();
       if (androidPlugin != null) {
         final granted = await androidPlugin.requestNotificationsPermission();
-        await androidPlugin.requestExactAlarmsPermission();
-        return granted ?? true;
+        if (granted == true) {
+          try {
+            final canExact = await androidPlugin.canScheduleExactNotifications();
+            if (canExact == false) {
+              await androidPlugin.requestExactAlarmsPermission();
+            }
+          } catch (_) {
+            // Exact alarm permission request is optional; fallback to inexact is handled in schedule
+          }
+        }
+        return granted ?? false;
       }
-      return true;
+      return false;
     } catch (_) {
-      return true;
+      return false;
     }
   }
 
-  /// Check if notifications are permitted.
+  /// Check if notifications are permitted (fail closed on errors).
   static Future<bool> hasPermission() async {
     if (mockMode) return mockHasPermission;
 
@@ -137,11 +146,11 @@ class NotificationService {
               AndroidFlutterLocalNotificationsPlugin>();
       if (androidPlugin != null) {
         final granted = await androidPlugin.areNotificationsEnabled();
-        return granted ?? true;
+        return granted ?? false;
       }
-      return true;
+      return false;
     } catch (_) {
-      return true;
+      return false;
     }
   }
 

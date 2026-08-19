@@ -48,7 +48,6 @@ void main() {
 
     try {
       await NotificationService.init();
-      await NotificationService.requestPermission();
     } catch (_) {}
 
     try {

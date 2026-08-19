@@ -3,11 +3,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:habit_tracker/di/providers.dart';
 import 'package:habit_tracker/domain/models/habit_category.dart';
+import 'package:habit_tracker/services/notification_service.dart';
 import 'package:habit_tracker/ui/form/habit_form_bottom_sheet.dart';
 import 'package:habit_tracker/ui/theme/app_theme.dart';
 import 'daily_tracker_controller_test.dart';
 
 void main() {
+  setUp(() {
+    NotificationService.mockMode = true;
+    NotificationService.resetMockData();
+  });
+
+  tearDown(() {
+    NotificationService.mockMode = false;
+  });
+
   testWidgets('HabitFormBottomSheet renders and saves new habit',
       (WidgetTester tester) async {
     const testCat = HabitCategory(
@@ -65,7 +75,7 @@ void main() {
     await tester.ensureVisible(find.text('Morning (08:00)'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Morning (08:00)'));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     // Scroll to and tap 'Create Habit' button
     await tester.ensureVisible(find.text('Create Habit'));
@@ -80,6 +90,47 @@ void main() {
     expect(habits.first.categoryId, 'cat-mind');
     expect(habits.first.reminderTimes, ['08:00']);
     expect(habits.first.promptReflection, isFalse);
+  });
+
+  testWidgets('HabitFormBottomSheet shows hint when notification permission is denied',
+      (WidgetTester tester) async {
+    NotificationService.mockHasPermission = false;
+    final fakeRepo = FakeHabitRepository();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          habitRepositoryProvider.overrideWithValue(fakeRepo),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () => HabitFormBottomSheet.show(context),
+                child: const Text('Open Sheet'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open Sheet'));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Morning (08:00)'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Morning (08:00)'));
+    await tester.pumpAndSettle();
+
+    // Verify SnackBar was shown explaining notification access is required
+    expect(
+      find.text(
+        'Habit reminders require notification access. Exact alarms are optional for punctuality. Please enable notifications in system settings.',
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('HabitFormBottomSheet toggles reflection on check-in setting',

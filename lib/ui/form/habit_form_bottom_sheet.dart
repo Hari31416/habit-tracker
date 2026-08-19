@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../domain/models/habit_frequency_type.dart';
 import '../../../domain/models/habit_target_type.dart';
+import '../../../services/notification_service.dart';
 import '../common/color_utils.dart';
 import '../common/habit_icon_registry.dart';
 import '../common/haptics_helper.dart';
@@ -95,6 +96,25 @@ class _HabitFormBottomSheetState extends ConsumerState<HabitFormBottomSheet> {
     super.dispose();
   }
 
+  Future<void> _handleReminderAdd(String timeStr) async {
+    final hasPerm = await NotificationService.hasPermission();
+    if (!hasPerm) {
+      final granted = await NotificationService.requestPermission();
+      if (!granted && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Habit reminders require notification access. Exact alarms are optional for punctuality. Please enable notifications in system settings.',
+            ),
+            duration: Duration(seconds: 4),
+          ),
+        );
+        return;
+      }
+    }
+    ref.read(habitFormControllerProvider.notifier).addReminderTime(timeStr);
+  }
+
   Future<void> _pickCustomTime() async {
     final picked = await showTimePicker(
       context: context,
@@ -104,7 +124,7 @@ class _HabitFormBottomSheetState extends ConsumerState<HabitFormBottomSheet> {
       final hourStr = picked.hour.toString().padLeft(2, '0');
       final minuteStr = picked.minute.toString().padLeft(2, '0');
       final timeStr = '$hourStr:$minuteStr';
-      ref.read(habitFormControllerProvider.notifier).addReminderTime(timeStr);
+      await _handleReminderAdd(timeStr);
     }
   }
 
@@ -736,7 +756,7 @@ class _HabitFormBottomSheetState extends ConsumerState<HabitFormBottomSheet> {
                           if (isAdded) {
                             controller.removeReminderTime(time);
                           } else {
-                            controller.addReminderTime(time);
+                            _handleReminderAdd(time);
                           }
                         },
                       ),
