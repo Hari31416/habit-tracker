@@ -60,13 +60,13 @@ abstract class HabitRepository {
   Future<List<HabitShield>> getShieldsForDateOnce(DateTime date);
   Stream<List<HabitShield>> getShieldsForDateRange(DateTime startDate, DateTime endDate);
   Future<List<HabitShield>> getShieldsForDateRangeOnce(DateTime startDate, DateTime endDate);
-  Future<void> applyShield({
+  Future<bool> applyShield({
     required String habitId,
     required DateTime date,
     bool autoApplied = false,
   });
   Future<void> removeShield(String habitId, DateTime date);
-  Future<void> toggleShield(String habitId, DateTime date);
+  Future<bool> toggleShield(String habitId, DateTime date);
   Future<bool> isDateShielded(String habitId, DateTime date);
   Future<int> autoProtectMissedDays(DateTime date);
 

@@ -427,8 +427,8 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
     await _repository.toggleBooleanCheckIn(habitId, date);
   }
 
-  Future<void> toggleShieldCell(String habitId, DateTime date) async {
-    await _repository.toggleShield(habitId, date);
+  Future<bool> toggleShieldCell(String habitId, DateTime date) async {
+    return await _repository.toggleShield(habitId, date);
   }
 
   @override

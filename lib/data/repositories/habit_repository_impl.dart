@@ -562,11 +562,32 @@ class HabitRepositoryImpl implements HabitRepository {
   }
 
   @override
-  Future<void> applyShield({
+  Future<bool> applyShield({
     required String habitId,
     required DateTime date,
     bool autoApplied = false,
   }) async {
+    final habits = (await habitDao.getActiveHabitsOnce()).map(_habitRowToDomain).toList();
+    final allLogs = await getAllLogsOnce();
+    final allShields = await getAllShieldsOnce();
+    final userGamification = await gamificationDao?.getUserGamificationOnce();
+    final autoConsume = userGamification?.autoConsumeShields ?? true;
+    final maxCapacity = userGamification?.maxShieldsCapacity ??
+        ShieldBankingEngine.defaultMaxCapacity;
+
+    final bankState = ShieldBankingEngine.calculateBankState(
+      habits: habits,
+      logs: allLogs,
+      shields: allShields,
+      maxCapacity: maxCapacity,
+      autoConsumeEnabled: autoConsume,
+      referenceDate: date,
+    );
+
+    if (bankState.availableShields <= 0) {
+      return false;
+    }
+
     final dateStr = _dateFormatter.format(date);
     final now = DateTime.now().toUtc();
     final companion = HabitShieldsCompanion(
@@ -578,6 +599,7 @@ class HabitRepositoryImpl implements HabitRepository {
       updatedAt: Value(now),
     );
     await habitShieldDao.upsertShield(companion);
+    return true;
   }
 
   @override
@@ -587,12 +609,13 @@ class HabitRepositoryImpl implements HabitRepository {
   }
 
   @override
-  Future<void> toggleShield(String habitId, DateTime date) async {
+  Future<bool> toggleShield(String habitId, DateTime date) async {
     final isShielded = await isDateShielded(habitId, date);
     if (isShielded) {
       await removeShield(habitId, date);
+      return true;
     } else {
-      await applyShield(habitId: habitId, date: date, autoApplied: false);
+      return await applyShield(habitId: habitId, date: date, autoApplied: false);
     }
   }
 

@@ -348,7 +348,7 @@ class FakeHabitRepository implements HabitRepository {
       _shields;
 
   @override
-  Future<void> applyShield({
+  Future<bool> applyShield({
     required String habitId,
     required DateTime date,
     bool autoApplied = false,
@@ -364,6 +364,7 @@ class FakeHabitRepository implements HabitRepository {
       updatedAt: DateTime.now(),
     ));
     _notify();
+    return true;
   }
 
   @override
@@ -374,13 +375,14 @@ class FakeHabitRepository implements HabitRepository {
   }
 
   @override
-  Future<void> toggleShield(String habitId, DateTime date) async {
+  Future<bool> toggleShield(String habitId, DateTime date) async {
     final dateStr = StreakCalculator.dateFormatter.format(date);
     final exists = _shields.any((s) => s.habitId == habitId && s.date == dateStr);
     if (exists) {
       await removeShield(habitId, date);
+      return true;
     } else {
-      await applyShield(habitId: habitId, date: date);
+      return await applyShield(habitId: habitId, date: date);
     }
   }
 

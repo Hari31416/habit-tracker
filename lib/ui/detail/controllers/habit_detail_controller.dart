@@ -338,8 +338,8 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
     );
   }
 
-  Future<void> toggleShieldForSelectedDate() async {
-    await repository.toggleShield(habitId, state.selectedDate);
+  Future<bool> toggleShieldForSelectedDate() async {
+    return await repository.toggleShield(habitId, state.selectedDate);
   }
 
   Future<void> toggleReminder(String time) async {
