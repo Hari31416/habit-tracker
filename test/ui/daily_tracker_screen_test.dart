@@ -7,6 +7,7 @@ import 'package:habit_tracker/domain/models/habit_frequency_type.dart';
 import 'package:habit_tracker/domain/models/habit_target_type.dart';
 import 'package:habit_tracker/ui/daily/controllers/daily_tracker_controller.dart';
 import 'package:habit_tracker/ui/daily/daily_tracker_screen.dart';
+import 'package:habit_tracker/ui/daily/widgets/habit_card.dart';
 import 'package:habit_tracker/ui/navigation/habit_bottom_navigation.dart';
 import 'package:habit_tracker/ui/theme/app_theme.dart';
 import 'daily_tracker_controller_test.dart';
@@ -96,7 +97,12 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
 
     // Tap check in on the habit card
-    await tester.tap(find.byType(AnimatedContainer).first);
+    await tester.tap(
+      find.descendant(
+        of: find.byType(HabitCard),
+        matching: find.byType(AnimatedContainer),
+      ).first,
+    );
     await tester.pumpAndSettle();
 
     // Verify floating toast with Reflect action is shown

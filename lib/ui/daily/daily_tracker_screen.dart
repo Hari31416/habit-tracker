@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../data/preferences/theme_mode.dart';
 import '../../data/preferences/theme_preferences.dart';
 import '../../domain/models/habit.dart';
 import '../common/haptics_helper.dart';
@@ -38,7 +39,6 @@ class DailyTrackerScreen extends ConsumerStatefulWidget {
 
 class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
     with SingleTickerProviderStateMixin {
-  bool _isSearchExpanded = false;
   late final TextEditingController _searchController;
   late final TextEditingController _nameInputController;
 
@@ -168,6 +168,151 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
     );
   }
 
+  void _showProfileSheet(
+      BuildContext context, String currentUserName, AppThemeMode currentThemeMode) {
+    HapticsHelper.performLightHaptic();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetContext) {
+        final theme = Theme.of(sheetContext);
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: theme.colorScheme.primaryContainer,
+                      child: Text(
+                        currentUserName.isNotEmpty
+                            ? currentUserName[0].toUpperCase()
+                            : '?',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            currentUserName.isNotEmpty
+                                ? currentUserName
+                                : 'Set your name',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            _getTimeGreeting(),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton.filledTonal(
+                      icon: const Icon(Icons.edit_outlined, size: 18),
+                      tooltip: 'Edit Name',
+                      onPressed: () {
+                        Navigator.of(sheetContext).pop();
+                        _showNameDialog(currentUserName);
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                const Divider(),
+                const SizedBox(height: 12),
+
+                // Appearance section
+                Text(
+                  'Appearance',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SegmentedButton<AppThemeMode>(
+                  segments: const [
+                    ButtonSegment(
+                      value: AppThemeMode.system,
+                      icon: Icon(Icons.brightness_auto, size: 18),
+                      label: Text('System'),
+                    ),
+                    ButtonSegment(
+                      value: AppThemeMode.light,
+                      icon: Icon(Icons.light_mode, size: 18),
+                      label: Text('Light'),
+                    ),
+                    ButtonSegment(
+                      value: AppThemeMode.dark,
+                      icon: Icon(Icons.dark_mode, size: 18),
+                      label: Text('Dark'),
+                    ),
+                  ],
+                  selected: {currentThemeMode},
+                  onSelectionChanged: (Set<AppThemeMode> newSelection) {
+                    HapticsHelper.performLightHaptic();
+                    ref
+                        .read(themeModeProvider.notifier)
+                        .setThemeMode(newSelection.first);
+                    Navigator.of(sheetContext).pop();
+                  },
+                ),
+                const SizedBox(height: 14),
+
+                // Streak Shield Bank Option
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.secondaryContainer,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.shield_outlined,
+                      color: theme.colorScheme.onSecondaryContainer,
+                      size: 20,
+                    ),
+                  ),
+                  title: const Text(
+                    'Streak Shields Bank',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle:
+                      const Text('Manage streak freezes and protection'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    ShieldBankBottomSheet.show(context);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _selectDatePicker(DateTime selectedDate) async {
     final picked = await showDatePicker(
       context: context,
@@ -188,103 +333,123 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
     final currentUserName = ref.watch(userNameProvider);
     final currentThemeMode = ref.watch(themeModeProvider);
 
-    final timeGreeting = _getTimeGreeting();
-    final displayGreeting = currentUserName.isNotEmpty
-        ? '$timeGreeting, $currentUserName'
-        : timeGreeting;
-
     return Scaffold(
       body: SafeArea(
         child: Stack(
           children: [
             Column(
               children: [
-                // Top App Bar & Greeting
-                Material(
-                  color: theme.colorScheme.surface,
-                  elevation: 1,
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                // Integrated M3 Search Bar & Header
+                Padding(
+                  padding:
+                      const EdgeInsets.fromLTRB(16, 8, 16, 6),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(28),
+                      border: Border.all(
+                        color: theme.colorScheme.outlineVariant
+                            .withValues(alpha: 0.35),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 4),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Greeting (Clickable for name edit)
-                        Expanded(
+                        // Avatar (Leading action - Profile & Settings)
+                        Tooltip(
+                          message: currentUserName.isNotEmpty
+                              ? '$currentUserName (Settings)'
+                              : 'Profile & Settings',
                           child: InkWell(
-                            borderRadius: BorderRadius.circular(8),
-                            onTap: () => _showNameDialog(currentUserName),
+                            borderRadius: BorderRadius.circular(20),
+                            onTap: () => _showProfileSheet(
+                                context, currentUserName, currentThemeMode),
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                      displayGreeting,
-                                      style:
-                                          theme.textTheme.titleLarge?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: theme.colorScheme.onSurface,
+                              padding: const EdgeInsets.all(2),
+                              child: CircleAvatar(
+                                radius: 18,
+                                backgroundColor:
+                                    theme.colorScheme.primaryContainer,
+                                child: currentUserName.isNotEmpty
+                                    ? Text(
+                                        currentUserName[0].toUpperCase(),
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                          color: theme
+                                              .colorScheme.onPrimaryContainer,
+                                        ),
+                                      )
+                                    : Icon(
+                                        Icons.person_outline,
+                                        size: 18,
+                                        color: theme
+                                            .colorScheme.onPrimaryContainer,
                                       ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  if (currentUserName.isEmpty) ...[
-                                    const SizedBox(width: 6),
-                                    Icon(
-                                      Icons.edit,
-                                      size: 16,
-                                      color: theme.colorScheme.primary,
-                                    ),
-                                  ],
-                                ],
                               ),
                             ),
                           ),
                         ),
+                        const SizedBox(width: 8),
 
-                        // Actions: Shield bank, Theme toggle, Search icon, Sort menu
+                        // Search Input
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            onChanged: (val) {
+                              setState(() {});
+                              controller.setSearchQuery(val);
+                            },
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurface,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: currentUserName.isNotEmpty
+                                  ? 'Search habits, $currentUserName...'
+                                  : 'Search habits...',
+                              hintStyle:
+                                  theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant
+                                    .withValues(alpha: 0.75),
+                              ),
+                              border: InputBorder.none,
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 8),
+                            ),
+                          ),
+                        ),
+
+                        // Trailing Action Controls
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            IconButton(
-                              icon: const Icon(Icons.shield_outlined),
-                              tooltip: 'Streak Shields Bank',
-                              onPressed: () {
-                                HapticsHelper.performLightHaptic();
-                                ShieldBankBottomSheet.show(context);
-                              },
-                            ),
-                            ThemeToggleButton(
-                              currentTheme: currentThemeMode,
-                              onThemeSelected: (mode) {
-                                ref
-                                    .read(themeModeProvider.notifier)
-                                    .setThemeMode(mode);
-                              },
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                Icons.search,
-                                color: _isSearchExpanded
-                                    ? theme.colorScheme.primary
-                                    : theme.colorScheme.onSurfaceVariant,
+                            if (_searchController.text.isNotEmpty)
+                              IconButton(
+                                iconSize: 18,
+                                visualDensity: VisualDensity.compact,
+                                icon: Icon(
+                                  Icons.clear,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                                tooltip: 'Clear Search',
+                                onPressed: () {
+                                  _searchController.clear();
+                                  controller.setSearchQuery('');
+                                  setState(() {});
+                                },
                               ),
-                              tooltip: 'Search Habits',
-                              onPressed: () {
-                                HapticsHelper.performLightHaptic();
-                                setState(() {
-                                  _isSearchExpanded = !_isSearchExpanded;
-                                  if (!_isSearchExpanded) {
-                                    _searchController.clear();
-                                    controller.setSearchQuery('');
-                                  }
-                                });
-                              },
-                            ),
                             PopupMenuButton<HabitSortOption>(
+                              iconSize: 20,
+                              padding: EdgeInsets.zero,
                               icon: Icon(
                                 Icons.sort,
                                 color: theme.colorScheme.onSurfaceVariant,
@@ -296,7 +461,8 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
                               },
                               itemBuilder: (context) {
                                 return HabitSortOption.values.map((option) {
-                                  final isSelected = uiState.sortOption == option;
+                                  final isSelected =
+                                      uiState.sortOption == option;
                                   return PopupMenuItem<HabitSortOption>(
                                     value: option,
                                     child: Text(
@@ -319,53 +485,6 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
                       ],
                     ),
                   ),
-                ),
-
-                // Expandable Search Bar
-                AnimatedCrossFade(
-                  firstChild: const SizedBox.shrink(),
-                  secondChild: Material(
-                    color: theme.colorScheme.surface,
-                    child: Padding(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                      child: TextField(
-                        controller: _searchController,
-                        onChanged: controller.setSearchQuery,
-                        decoration: InputDecoration(
-                          hintText: 'Search by title or description...',
-                          prefixIcon: Icon(
-                            Icons.search,
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                          suffixIcon: _searchController.text.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.clear),
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    controller.setSearchQuery('');
-                                  },
-                                )
-                              : null,
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  crossFadeState: _isSearchExpanded
-                      ? CrossFadeState.showSecond
-                      : CrossFadeState.showFirst,
-                  duration: const Duration(milliseconds: 200),
                 ),
 
             // Historical Date Banner
