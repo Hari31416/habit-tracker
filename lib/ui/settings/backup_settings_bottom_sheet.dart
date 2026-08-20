@@ -9,6 +9,7 @@ import '../../domain/repositories/backup_repository.dart';
 import '../../domain/sync/backup_encryption_engine.dart';
 import '../../domain/sync/sync_merge_engine.dart';
 import '../common/haptics_helper.dart';
+import 'passkey_input_widget.dart';
 
 class BackupSettingsBottomSheet extends ConsumerStatefulWidget {
   const BackupSettingsBottomSheet({super.key});
@@ -468,11 +469,13 @@ class _BackupSettingsBottomSheetState
   void _showDecryptionPasswordPrompt(String encryptedJson) {
     final theme = Theme.of(context);
     final passwordController = TextEditingController();
-    bool obscure = true;
+    bool obscure = false;
+    bool isDecrypting = false;
     String? errorText;
 
     showDialog(
       context: context,
+      barrierDismissible: !isDecrypting,
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
@@ -490,38 +493,49 @@ class _BackupSettingsBottomSheetState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'This backup is protected with AES-256 encryption. Enter the passphrase to unlock it.',
+                      'This backup is protected with AES-256 encryption. Enter the 16-character passkey to unlock it.',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                     const SizedBox(height: 16),
-                    TextField(
-                      controller: passwordController,
-                      obscureText: obscure,
-                      autofocus: true,
-                      decoration: InputDecoration(
-                        labelText: 'Passkey / Password',
-                        prefixIcon: const Icon(Icons.key_outlined),
-                        suffixIcon: Row(
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Passkey (4×4 Code)',
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            IconButton(
-                              icon: const Icon(Icons.paste_outlined, size: 20),
-                              tooltip: 'Paste from Clipboard',
-                              onPressed: () async {
-                                final data = await Clipboard.getData(Clipboard.kTextPlain);
-                                if (data?.text != null) {
-                                  passwordController.text = data!.text!.trim();
-                                  setDialogState(() {
-                                    errorText = null;
-                                  });
-                                  HapticsHelper.performLightHaptic();
-                                }
-                              },
+                            TextButton.icon(
+                              style: TextButton.styleFrom(
+                                visualDensity: VisualDensity.compact,
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                              ),
+                              icon: const Icon(Icons.paste_outlined, size: 16),
+                              label: const Text('Paste'),
+                              onPressed: isDecrypting
+                                  ? null
+                                  : () async {
+                                      final data = await Clipboard.getData(Clipboard.kTextPlain);
+                                      if (data?.text != null && data!.text!.isNotEmpty) {
+                                        passwordController.text = data.text!;
+                                        setDialogState(() {
+                                          errorText = null;
+                                        });
+                                        HapticsHelper.performLightHaptic();
+                                      }
+                                    },
                             ),
                             IconButton(
                               icon: Icon(obscure ? Icons.visibility_off : Icons.visibility, size: 20),
+                              tooltip: obscure ? 'Show' : 'Hide',
+                              visualDensity: VisualDensity.compact,
                               onPressed: () {
                                 setDialogState(() {
                                   obscure = !obscure;
@@ -530,63 +544,81 @@ class _BackupSettingsBottomSheetState
                             ),
                           ],
                         ),
-                        border: const OutlineInputBorder(),
-                      ),
+                      ],
                     ),
-                    if (errorText != null) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        errorText!,
-                        style: TextStyle(
-                          color: theme.colorScheme.error,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
+                    const SizedBox(height: 8),
+                    PasskeyInputWidget(
+                      controller: passwordController,
+                      obscureText: obscure,
+                      enabled: !isDecrypting,
+                      errorText: errorText,
+                      onChanged: (_) {
+                        if (errorText != null) {
+                          setDialogState(() {
+                            errorText = null;
+                          });
+                        }
+                      },
+                    ),
                   ],
                 ),
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  onPressed: isDecrypting ? null : () => Navigator.of(dialogContext).pop(),
                   child: const Text('Cancel'),
                 ),
                 FilledButton.icon(
-                  icon: const Icon(Icons.lock_open, size: 18),
-                  label: const Text('Unlock'),
-                  onPressed: () async {
-                    final pass = passwordController.text.trim();
-                    if (pass.isEmpty) {
-                      setDialogState(() {
-                        errorText = 'Please enter your password';
-                      });
-                      return;
-                    }
+                  icon: isDecrypting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.lock_open, size: 18),
+                  label: Text(isDecrypting ? 'Decrypting...' : 'Unlock'),
+                  onPressed: isDecrypting
+                      ? null
+                      : () async {
+                          final pass = passwordController.text.trim();
+                          if (pass.isEmpty) {
+                            setDialogState(() {
+                              errorText = 'Please enter your passkey';
+                            });
+                            return;
+                          }
 
-                    Navigator.of(dialogContext).pop();
+                          setDialogState(() {
+                            isDecrypting = true;
+                            errorText = null;
+                          });
 
-                    setState(() {
-                      _isLoading = true;
-                      _statusMessage = 'Decrypting backup...';
-                    });
+                          try {
+                            final decryptedJson = await BackupEncryptionEngine.decrypt(
+                              encryptedEnvelopeJson: encryptedJson,
+                              password: pass,
+                            );
 
-                    try {
-                      final decryptedJson = await BackupEncryptionEngine.decrypt(
-                        encryptedEnvelopeJson: encryptedJson,
-                        password: pass,
-                      );
-                      if (!mounted) return;
-                      await _processPlaintextBackup(decryptedJson);
-                    } catch (e) {
-                      if (mounted) {
-                        setState(() {
-                          _isLoading = false;
-                          _statusMessage = null;
-                        });
-                        _showError('Incorrect password or corrupted backup');
-                      }
-                    }
-                  },
+                            if (!mounted) return;
+                            Navigator.of(dialogContext).pop();
+                            await _processPlaintextBackup(decryptedJson);
+                          } on InvalidPasswordOrCorruptedException {
+                            HapticsHelper.performHeavyConfirmationHaptic();
+                            setDialogState(() {
+                              isDecrypting = false;
+                              errorText = 'Incorrect passkey. Please check and try again.';
+                            });
+                          } catch (e) {
+                            HapticsHelper.performHeavyConfirmationHaptic();
+                            setDialogState(() {
+                              isDecrypting = false;
+                              errorText = 'Decryption failed: Corrupted or invalid backup.';
+                            });
+                          }
+                        },
                 ),
               ],
             );
