@@ -29,11 +29,11 @@ Strategic feature roadmap for the Habit Tracker application, ordered sequentiall
 - [ ] **Routine Player Mode:** Full-screen flow guiding users step-by-step through each habit in the stack with integrated timers and transition cues.
 - [ ] **Routine Completion Bonus:** Award bonus XP and specific badges when completing an entire routine in sequence.
 
-## 5. Google Health Connect Integration
+## 5. Google Health Connect Integration (Completed)
 
-- [ ] **Automated Physical Habit Sync:** Auto-log steps, active exercise minutes, hydration, and sleep duration from Health Connect.
-- [ ] **Zero-Touch Check-Ins:** Mark daily targets as completed in the background as soon as fitness trackers or health apps report the required data.
-- [ ] **Permissions and Privacy:** Granular per-habit permission toggles with background sync via WorkManager.
+- [x] **Automated Physical Habit Sync:** Auto-log steps, active exercise minutes, hydration, and sleep duration from Health Connect.
+- [x] **Zero-Touch Check-Ins:** Mark daily targets as completed in the background as soon as fitness trackers or health apps report the required data.
+- [x] **Permissions and Privacy:** Granular per-habit permission toggles with background sync via WorkManager.
 
 ## 6. Quick Settings Tile and App Shortcuts
 
