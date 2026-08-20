@@ -218,6 +218,30 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
     ),
     defaultValue: const Constant(false),
   );
+  @override
+  late final GeneratedColumnWithTypeConverter<HealthMetricType?, String>
+  healthMetric = GeneratedColumn<String>(
+    'health_metric',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  ).withConverter<HealthMetricType?>($HabitsTable.$converterhealthMetric);
+  static const VerificationMeta _healthSyncEnabledMeta = const VerificationMeta(
+    'healthSyncEnabled',
+  );
+  @override
+  late final GeneratedColumn<bool> healthSyncEnabled = GeneratedColumn<bool>(
+    'health_sync_enabled',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("health_sync_enabled" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _isDeletedMeta = const VerificationMeta(
     'isDeleted',
   );
@@ -277,6 +301,8 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
     motivationNotes,
     archived,
     promptReflection,
+    healthMetric,
+    healthSyncEnabled,
     isDeleted,
     createdAt,
     updatedAt,
@@ -407,6 +433,15 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
         ),
       );
     }
+    if (data.containsKey('health_sync_enabled')) {
+      context.handle(
+        _healthSyncEnabledMeta,
+        healthSyncEnabled.isAcceptableOrUnknown(
+          data['health_sync_enabled']!,
+          _healthSyncEnabledMeta,
+        ),
+      );
+    }
     if (data.containsKey('is_deleted')) {
       context.handle(
         _isDeletedMeta,
@@ -528,6 +563,16 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
         DriftSqlType.bool,
         data['${effectivePrefix}prompt_reflection'],
       )!,
+      healthMetric: $HabitsTable.$converterhealthMetric.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}health_metric'],
+        ),
+      ),
+      healthSyncEnabled: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}health_sync_enabled'],
+      )!,
       isDeleted: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_deleted'],
@@ -562,6 +607,8 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
       const HabitTargetTypeConverter();
   static TypeConverter<List<String>, String> $converterreminderTimes =
       const StringListConverter();
+  static TypeConverter<HealthMetricType?, String?> $converterhealthMetric =
+      const HealthMetricTypeConverter();
 }
 
 class HabitRow extends DataClass implements Insertable<HabitRow> {
@@ -585,6 +632,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
   final String? motivationNotes;
   final bool archived;
   final bool promptReflection;
+  final HealthMetricType? healthMetric;
+  final bool healthSyncEnabled;
   final bool isDeleted;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -609,6 +658,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     this.motivationNotes,
     required this.archived,
     required this.promptReflection,
+    this.healthMetric,
+    required this.healthSyncEnabled,
     required this.isDeleted,
     required this.createdAt,
     required this.updatedAt,
@@ -674,6 +725,12 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     }
     map['archived'] = Variable<bool>(archived);
     map['prompt_reflection'] = Variable<bool>(promptReflection);
+    if (!nullToAbsent || healthMetric != null) {
+      map['health_metric'] = Variable<String>(
+        $HabitsTable.$converterhealthMetric.toSql(healthMetric),
+      );
+    }
+    map['health_sync_enabled'] = Variable<bool>(healthSyncEnabled);
     map['is_deleted'] = Variable<bool>(isDeleted);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -720,6 +777,10 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
           : Value(motivationNotes),
       archived: Value(archived),
       promptReflection: Value(promptReflection),
+      healthMetric: healthMetric == null && nullToAbsent
+          ? const Value.absent()
+          : Value(healthMetric),
+      healthSyncEnabled: Value(healthSyncEnabled),
       isDeleted: Value(isDeleted),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -756,6 +817,10 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       motivationNotes: serializer.fromJson<String?>(json['motivationNotes']),
       archived: serializer.fromJson<bool>(json['archived']),
       promptReflection: serializer.fromJson<bool>(json['promptReflection']),
+      healthMetric: serializer.fromJson<HealthMetricType?>(
+        json['healthMetric'],
+      ),
+      healthSyncEnabled: serializer.fromJson<bool>(json['healthSyncEnabled']),
       isDeleted: serializer.fromJson<bool>(json['isDeleted']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -785,6 +850,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       'motivationNotes': serializer.toJson<String?>(motivationNotes),
       'archived': serializer.toJson<bool>(archived),
       'promptReflection': serializer.toJson<bool>(promptReflection),
+      'healthMetric': serializer.toJson<HealthMetricType?>(healthMetric),
+      'healthSyncEnabled': serializer.toJson<bool>(healthSyncEnabled),
       'isDeleted': serializer.toJson<bool>(isDeleted),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -812,6 +879,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     Value<String?> motivationNotes = const Value.absent(),
     bool? archived,
     bool? promptReflection,
+    Value<HealthMetricType?> healthMetric = const Value.absent(),
+    bool? healthSyncEnabled,
     bool? isDeleted,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -844,6 +913,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
         : this.motivationNotes,
     archived: archived ?? this.archived,
     promptReflection: promptReflection ?? this.promptReflection,
+    healthMetric: healthMetric.present ? healthMetric.value : this.healthMetric,
+    healthSyncEnabled: healthSyncEnabled ?? this.healthSyncEnabled,
     isDeleted: isDeleted ?? this.isDeleted,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -896,6 +967,12 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       promptReflection: data.promptReflection.present
           ? data.promptReflection.value
           : this.promptReflection,
+      healthMetric: data.healthMetric.present
+          ? data.healthMetric.value
+          : this.healthMetric,
+      healthSyncEnabled: data.healthSyncEnabled.present
+          ? data.healthSyncEnabled.value
+          : this.healthSyncEnabled,
       isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -925,6 +1002,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
           ..write('motivationNotes: $motivationNotes, ')
           ..write('archived: $archived, ')
           ..write('promptReflection: $promptReflection, ')
+          ..write('healthMetric: $healthMetric, ')
+          ..write('healthSyncEnabled: $healthSyncEnabled, ')
           ..write('isDeleted: $isDeleted, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -954,6 +1033,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     motivationNotes,
     archived,
     promptReflection,
+    healthMetric,
+    healthSyncEnabled,
     isDeleted,
     createdAt,
     updatedAt,
@@ -982,6 +1063,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
           other.motivationNotes == this.motivationNotes &&
           other.archived == this.archived &&
           other.promptReflection == this.promptReflection &&
+          other.healthMetric == this.healthMetric &&
+          other.healthSyncEnabled == this.healthSyncEnabled &&
           other.isDeleted == this.isDeleted &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
@@ -1008,6 +1091,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
   final Value<String?> motivationNotes;
   final Value<bool> archived;
   final Value<bool> promptReflection;
+  final Value<HealthMetricType?> healthMetric;
+  final Value<bool> healthSyncEnabled;
   final Value<bool> isDeleted;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -1033,6 +1118,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     this.motivationNotes = const Value.absent(),
     this.archived = const Value.absent(),
     this.promptReflection = const Value.absent(),
+    this.healthMetric = const Value.absent(),
+    this.healthSyncEnabled = const Value.absent(),
     this.isDeleted = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -1059,6 +1146,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     this.motivationNotes = const Value.absent(),
     this.archived = const Value.absent(),
     this.promptReflection = const Value.absent(),
+    this.healthMetric = const Value.absent(),
+    this.healthSyncEnabled = const Value.absent(),
     this.isDeleted = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -1091,6 +1180,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     Expression<String>? motivationNotes,
     Expression<bool>? archived,
     Expression<bool>? promptReflection,
+    Expression<String>? healthMetric,
+    Expression<bool>? healthSyncEnabled,
     Expression<bool>? isDeleted,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -1118,6 +1209,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
       if (motivationNotes != null) 'motivation_notes': motivationNotes,
       if (archived != null) 'archived': archived,
       if (promptReflection != null) 'prompt_reflection': promptReflection,
+      if (healthMetric != null) 'health_metric': healthMetric,
+      if (healthSyncEnabled != null) 'health_sync_enabled': healthSyncEnabled,
       if (isDeleted != null) 'is_deleted': isDeleted,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -1146,6 +1239,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     Value<String?>? motivationNotes,
     Value<bool>? archived,
     Value<bool>? promptReflection,
+    Value<HealthMetricType?>? healthMetric,
+    Value<bool>? healthSyncEnabled,
     Value<bool>? isDeleted,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -1172,6 +1267,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
       motivationNotes: motivationNotes ?? this.motivationNotes,
       archived: archived ?? this.archived,
       promptReflection: promptReflection ?? this.promptReflection,
+      healthMetric: healthMetric ?? this.healthMetric,
+      healthSyncEnabled: healthSyncEnabled ?? this.healthSyncEnabled,
       isDeleted: isDeleted ?? this.isDeleted,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -1252,6 +1349,14 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     if (promptReflection.present) {
       map['prompt_reflection'] = Variable<bool>(promptReflection.value);
     }
+    if (healthMetric.present) {
+      map['health_metric'] = Variable<String>(
+        $HabitsTable.$converterhealthMetric.toSql(healthMetric.value),
+      );
+    }
+    if (healthSyncEnabled.present) {
+      map['health_sync_enabled'] = Variable<bool>(healthSyncEnabled.value);
+    }
     if (isDeleted.present) {
       map['is_deleted'] = Variable<bool>(isDeleted.value);
     }
@@ -1290,6 +1395,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
           ..write('motivationNotes: $motivationNotes, ')
           ..write('archived: $archived, ')
           ..write('promptReflection: $promptReflection, ')
+          ..write('healthMetric: $healthMetric, ')
+          ..write('healthSyncEnabled: $healthSyncEnabled, ')
           ..write('isDeleted: $isDeleted, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -4037,6 +4144,8 @@ typedef $$HabitsTableCreateCompanionBuilder = HabitsCompanion Function({
   Value<String?> motivationNotes,
   Value<bool> archived,
   Value<bool> promptReflection,
+  Value<HealthMetricType?> healthMetric,
+  Value<bool> healthSyncEnabled,
   Value<bool> isDeleted,
   required DateTime createdAt,
   required DateTime updatedAt,
@@ -4063,6 +4172,8 @@ typedef $$HabitsTableUpdateCompanionBuilder = HabitsCompanion Function({
   Value<String?> motivationNotes,
   Value<bool> archived,
   Value<bool> promptReflection,
+  Value<HealthMetricType?> healthMetric,
+  Value<bool> healthSyncEnabled,
   Value<bool> isDeleted,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
@@ -4221,6 +4332,17 @@ class $$HabitsTableFilterComposer
 
   ColumnFilters<bool> get promptReflection => $composableBuilder(
     column: $table.promptReflection,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<HealthMetricType?, HealthMetricType, String>
+  get healthMetric => $composableBuilder(
+    column: $table.healthMetric,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<bool> get healthSyncEnabled => $composableBuilder(
+    column: $table.healthSyncEnabled,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4399,6 +4521,16 @@ class $$HabitsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get healthMetric => $composableBuilder(
+    column: $table.healthMetric,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get healthSyncEnabled => $composableBuilder(
+    column: $table.healthSyncEnabled,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isDeleted => $composableBuilder(
     column: $table.isDeleted,
     builder: (column) => ColumnOrderings(column),
@@ -4515,6 +4647,17 @@ class $$HabitsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumnWithTypeConverter<HealthMetricType?, String>
+  get healthMetric => $composableBuilder(
+    column: $table.healthMetric,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get healthSyncEnabled => $composableBuilder(
+    column: $table.healthSyncEnabled,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<bool> get isDeleted =>
       $composableBuilder(column: $table.isDeleted, builder: (column) => column);
 
@@ -4623,6 +4766,8 @@ class $$HabitsTableTableManager
                 Value<String?> motivationNotes = const Value.absent(),
                 Value<bool> archived = const Value.absent(),
                 Value<bool> promptReflection = const Value.absent(),
+                Value<HealthMetricType?> healthMetric = const Value.absent(),
+                Value<bool> healthSyncEnabled = const Value.absent(),
                 Value<bool> isDeleted = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -4648,6 +4793,8 @@ class $$HabitsTableTableManager
                 motivationNotes: motivationNotes,
                 archived: archived,
                 promptReflection: promptReflection,
+                healthMetric: healthMetric,
+                healthSyncEnabled: healthSyncEnabled,
                 isDeleted: isDeleted,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -4675,6 +4822,8 @@ class $$HabitsTableTableManager
                 Value<String?> motivationNotes = const Value.absent(),
                 Value<bool> archived = const Value.absent(),
                 Value<bool> promptReflection = const Value.absent(),
+                Value<HealthMetricType?> healthMetric = const Value.absent(),
+                Value<bool> healthSyncEnabled = const Value.absent(),
                 Value<bool> isDeleted = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
@@ -4700,6 +4849,8 @@ class $$HabitsTableTableManager
                 motivationNotes: motivationNotes,
                 archived: archived,
                 promptReflection: promptReflection,
+                healthMetric: healthMetric,
+                healthSyncEnabled: healthSyncEnabled,
                 isDeleted: isDeleted,
                 createdAt: createdAt,
                 updatedAt: updatedAt,

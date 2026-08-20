@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../domain/models/habit_frequency_type.dart';
 import '../../domain/models/habit_target_type.dart';
+import '../../domain/models/health/health_metric_type.dart';
 import '../../domain/models/time_window.dart';
 import 'converters/type_converters.dart';
 import 'daos/gamification_dao.dart';
@@ -54,7 +55,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   Future<void> _safeAddColumn(Migrator m, TableInfo table, GeneratedColumn column) async {
     try {
@@ -99,6 +100,10 @@ class AppDatabase extends _$AppDatabase {
           await _safeAddColumn(m, achievements, achievements.createdAt);
           await _safeAddColumn(m, achievements, achievements.updatedAt);
         }
+        if (from < 6) {
+          await _safeAddColumn(m, habits, habits.healthMetric);
+          await _safeAddColumn(m, habits, habits.healthSyncEnabled);
+        }
       },
       beforeOpen: (details) async {
         await customStatement('PRAGMA journal_mode = WAL;');
@@ -117,6 +122,8 @@ class AppDatabase extends _$AppDatabase {
           'ALTER TABLE habit_shields ADD COLUMN is_deleted INTEGER NOT NULL DEFAULT 0 CHECK (is_deleted IN (0, 1));',
           'ALTER TABLE achievements ADD COLUMN created_at INTEGER NOT NULL DEFAULT 1767225600;',
           'ALTER TABLE achievements ADD COLUMN updated_at INTEGER NOT NULL DEFAULT 1767225600;',
+          'ALTER TABLE habits ADD COLUMN health_metric TEXT;',
+          'ALTER TABLE habits ADD COLUMN health_sync_enabled INTEGER NOT NULL DEFAULT 0 CHECK (health_sync_enabled IN (0, 1));',
         ];
 
         for (final stmt in columnFixes) {

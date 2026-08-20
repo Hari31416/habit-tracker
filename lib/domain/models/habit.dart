@@ -1,5 +1,6 @@
 import 'habit_frequency_type.dart';
 import 'habit_target_type.dart';
+import 'health/health_metric_type.dart';
 import 'time_window.dart';
 
 class Habit {
@@ -23,6 +24,8 @@ class Habit {
   final String? motivationNotes;
   final bool archived;
   final bool promptReflection;
+  final HealthMetricType? healthMetric;
+  final bool healthSyncEnabled;
   final bool isDeleted;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -48,6 +51,8 @@ class Habit {
     this.motivationNotes,
     this.archived = false,
     this.promptReflection = false,
+    this.healthMetric,
+    this.healthSyncEnabled = false,
     this.isDeleted = false,
     required this.createdAt,
     required this.updatedAt,
@@ -74,6 +79,8 @@ class Habit {
     String? motivationNotes,
     bool? archived,
     bool? promptReflection,
+    HealthMetricType? healthMetric,
+    bool? healthSyncEnabled,
     bool? isDeleted,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -99,6 +106,8 @@ class Habit {
       motivationNotes: motivationNotes ?? this.motivationNotes,
       archived: archived ?? this.archived,
       promptReflection: promptReflection ?? this.promptReflection,
+      healthMetric: healthMetric ?? this.healthMetric,
+      healthSyncEnabled: healthSyncEnabled ?? this.healthSyncEnabled,
       isDeleted: isDeleted ?? this.isDeleted,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

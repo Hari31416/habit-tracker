@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import '../../../domain/models/habit_frequency_type.dart';
 import '../../../domain/models/habit_target_type.dart';
+import '../../../domain/models/health/health_metric_type.dart';
 import '../../../domain/models/time_window.dart';
 
 class IntListConverter extends TypeConverter<List<int>, String> {
@@ -108,3 +109,19 @@ class HabitTargetTypeConverter extends TypeConverter<HabitTargetType, String> {
     return value.nameValue;
   }
 }
+
+class HealthMetricTypeConverter extends TypeConverter<HealthMetricType?, String?> {
+  const HealthMetricTypeConverter();
+
+  @override
+  HealthMetricType? fromSql(String? fromDb) {
+    if (fromDb == null || fromDb.isEmpty) return null;
+    return HealthMetricType.fromId(fromDb);
+  }
+
+  @override
+  String? toSql(HealthMetricType? value) {
+    return value?.id;
+  }
+}
+

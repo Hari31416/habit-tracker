@@ -5,6 +5,7 @@ import '../habit_frequency_type.dart';
 import '../habit_log.dart';
 import '../habit_shield.dart';
 import '../habit_target_type.dart';
+import '../health/health_metric_type.dart';
 import '../time_window.dart';
 
 /// Top-level envelope for local backups and cloud sync snapshots.
@@ -158,6 +159,8 @@ class SyncDataPayload {
         'motivationNotes': h.motivationNotes,
         'archived': h.archived,
         'promptReflection': h.promptReflection,
+        'healthMetric': h.healthMetric?.id,
+        'healthSyncEnabled': h.healthSyncEnabled,
         'isDeleted': h.isDeleted,
         'createdAt': h.createdAt.toUtc().toIso8601String(),
         'updatedAt': h.updatedAt.toUtc().toIso8601String(),
@@ -198,6 +201,8 @@ class SyncDataPayload {
       motivationNotes: j['motivationNotes'] as String?,
       archived: j['archived'] as bool? ?? false,
       promptReflection: j['promptReflection'] as bool? ?? false,
+      healthMetric: HealthMetricType.fromId(j['healthMetric'] as String?),
+      healthSyncEnabled: j['healthSyncEnabled'] as bool? ?? false,
       isDeleted: j['isDeleted'] as bool? ?? false,
       createdAt: j['createdAt'] != null
           ? DateTime.parse(j['createdAt'] as String).toUtc()
