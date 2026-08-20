@@ -3,7 +3,6 @@ import 'package:habit_tracker/domain/models/habit.dart';
 import 'package:habit_tracker/domain/models/habit_category.dart';
 import 'package:habit_tracker/domain/models/habit_frequency_type.dart';
 import 'package:habit_tracker/domain/models/habit_log.dart';
-import 'package:habit_tracker/domain/models/habit_shield.dart';
 import 'package:habit_tracker/domain/models/habit_target_type.dart';
 import 'package:habit_tracker/domain/models/sync/sync_envelope.dart';
 import 'package:habit_tracker/domain/sync/sync_merge_engine.dart';

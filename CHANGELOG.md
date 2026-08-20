@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-08-20
+
+### Added
+
+- Data and Backup settings bottom sheet with options for snapshot export, plain JSON, Gzip archive (.json.gz), and RFC 4180 CSV tables.
+- Zero-knowledge AES-256-GCM client-side encrypted backup export and restore engine with PBKDF2 key derivation (100,000 iterations, 32-byte salt, 12-byte IV) and cryptographic authentication tags.
+- Secure 4-segment alphanumeric passkey generator and responsive segment input modal with paste support, live verification, and granular error feedback.
+- Deterministic 2-way sync merge engine with Last-Write-Wins (LWW) resolution, ISO-8601 UTC timestamps, natural key deduplication for subday slots, and idempotent gamification XP/level re-evaluation.
+- Drift database schema version 5 migration introducing soft-delete tombstone flags (`isDeleted`) and `createdAt`/`updatedAt` synchronization timestamps across habits, logs, shields, categories, and gamification tables.
+- Direct save-to-folder file export allowing users to store backups in local document directories or synchronized file providers.
+- Comprehensive user guide and technical documentation covering offline backup encryption, merge semantics, and schema structures.
+
 ## [0.8.1] - 2026-08-20
 
 ### Added

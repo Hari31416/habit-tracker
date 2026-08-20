@@ -15,7 +15,6 @@ import '../local/daos/habit_category_dao.dart';
 import '../local/daos/habit_dao.dart';
 import '../local/daos/habit_log_dao.dart';
 import '../local/daos/habit_shield_dao.dart';
-import '../local/converters/type_converters.dart';
 import '../preferences/theme_mode.dart';
 import '../preferences/theme_preferences.dart';
 
@@ -243,7 +242,7 @@ class BackupRepositoryImpl implements BackupRepository {
   Future<SyncEnvelope> createSnapshot({String? deviceId}) async {
     final payload = await _extractLocalPayload();
     return SyncEnvelope(
-      appVersion: '0.8.1',
+      appVersion: '0.9.0',
       exportedAt: _now,
       deviceId: deviceId ?? 'phial_device',
       data: payload,

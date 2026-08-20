@@ -323,7 +323,7 @@ class _BackupSettingsBottomSheetState
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.errorContainer.withOpacity(0.4),
+                        color: theme.colorScheme.errorContainer.withValues(alpha: 0.4),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -602,7 +602,7 @@ class _BackupSettingsBottomSheetState
                               password: pass,
                             );
 
-                            if (!mounted) return;
+                            if (!dialogContext.mounted || !mounted) return;
                             Navigator.of(dialogContext).pop();
                             await _processPlaintextBackup(decryptedJson);
                           } on InvalidPasswordOrCorruptedException {
