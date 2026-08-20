@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:padding="10dp">
+
+    <!-- Header -->
+    <TextView
+        android:id="@+id/tv_title_2x2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Today's Habits"
+        android:textColor="#F1F5F4"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <!-- Big Count Ratio -->
+    <TextView
+        android:id="@+id/tv_todays_habits_count_2x2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:text="0/0"
+        android:textColor="#10B981"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <!-- Circular Progress Ring / Check -->
+    <ImageView
+        android:id="@+id/iv_progress_ring_2x2"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="2dp"
+        android:contentDescription="Progress ring" />
+
+    <!-- Percent Subtitle -->
+    <TextView
+        android:id="@+id/tv_percent_done_2x2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0% done"
+        android:textColor="#9EADA9"
+        android:textSize="10sp" />
+
+    <!-- Dot Row Indicator -->
+    <ImageView
+        android:id="@+id/iv_status_dots_2x2"
+        android:layout_width="wrap_content"
+        android:layout_height="12dp"
+        android:layout_marginTop="4dp"
+        android:contentDescription="Status dots" />
+
+</LinearLayout>

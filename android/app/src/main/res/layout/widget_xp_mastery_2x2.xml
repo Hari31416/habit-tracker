@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <!-- Level Hexagon Shield Badge -->
+    <ImageView
+        android:id="@+id/iv_level_shield_2x2"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:contentDescription="Level badge" />
+
+    <!-- Rank / Title Text -->
+    <TextView
+        android:id="@+id/tv_rank_title_2x2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Novice"
+        android:textColor="#10B981"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <!-- Current XP -->
+    <TextView
+        android:id="@+id/tv_current_xp_2x2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:text="0 XP"
+        android:textColor="#F1F5F4"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <!-- Level Progress Bar -->
+    <ProgressBar
+        android:id="@+id/pb_xp_progress_2x2"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="6dp"
+        android:layout_marginTop="8dp"
+        android:max="100"
+        android:progress="0"
+        android:progressDrawable="@drawable/widget_progress_bar_drawable" />
+
+</LinearLayout>

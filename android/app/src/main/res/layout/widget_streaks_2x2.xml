@@ -12,49 +12,36 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Today"
+        android:text="Streaks"
         android:textColor="#F1F5F4"
         android:textSize="13sp"
         android:textStyle="bold" />
 
-    <!-- Big Ratio: 3/5 -->
+    <!-- Big Count: 5 -->
     <TextView
-        android:id="@+id/tv_progress_ratio_2x2"
+        android:id="@+id/tv_active_streaks_count_2x2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
-        android:text="0/0"
-        android:textColor="#10B981"
-        android:textSize="26sp"
+        android:text="0"
+        android:textColor="#F59E0B"
+        android:textSize="32sp"
         android:textStyle="bold" />
 
-    <!-- Completed Label -->
+    <!-- Subtitle: active -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="completed"
+        android:text="active"
         android:textColor="#9EADA9"
-        android:textSize="11sp" />
+        android:textSize="12sp" />
 
-    <!-- Progress Bar -->
-    <ProgressBar
-        android:id="@+id/pb_daily_progress_2x2"
-        style="?android:attr/progressBarStyleHorizontal"
+    <!-- Flame Row Indicator -->
+    <ImageView
+        android:id="@+id/iv_flame_row_2x2"
         android:layout_width="match_parent"
-        android:layout_height="6dp"
+        android:layout_height="22dp"
         android:layout_marginTop="10dp"
-        android:max="100"
-        android:progress="0"
-        android:progressDrawable="@drawable/widget_progress_bar_drawable" />
-
-    <!-- Remaining Text: 2 left -->
-    <TextView
-        android:id="@+id/tv_remaining_2x2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="0 left"
-        android:textColor="#9EADA9"
-        android:textSize="11sp" />
+        android:contentDescription="Active flames" />
 
 </LinearLayout>

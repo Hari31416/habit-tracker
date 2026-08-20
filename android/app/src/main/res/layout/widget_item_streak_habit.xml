@@ -3,52 +3,46 @@
     android:id="@+id/ll_streak_row"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="3dp"
-    android:background="#20332E"
+    android:layout_marginTop="2dp"
+    android:layout_marginBottom="2dp"
+    android:background="@drawable/widget_card_background"
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:paddingLeft="8dp"
-    android:paddingTop="5dp"
+    android:paddingTop="4dp"
     android:paddingRight="8dp"
-    android:paddingBottom="5dp">
+    android:paddingBottom="4dp">
 
-    <LinearLayout
+    <!-- Habit Title Column -->
+    <TextView
+        android:id="@+id/tv_streak_title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:orientation="vertical">
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="Habit Title"
+        android:textColor="#F1F5F4"
+        android:textSize="12sp"
+        android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/tv_streak_title"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:text="Habit Title"
-            android:textColor="#F1F5F4"
-            android:textSize="12sp"
-            android:textStyle="bold" />
+    <!-- 7-Day Dots Indicator -->
+    <ImageView
+        android:id="@+id/iv_streak_dots"
+        android:layout_width="70dp"
+        android:layout_height="12dp"
+        android:layout_marginLeft="6dp"
+        android:layout_marginRight="6dp"
+        android:contentDescription="Streak dots" />
 
-        <TextView
-            android:id="@+id/tv_streak_status"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:text="Active streak"
-            android:textColor="#9EADA9"
-            android:textSize="10sp" />
-    </LinearLayout>
-
+    <!-- Streak Count -->
     <TextView
         android:id="@+id/tv_streak_count"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="6dp"
-        android:layout_marginStart="6dp"
         android:text="0d"
         android:textColor="#F59E0B"
-        android:textSize="13sp"
+        android:textSize="12sp"
         android:textStyle="bold" />
 
 </LinearLayout>

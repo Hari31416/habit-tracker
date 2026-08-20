@@ -4,14 +4,16 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="2dp"
-    android:background="#20332E"
+    android:layout_marginBottom="2dp"
+    android:background="@drawable/widget_card_background"
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:paddingLeft="8dp"
-    android:paddingTop="3dp"
+    android:paddingTop="4dp"
     android:paddingRight="8dp"
-    android:paddingBottom="3dp">
+    android:paddingBottom="4dp">
 
+    <!-- Checkmark Icon Circle -->
     <TextView
         android:id="@+id/tv_habit_check"
         android:layout_width="20dp"
@@ -19,8 +21,9 @@
         android:gravity="center"
         android:text="○"
         android:textColor="#9EADA9"
-        android:textSize="14sp" />
+        android:textSize="13sp" />
 
+    <!-- Habit Title -->
     <TextView
         android:id="@+id/tv_habit_title"
         android:layout_width="0dp"
@@ -35,6 +38,7 @@
         android:textSize="12sp"
         android:textStyle="bold" />
 
+    <!-- Streak Badge -->
     <TextView
         android:id="@+id/tv_habit_streak"
         android:layout_width="wrap_content"

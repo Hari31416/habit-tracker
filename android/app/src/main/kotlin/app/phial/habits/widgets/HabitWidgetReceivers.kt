@@ -7,20 +7,16 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.graphics.Paint
 import android.net.Uri
+import android.os.Bundle
 import android.view.View
 import android.widget.RemoteViews
-import app.phial.habits.FocusTimerService
 import app.phial.habits.MainActivity
 import app.phial.habits.R
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.Locale
 
-import android.os.Bundle
-
-abstract class BaseHabitWidgetProvider(protected val layoutResId: Int) : AppWidgetProvider() {
+abstract class BaseHabitWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager,
@@ -68,9 +64,22 @@ abstract class BaseHabitWidgetProvider(protected val layoutResId: Int) : AppWidg
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
     }
+
+    protected fun isSmallSize(options: Bundle?): Boolean {
+        if (options == null) return false
+        val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)
+        val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0)
+        return minWidth < 220 && minHeight < 200
+    }
+
+    protected fun isLargeSize(options: Bundle?): Boolean {
+        if (options == null) return false
+        val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0)
+        return minHeight >= 200
+    }
 }
 
-class TodaysHabitsWidgetReceiver : BaseHabitWidgetProvider(R.layout.widget_todays_habits) {
+class TodaysHabitsWidgetReceiver : BaseHabitWidgetProvider() {
     companion object {
         const val ACTION_TOGGLE_HABIT = "app.phial.habits.widget.ACTION_TOGGLE_HABIT"
         const val EXTRA_HABIT_ID = "extra_habit_id"
@@ -156,6 +165,7 @@ class TodaysHabitsWidgetReceiver : BaseHabitWidgetProvider(R.layout.widget_today
     ) {
         val prefs = context.getSharedPreferences("habit_widget_prefs", Context.MODE_PRIVATE)
         val jsonStr = prefs.getString("todays_habits", null)
+        val density = context.resources.displayMetrics.density
 
         var completedCount = 0
         var totalScheduled = 0
@@ -174,68 +184,162 @@ class TodaysHabitsWidgetReceiver : BaseHabitWidgetProvider(R.layout.widget_today
             } catch (_: Exception) {}
         }
 
+        val ratePercent = if (totalScheduled > 0) ((completedCount.toFloat() / totalScheduled) * 100).toInt() else 0
+        val habitCount = habitsArray?.length() ?: 0
+
         for (appWidgetId in appWidgetIds) {
-            val views = RemoteViews(context.packageName, layoutResId).apply {
+            val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
+            val isSmall = isSmallSize(options)
+            val isLarge = isLargeSize(options)
+
+            val layoutId = when {
+                isSmall -> R.layout.widget_todays_habits_2x2
+                isLarge -> R.layout.widget_todays_habits_4x4
+                else -> R.layout.widget_todays_habits_2x4
+            }
+
+            val views = RemoteViews(context.packageName, layoutId).apply {
                 setOnClickPendingIntent(R.id.widget_root, createActivityPendingIntent(context, appWidgetId))
-                setOnClickPendingIntent(R.id.ll_todays_habits_header, createActivityPendingIntent(context, appWidgetId))
-                setOnClickPendingIntent(R.id.tv_bottom_add, createDeepLinkPendingIntent(context, appWidgetId, "app://habits/daily"))
 
-                setTextViewText(R.id.tv_habit_counts, "$completedCount/$totalScheduled")
-                setTextViewText(R.id.tv_bottom_streak, if (topStreak > 0) "${topStreak}d streak" else "0d streak")
-                setTextViewText(R.id.tv_bottom_xp, "+$todayXp XP")
+                if (isSmall) {
+                    setTextViewText(R.id.tv_todays_habits_count_2x2, "$completedCount/$totalScheduled")
+                    setTextViewText(R.id.tv_percent_done_2x2, "$ratePercent% done")
 
-                // Clear previous dynamically added rows
-                removeAllViews(R.id.ll_habits_container)
+                    val ringBitmap = WidgetGraphicsHelper.drawCircularProgressRing(
+                        percentage = ratePercent,
+                        subtitle = "",
+                        sizeDp = 56,
+                        strokeWidthDp = 5f,
+                        density = density,
+                        showCheckInside = ratePercent >= 100
+                    )
+                    setImageViewBitmap(R.id.iv_progress_ring_2x2, ringBitmap)
 
-                val count = habitsArray?.length() ?: 0
-                if (count == 0) {
-                    setViewVisibility(R.id.tv_empty_habits, View.VISIBLE)
-                    setViewVisibility(R.id.ll_habits_container, View.GONE)
-                } else {
-                    setViewVisibility(R.id.tv_empty_habits, View.GONE)
-                    setViewVisibility(R.id.ll_habits_container, View.VISIBLE)
+                    val dotsBitmap = WidgetGraphicsHelper.drawHabitStatusDots(
+                        total = totalScheduled,
+                        completed = completedCount,
+                        widthDp = 80,
+                        heightDp = 12,
+                        density = density
+                    )
+                    setImageViewBitmap(R.id.iv_status_dots_2x2, dotsBitmap)
+                } else if (isLarge) {
+                    setOnClickPendingIntent(R.id.ll_todays_habits_header, createActivityPendingIntent(context, appWidgetId))
+                    setOnClickPendingIntent(R.id.tv_bottom_add_pill, createDeepLinkPendingIntent(context, appWidgetId, "app://habits/daily"))
 
-                    // Add dynamic rows for all scheduled habits (up to 8 items to fit nicely)
-                    val maxDisplay = minOf(count, 8)
-                    for (i in 0 until maxDisplay) {
-                        val h = habitsArray!!.getJSONObject(i)
-                        val id = h.optString("id")
-                        val title = h.optString("title")
-                        val isDone = h.optBoolean("isCompleted", false)
-                        val streak = h.optInt("currentStreak", 0)
+                    setTextViewText(R.id.tv_completed_header_4x4, "$completedCount/$totalScheduled completed")
+                    setTextViewText(R.id.tv_bottom_streak, "🔥 ${topStreak}d streak")
+                    setTextViewText(R.id.tv_bottom_xp, "+$todayXp XP")
 
-                        val rowView = RemoteViews(context.packageName, R.layout.widget_item_todays_habit).apply {
-                            setTextViewText(R.id.tv_habit_check, if (isDone) "✓" else "○")
-                            setTextColor(
-                                R.id.tv_habit_check,
-                                if (isDone) Color.parseColor("#10B981") else Color.parseColor("#9EADA9")
-                            )
+                    val ringBitmap = WidgetGraphicsHelper.drawCircularProgressRing(
+                        percentage = ratePercent,
+                        subtitle = "completed",
+                        sizeDp = 85,
+                        strokeWidthDp = 7f,
+                        density = density
+                    )
+                    setImageViewBitmap(R.id.iv_progress_ring_4x4, ringBitmap)
 
-                            setTextViewText(R.id.tv_habit_title, title)
-                            setTextColor(
-                                R.id.tv_habit_title,
-                                if (isDone) Color.parseColor("#10B981") else Color.parseColor("#F1F5F4")
-                            )
+                    removeAllViews(R.id.ll_habits_container)
+                    if (habitCount == 0) {
+                        setViewVisibility(R.id.tv_empty_habits, View.VISIBLE)
+                        setViewVisibility(R.id.ll_habits_container, View.GONE)
+                    } else {
+                        setViewVisibility(R.id.tv_empty_habits, View.GONE)
+                        setViewVisibility(R.id.ll_habits_container, View.VISIBLE)
 
-                            setTextViewText(R.id.tv_habit_streak, if (streak > 0) "${streak}d" else "")
+                        val maxDisplay = minOf(habitCount, 6)
+                        for (i in 0 until maxDisplay) {
+                            val h = habitsArray!!.getJSONObject(i)
+                            val id = h.optString("id")
+                            val title = h.optString("title")
+                            val isDone = h.optBoolean("isCompleted", false)
+                            val streak = h.optInt("currentStreak", 0)
 
-                            // Toggle click pending intent
-                            val toggleIntent = Intent(context, TodaysHabitsWidgetReceiver::class.java).apply {
-                                action = ACTION_TOGGLE_HABIT
-                                `package` = context.packageName
-                                putExtra(EXTRA_HABIT_ID, id)
-                                putExtra(EXTRA_AUTH_TOKEN, getOrCreateWidgetToken(context))
+                            val rowView = RemoteViews(context.packageName, R.layout.widget_item_todays_habit).apply {
+                                setTextViewText(R.id.tv_habit_check, if (isDone) "✓" else "○")
+                                setTextColor(
+                                    R.id.tv_habit_check,
+                                    if (isDone) Color.parseColor("#10B981") else Color.parseColor("#9EADA9")
+                                )
+                                setTextViewText(R.id.tv_habit_title, title)
+                                setTextColor(
+                                    R.id.tv_habit_title,
+                                    if (isDone) Color.parseColor("#10B981") else Color.parseColor("#F1F5F4")
+                                )
+                                setTextViewText(R.id.tv_habit_streak, if (streak > 0) "${streak}d" else "")
+
+                                val toggleIntent = Intent(context, TodaysHabitsWidgetReceiver::class.java).apply {
+                                    action = ACTION_TOGGLE_HABIT
+                                    `package` = context.packageName
+                                    putExtra(EXTRA_HABIT_ID, id)
+                                    putExtra(EXTRA_AUTH_TOKEN, getOrCreateWidgetToken(context))
+                                }
+                                val togglePendingIntent = PendingIntent.getBroadcast(
+                                    context,
+                                    (appWidgetId * 100) + i,
+                                    toggleIntent,
+                                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                                )
+                                setOnClickPendingIntent(R.id.ll_habit_row, togglePendingIntent)
                             }
-                            val togglePendingIntent = PendingIntent.getBroadcast(
-                                context,
-                                (appWidgetId * 100) + i,
-                                toggleIntent,
-                                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                            )
-                            setOnClickPendingIntent(R.id.ll_habit_row, togglePendingIntent)
+                            addView(R.id.ll_habits_container, rowView)
                         }
+                    }
+                } else {
+                    // Standard 2x4
+                    setOnClickPendingIntent(R.id.ll_todays_habits_header, createActivityPendingIntent(context, appWidgetId))
+                    setOnClickPendingIntent(R.id.tv_bottom_add, createDeepLinkPendingIntent(context, appWidgetId, "app://habits/daily"))
 
-                        addView(R.id.ll_habits_container, rowView)
+                    setTextViewText(R.id.tv_habit_counts, "$completedCount/$totalScheduled")
+                    setTextViewText(R.id.tv_bottom_streak, "🔥 ${topStreak}d streak")
+                    setTextViewText(R.id.tv_bottom_xp, "+$todayXp XP")
+
+                    removeAllViews(R.id.ll_habits_container)
+                    if (habitCount == 0) {
+                        setViewVisibility(R.id.tv_empty_habits, View.VISIBLE)
+                        setViewVisibility(R.id.ll_habits_container, View.GONE)
+                    } else {
+                        setViewVisibility(R.id.tv_empty_habits, View.GONE)
+                        setViewVisibility(R.id.ll_habits_container, View.VISIBLE)
+
+                        val maxDisplay = minOf(habitCount, 5)
+                        for (i in 0 until maxDisplay) {
+                            val h = habitsArray!!.getJSONObject(i)
+                            val id = h.optString("id")
+                            val title = h.optString("title")
+                            val isDone = h.optBoolean("isCompleted", false)
+                            val streak = h.optInt("currentStreak", 0)
+
+                            val rowView = RemoteViews(context.packageName, R.layout.widget_item_todays_habit).apply {
+                                setTextViewText(R.id.tv_habit_check, if (isDone) "✓" else "○")
+                                setTextColor(
+                                    R.id.tv_habit_check,
+                                    if (isDone) Color.parseColor("#10B981") else Color.parseColor("#9EADA9")
+                                )
+                                setTextViewText(R.id.tv_habit_title, title)
+                                setTextColor(
+                                    R.id.tv_habit_title,
+                                    if (isDone) Color.parseColor("#10B981") else Color.parseColor("#F1F5F4")
+                                )
+                                setTextViewText(R.id.tv_habit_streak, if (streak > 0) "${streak}d" else "")
+
+                                val toggleIntent = Intent(context, TodaysHabitsWidgetReceiver::class.java).apply {
+                                    action = ACTION_TOGGLE_HABIT
+                                    `package` = context.packageName
+                                    putExtra(EXTRA_HABIT_ID, id)
+                                    putExtra(EXTRA_AUTH_TOKEN, getOrCreateWidgetToken(context))
+                                }
+                                val togglePendingIntent = PendingIntent.getBroadcast(
+                                    context,
+                                    (appWidgetId * 100) + i,
+                                    toggleIntent,
+                                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                                )
+                                setOnClickPendingIntent(R.id.ll_habit_row, togglePendingIntent)
+                            }
+                            addView(R.id.ll_habits_container, rowView)
+                        }
                     }
                 }
             }
@@ -244,9 +348,7 @@ class TodaysHabitsWidgetReceiver : BaseHabitWidgetProvider(R.layout.widget_today
     }
 }
 
-
-
-class DailyFocusWidgetReceiver : BaseHabitWidgetProvider(R.layout.widget_daily_focus) {
+class DailyFocusWidgetReceiver : BaseHabitWidgetProvider() {
     override fun updateWidgets(
         context: Context,
         appWidgetManager: AppWidgetManager,
@@ -254,13 +356,16 @@ class DailyFocusWidgetReceiver : BaseHabitWidgetProvider(R.layout.widget_daily_f
     ) {
         val prefs = context.getSharedPreferences("habit_widget_prefs", Context.MODE_PRIVATE)
         val jsonStr = prefs.getString("daily_focus", null)
+        val density = context.resources.displayMetrics.density
 
         var completedCount = 0
         var totalScheduled = 0
         var ratePercent = 0
-        var bestStreak = 0
-        var focusMinutes = 0
+        var remainingCount = 0
         var xpEarnedToday = 0
+        var nextHabitTitle: String? = null
+        var nextHabitStreak = 0
+        val weeklyDays = mutableListOf<DayAdherence>()
 
         if (jsonStr != null) {
             try {
@@ -268,34 +373,91 @@ class DailyFocusWidgetReceiver : BaseHabitWidgetProvider(R.layout.widget_daily_f
                 completedCount = obj.optInt("completedCount", 0)
                 totalScheduled = obj.optInt("totalScheduled", 0)
                 ratePercent = obj.optInt("ratePercent", 0)
-                bestStreak = obj.optInt("bestStreak", 0)
-                focusMinutes = obj.optInt("focusMinutes", 0)
+                remainingCount = obj.optInt("remainingCount", (totalScheduled - completedCount).coerceAtLeast(0))
                 xpEarnedToday = obj.optInt("xpEarnedToday", 0)
-            } catch (_: Exception) {}
-        }
+                nextHabitTitle = if (obj.has("nextHabitTitle") && !obj.isNull("nextHabitTitle")) obj.getString("nextHabitTitle") else null
+                nextHabitStreak = obj.optInt("nextHabitStreak", 0)
 
-        val focusTimeStr = if (focusMinutes >= 60) {
-            String.format(Locale.getDefault(), "%dh %02dm", focusMinutes / 60, focusMinutes % 60)
-        } else {
-            "${focusMinutes}m"
+                val historyArr = obj.optJSONArray("weeklyHistory")
+                if (historyArr != null) {
+                    for (i in 0 until historyArr.length()) {
+                        val d = historyArr.getJSONObject(i)
+                        weeklyDays.add(
+                            DayAdherence(
+                                dayLetter = d.optString("dayLetter", "M"),
+                                ratePercent = d.optInt("ratePercent", 0),
+                                isToday = d.optBoolean("isToday", false),
+                                isFuture = d.optBoolean("isFuture", false)
+                            )
+                        )
+                    }
+                }
+            } catch (_: Exception) {}
         }
 
         for (appWidgetId in appWidgetIds) {
             val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
-            val minHeight = options?.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0) ?: 0
-            val isExpanded = minHeight >= 140
+            val isSmall = isSmallSize(options)
+            val isLarge = isLargeSize(options)
 
-            val views = RemoteViews(context.packageName, layoutResId).apply {
+            val layoutId = when {
+                isSmall -> R.layout.widget_daily_focus_2x2
+                isLarge -> R.layout.widget_daily_focus_4x4
+                else -> R.layout.widget_daily_focus_2x4
+            }
+
+            val views = RemoteViews(context.packageName, layoutId).apply {
                 setOnClickPendingIntent(R.id.widget_root, createActivityPendingIntent(context, appWidgetId))
-                setTextViewText(R.id.tv_adherence_percent, "$ratePercent% Completed")
-                setTextViewText(R.id.tv_completed_count, "$completedCount / $totalScheduled completed")
-                setProgressBar(R.id.pb_daily_progress, 100, ratePercent, false)
 
-                setViewVisibility(R.id.ll_daily_cards, if (isExpanded) View.VISIBLE else View.GONE)
-                if (isExpanded) {
-                    setTextViewText(R.id.tv_card_best_streak, "$bestStreak days")
-                    setTextViewText(R.id.tv_card_focus_time, focusTimeStr)
-                    setTextViewText(R.id.tv_card_xp_earned, "+$xpEarnedToday")
+                if (isSmall) {
+                    setTextViewText(R.id.tv_progress_ratio_2x2, "$completedCount/$totalScheduled")
+                    setProgressBar(R.id.pb_daily_progress_2x2, 100, ratePercent, false)
+                    setTextViewText(R.id.tv_remaining_2x2, "$remainingCount left")
+                } else if (isLarge) {
+                    val ringBitmap = WidgetGraphicsHelper.drawCircularProgressRing(
+                        percentage = ratePercent,
+                        subtitle = "",
+                        sizeDp = 65,
+                        strokeWidthDp = 6f,
+                        density = density
+                    )
+                    setImageViewBitmap(R.id.iv_progress_ring_4x4, ringBitmap)
+
+                    setTextViewText(R.id.tv_rate_percent_4x4, "$ratePercent% completed")
+                    setTextViewText(R.id.tv_completed_count_4x4, "✓ $completedCount completed")
+                    setTextViewText(R.id.tv_remaining_count_4x4, "○ $remainingCount remaining")
+                    setTextViewText(R.id.tv_xp_available_4x4, "🏆 +$xpEarnedToday XP available")
+
+                    if (!nextHabitTitle.isNullOrBlank()) {
+                        setTextViewText(R.id.tv_next_up_title, nextHabitTitle)
+                        setTextViewText(R.id.tv_next_up_streak, "${nextHabitStreak}d streak")
+                    } else {
+                        setTextViewText(R.id.tv_next_up_title, "All habits done for today")
+                        setTextViewText(R.id.tv_next_up_streak, "✓ Done")
+                    }
+
+                    val weekChartBitmap = WidgetGraphicsHelper.drawWeeklyBarChart(
+                        days = weeklyDays,
+                        widthDp = 220,
+                        heightDp = 50,
+                        density = density
+                    )
+                    setImageViewBitmap(R.id.iv_weekly_completion_4x4, weekChartBitmap)
+                } else {
+                    // Standard 2x4
+                    setTextViewText(R.id.tv_rate_percent_2x4, "$ratePercent%")
+                    setTextViewText(R.id.tv_completed_count_2x4, "$completedCount of $totalScheduled completed")
+                    setProgressBar(R.id.pb_daily_progress_2x4, 100, ratePercent, false)
+                    setTextViewText(R.id.tv_remaining_2x4, "$remainingCount remaining")
+                    setTextViewText(R.id.tv_xp_to_earn_2x4, "+$xpEarnedToday XP to earn")
+
+                    val weekChartBitmap = WidgetGraphicsHelper.drawWeeklyBarChart(
+                        days = weeklyDays,
+                        widthDp = 110,
+                        heightDp = 65,
+                        density = density
+                    )
+                    setImageViewBitmap(R.id.iv_weekly_barchart_2x4, weekChartBitmap)
                 }
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
@@ -303,7 +465,7 @@ class DailyFocusWidgetReceiver : BaseHabitWidgetProvider(R.layout.widget_daily_f
     }
 }
 
-class StreaksWidgetReceiver : BaseHabitWidgetProvider(R.layout.widget_streaks) {
+class StreaksWidgetReceiver : BaseHabitWidgetProvider() {
     override fun updateWidgets(
         context: Context,
         appWidgetManager: AppWidgetManager,
@@ -311,6 +473,7 @@ class StreaksWidgetReceiver : BaseHabitWidgetProvider(R.layout.widget_streaks) {
     ) {
         val prefs = context.getSharedPreferences("habit_widget_prefs", Context.MODE_PRIVATE)
         val jsonStr = prefs.getString("streaks", null)
+        val density = context.resources.displayMetrics.density
 
         var bestOverall = 0
         var activeStreaksCount = 0
@@ -325,64 +488,128 @@ class StreaksWidgetReceiver : BaseHabitWidgetProvider(R.layout.widget_streaks) {
             } catch (_: Exception) {}
         }
 
+        val habitCount = habitsArray?.length() ?: 0
+
         for (appWidgetId in appWidgetIds) {
-            val views = RemoteViews(context.packageName, layoutResId).apply {
+            val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
+            val isSmall = isSmallSize(options)
+            val isLarge = isLargeSize(options)
+
+            val layoutId = when {
+                isSmall -> R.layout.widget_streaks_2x2
+                isLarge -> R.layout.widget_streaks_4x4
+                else -> R.layout.widget_streaks_2x4
+            }
+
+            val views = RemoteViews(context.packageName, layoutId).apply {
                 setOnClickPendingIntent(R.id.widget_root, createActivityPendingIntent(context, appWidgetId))
-                setOnClickPendingIntent(R.id.ll_streaks_header, createActivityPendingIntent(context, appWidgetId))
 
-                setTextViewText(R.id.tv_active_streaks_badge, "$activeStreaksCount Active")
-                setTextViewText(R.id.tv_bottom_overall_streak, "Top overall streak: $bestOverall days")
+                if (isSmall) {
+                    setTextViewText(R.id.tv_active_streaks_count_2x2, "$activeStreaksCount")
+                    val flameBitmap = WidgetGraphicsHelper.drawFlameRow(
+                        activeCount = activeStreaksCount,
+                        maxDisplay = 5,
+                        widthDp = 110,
+                        heightDp = 22,
+                        density = density
+                    )
+                    setImageViewBitmap(R.id.iv_flame_row_2x2, flameBitmap)
+                } else if (isLarge) {
+                    setOnClickPendingIntent(R.id.ll_streaks_header, createActivityPendingIntent(context, appWidgetId))
+                    setTextViewText(R.id.tv_active_streaks_badge, "$activeStreaksCount Active")
+                    setTextViewText(R.id.tv_bottom_overall_streak, "🔥 Top overall streak: $bestOverall days")
 
-                removeAllViews(R.id.ll_streaks_container)
+                    removeAllViews(R.id.ll_streaks_container)
+                    if (habitCount == 0) {
+                        setViewVisibility(R.id.tv_empty_streaks, View.VISIBLE)
+                        setViewVisibility(R.id.ll_streaks_container, View.GONE)
+                    } else {
+                        setViewVisibility(R.id.tv_empty_streaks, View.GONE)
+                        setViewVisibility(R.id.ll_streaks_container, View.VISIBLE)
 
-                val count = habitsArray?.length() ?: 0
-                if (count == 0) {
-                    setViewVisibility(R.id.tv_empty_streaks, View.VISIBLE)
-                    setViewVisibility(R.id.ll_streaks_container, View.GONE)
-                } else {
-                    setViewVisibility(R.id.tv_empty_streaks, View.GONE)
-                    setViewVisibility(R.id.ll_streaks_container, View.VISIBLE)
+                        val maxDisplay = minOf(habitCount, 6)
+                        for (i in 0 until maxDisplay) {
+                            val h = habitsArray!!.getJSONObject(i)
+                            val id = h.optString("id")
+                            val title = h.optString("title")
+                            val streak = h.optInt("currentStreak", 0)
 
-                    val maxDisplay = minOf(count, 5)
-                    for (i in 0 until maxDisplay) {
-                        val h = habitsArray!!.getJSONObject(i)
-                        val id = h.optString("id")
-                        val title = h.optString("title")
-                        val streak = h.optInt("currentStreak", 0)
-                        val isDone = h.optBoolean("isCompletedToday", false)
-                        val isAtRisk = h.optBoolean("isAtRiskToday", false)
-
-                        val statusText = when {
-                            isDone -> "${streak}d streak secured"
-                            isAtRisk -> "Keep it alive today"
-                            streak > 0 -> "${streak}d active streak"
-                            else -> "No active streak"
-                        }
-
-                        val rowView = RemoteViews(context.packageName, R.layout.widget_item_streak_habit).apply {
-                            setTextViewText(R.id.tv_streak_title, title)
-                            setTextViewText(R.id.tv_streak_status, statusText)
-                            setTextColor(
-                                R.id.tv_streak_status,
-                                when {
-                                    isDone -> Color.parseColor("#10B981")
-                                    isAtRisk -> Color.parseColor("#F59E0B")
-                                    else -> Color.parseColor("#9EADA9")
+                            val historyList = mutableListOf<Boolean>()
+                            val historyArr = h.optJSONArray("weeklyHistory")
+                            if (historyArr != null) {
+                                for (k in 0 until historyArr.length()) {
+                                    historyList.add(historyArr.optBoolean(k, false))
                                 }
-                            )
-                            setTextViewText(R.id.tv_streak_count, "${streak}d")
-                            setTextColor(
-                                R.id.tv_streak_count,
-                                if (streak > 0) Color.parseColor("#F59E0B") else Color.parseColor("#9EADA9")
-                            )
+                            }
 
-                            setOnClickPendingIntent(
-                                R.id.ll_streak_row,
-                                createDeepLinkPendingIntent(context, appWidgetId * 100 + i, "app://habits/detail/$id")
-                            )
+                            val rowView = RemoteViews(context.packageName, R.layout.widget_item_streak_habit).apply {
+                                setTextViewText(R.id.tv_streak_title, title)
+                                setTextViewText(R.id.tv_streak_count, "${streak}d")
+
+                                val dotsBitmap = WidgetGraphicsHelper.drawStreakDots(
+                                    history = historyList,
+                                    widthDp = 70,
+                                    heightDp = 12,
+                                    density = density
+                                )
+                                setImageViewBitmap(R.id.iv_streak_dots, dotsBitmap)
+
+                                setOnClickPendingIntent(
+                                    R.id.ll_streak_row,
+                                    createDeepLinkPendingIntent(context, appWidgetId * 100 + i, "app://habits/detail/$id")
+                                )
+                            }
+                            addView(R.id.ll_streaks_container, rowView)
                         }
+                    }
+                } else {
+                    // Standard 2x4
+                    setOnClickPendingIntent(R.id.ll_streaks_header, createActivityPendingIntent(context, appWidgetId))
+                    setTextViewText(R.id.tv_active_streaks_badge, "$activeStreaksCount")
+                    setTextViewText(R.id.tv_bottom_overall_streak, "🔥 Top overall streak: $bestOverall days")
 
-                        addView(R.id.ll_streaks_container, rowView)
+                    removeAllViews(R.id.ll_streaks_container)
+                    if (habitCount == 0) {
+                        setViewVisibility(R.id.tv_empty_streaks, View.VISIBLE)
+                        setViewVisibility(R.id.ll_streaks_container, View.GONE)
+                    } else {
+                        setViewVisibility(R.id.tv_empty_streaks, View.GONE)
+                        setViewVisibility(R.id.ll_streaks_container, View.VISIBLE)
+
+                        val maxDisplay = minOf(habitCount, 3)
+                        for (i in 0 until maxDisplay) {
+                            val h = habitsArray!!.getJSONObject(i)
+                            val id = h.optString("id")
+                            val title = h.optString("title")
+                            val streak = h.optInt("currentStreak", 0)
+
+                            val historyList = mutableListOf<Boolean>()
+                            val historyArr = h.optJSONArray("weeklyHistory")
+                            if (historyArr != null) {
+                                for (k in 0 until historyArr.length()) {
+                                    historyList.add(historyArr.optBoolean(k, false))
+                                }
+                            }
+
+                            val rowView = RemoteViews(context.packageName, R.layout.widget_item_streak_habit).apply {
+                                setTextViewText(R.id.tv_streak_title, title)
+                                setTextViewText(R.id.tv_streak_count, "${streak}d")
+
+                                val dotsBitmap = WidgetGraphicsHelper.drawStreakDots(
+                                    history = historyList,
+                                    widthDp = 70,
+                                    heightDp = 12,
+                                    density = density
+                                )
+                                setImageViewBitmap(R.id.iv_streak_dots, dotsBitmap)
+
+                                setOnClickPendingIntent(
+                                    R.id.ll_streak_row,
+                                    createDeepLinkPendingIntent(context, appWidgetId * 100 + i, "app://habits/detail/$id")
+                                )
+                            }
+                            addView(R.id.ll_streaks_container, rowView)
+                        }
                     }
                 }
             }
@@ -391,7 +618,7 @@ class StreaksWidgetReceiver : BaseHabitWidgetProvider(R.layout.widget_streaks) {
     }
 }
 
-class XpMasteryWidgetReceiver : BaseHabitWidgetProvider(R.layout.widget_xp_mastery) {
+class XpMasteryWidgetReceiver : BaseHabitWidgetProvider() {
     override fun updateWidgets(
         context: Context,
         appWidgetManager: AppWidgetManager,
@@ -399,6 +626,7 @@ class XpMasteryWidgetReceiver : BaseHabitWidgetProvider(R.layout.widget_xp_maste
     ) {
         val prefs = context.getSharedPreferences("habit_widget_prefs", Context.MODE_PRIVATE)
         val jsonStr = prefs.getString("xp_mastery", null)
+        val density = context.resources.displayMetrics.density
 
         var level = 1
         var title = "Novice"
@@ -408,12 +636,6 @@ class XpMasteryWidgetReceiver : BaseHabitWidgetProvider(R.layout.widget_xp_maste
         var unlockedBadges = 0
         var totalBadges = 0
         var neededXp = 100
-        var nextTitleName = "Apprentice"
-        var nextBadgeName = "Habit Pioneer"
-        var nextBadgeProgress = 0
-        var nextBadgeTarget = 5
-        var nextBadgeUnit = "days"
-        var streakMultiplier = "1.0x"
 
         if (jsonStr != null) {
             try {
@@ -425,43 +647,73 @@ class XpMasteryWidgetReceiver : BaseHabitWidgetProvider(R.layout.widget_xp_maste
                 progress = (obj.optDouble("progressFraction", 0.0) * 100).toInt()
                 unlockedBadges = obj.optInt("unlockedBadgesCount", 0)
                 totalBadges = obj.optInt("totalBadgesCount", 0)
-                neededXp = obj.optInt("xpNeededForNextLevel", nextTargetXp - totalXp)
-                nextTitleName = obj.optString("nextTitleDisplayName", "Level ${level + 1}")
-                nextBadgeName = obj.optString("nextBadgeTitle", "Next Badge")
-                nextBadgeProgress = obj.optInt("nextBadgeProgress", 0)
-                nextBadgeTarget = obj.optInt("nextBadgeTarget", 10)
-                nextBadgeUnit = obj.optString("nextBadgeUnit", "days")
-                val mult = obj.optDouble("activeStreakMultiplier", 1.0)
-                streakMultiplier = String.format(Locale.getDefault(), "%.1fx Multiplier", mult)
+                neededXp = obj.optInt("xpNeededForNextLevel", (nextTargetXp - totalXp).coerceAtLeast(0))
             } catch (_: Exception) {}
         }
 
         for (appWidgetId in appWidgetIds) {
             val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
-            val minHeight = options?.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0) ?: 0
-            val isExpanded = minHeight >= 140
+            val isSmall = isSmallSize(options)
+            val isLarge = isLargeSize(options)
 
-            val views = RemoteViews(context.packageName, layoutResId).apply {
+            val layoutId = when {
+                isSmall -> R.layout.widget_xp_mastery_2x2
+                isLarge -> R.layout.widget_xp_mastery_4x4
+                else -> R.layout.widget_xp_mastery_2x4
+            }
+
+            val views = RemoteViews(context.packageName, layoutId).apply {
                 setOnClickPendingIntent(R.id.widget_root, createActivityPendingIntent(context, appWidgetId))
-                setOnClickPendingIntent(R.id.ll_card_next_badge, createDeepLinkPendingIntent(context, appWidgetId * 100 + 1, "app://habits/badges"))
-                setOnClickPendingIntent(R.id.ll_card_next_level, createDeepLinkPendingIntent(context, appWidgetId * 100 + 2, "app://habits/badges"))
 
-                setTextViewText(R.id.tv_player_level_title, "Lv.$level $title")
-                setTextViewText(R.id.tv_player_badges_badge, "$unlockedBadges/$totalBadges Badges")
-                setTextViewText(R.id.tv_player_xp_ratio, "$totalXp / $nextTargetXp XP")
-                setTextViewText(R.id.tv_player_xp_percent, "$progress%")
-                setProgressBar(R.id.pb_xp_progress, 100, progress, false)
+                if (isSmall) {
+                    val shieldBitmap = WidgetGraphicsHelper.drawLevelShieldBadge(
+                        level = level,
+                        sizeDp = 52,
+                        density = density
+                    )
+                    setImageViewBitmap(R.id.iv_level_shield_2x2, shieldBitmap)
 
-                setViewVisibility(R.id.ll_xp_cards, if (isExpanded) View.VISIBLE else View.GONE)
-                if (isExpanded) {
-                    // Card 1: Next Badge
-                    setTextViewText(R.id.tv_badge_card_title, nextBadgeName)
-                    setTextViewText(R.id.tv_badge_card_progress, "$nextBadgeProgress / $nextBadgeTarget $nextBadgeUnit")
+                    setTextViewText(R.id.tv_rank_title_2x2, title)
+                    setTextViewText(R.id.tv_current_xp_2x2, "$totalXp XP")
+                    setProgressBar(R.id.pb_xp_progress_2x2, 100, progress, false)
+                } else if (isLarge) {
+                    val medalBitmap = WidgetGraphicsHelper.drawLevelShieldBadge(
+                        level = level,
+                        sizeDp = 60,
+                        density = density,
+                        withRibbon = true
+                    )
+                    setImageViewBitmap(R.id.iv_level_shield_4x4, medalBitmap)
 
-                    // Card 2: Next Milestone
-                    setTextViewText(R.id.tv_level_card_label, "NEXT: ${nextTitleName.uppercase(Locale.getDefault())}")
-                    setTextViewText(R.id.tv_level_card_needed, "$neededXp XP needed")
-                    setTextViewText(R.id.tv_level_card_multiplier, streakMultiplier)
+                    setTextViewText(R.id.tv_level_name_4x4, "Level $level")
+                    setTextViewText(R.id.tv_rank_title_4x4, title)
+                    setTextViewText(R.id.tv_xp_ratio_4x4, "$totalXp XP / $nextTargetXp")
+                    setProgressBar(R.id.pb_xp_progress_4x4, 100, progress, false)
+
+                    setTextViewText(R.id.tv_card_xp_needed, "↗ $neededXp XP\nto Level ${level + 1}")
+                    setTextViewText(R.id.tv_card_badges, "⭐ $unlockedBadges/$totalBadges\nBadges")
+                    setTextViewText(R.id.tv_card_progress_pct, "○ $progress%\nProgress")
+
+                    setOnClickPendingIntent(
+                        R.id.ll_card_badges,
+                        createDeepLinkPendingIntent(context, appWidgetId * 100 + 1, "app://habits/badges")
+                    )
+                } else {
+                    // Standard 2x4
+                    val shieldBitmap = WidgetGraphicsHelper.drawLevelShieldBadge(
+                        level = level,
+                        sizeDp = 48,
+                        density = density
+                    )
+                    setImageViewBitmap(R.id.iv_level_shield_2x4, shieldBitmap)
+
+                    setTextViewText(R.id.tv_level_name_2x4, "Level $level")
+                    setTextViewText(R.id.tv_rank_title_2x4, title)
+                    setTextViewText(R.id.tv_xp_ratio_2x4, "$totalXp XP / $nextTargetXp")
+                    setProgressBar(R.id.pb_xp_progress_2x4, 100, progress, false)
+
+                    setTextViewText(R.id.tv_xp_needed_2x4, "$neededXp XP to Level ${level + 1}")
+                    setTextViewText(R.id.tv_badges_count_2x4, "🏆 $unlockedBadges/$totalBadges Badges")
                 }
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)

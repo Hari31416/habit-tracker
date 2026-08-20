@@ -67,6 +67,9 @@ void main() {
     expect(dailyFocus!.totalScheduled, 2);
     expect(dailyFocus.completedCount, 0);
     expect(dailyFocus.ratePercent, 0);
+    expect(dailyFocus.remainingCount, 2);
+    expect(dailyFocus.nextHabitTitle, isNotNull);
+    expect(dailyFocus.weeklyHistory.length, 7);
 
     // 2. Today's Habits Snapshot (pinned first)
     final todaysHabits = widgetSync.lastTodaysHabits;
@@ -74,11 +77,13 @@ void main() {
     expect(todaysHabits!.habits.length, 2);
     expect(todaysHabits.habits.first.id, 'w_pinned');
     expect(todaysHabits.habits.first.pinned, isTrue);
+    expect(todaysHabits.habits.first.iconKey, isNotEmpty);
 
     // 3. Streaks Snapshot
     final streaks = widgetSync.lastStreaks;
     expect(streaks, isNotNull);
     expect(streaks!.habits.length, 2);
+    expect(streaks.habits.first.weeklyHistory.length, 7);
 
     // 4. XP Mastery Snapshot
     final xpMastery = widgetSync.lastXpMastery;
@@ -86,6 +91,7 @@ void main() {
     expect(xpMastery!.level, 4);
     expect(xpMastery.titleDisplayName, 'Apprentice');
     expect(xpMastery.unlockedBadgesCount, 5);
+    expect(xpMastery.levelProgressPercent, isNotNull);
   });
 
   test('AppShortcutsService exposes top pinned habits for dynamic shortcuts',

@@ -9,6 +9,27 @@ import '../domain/models/habit_target_type.dart';
 import '../domain/repositories/gamification_repository.dart';
 import '../domain/repositories/habit_repository.dart';
 
+class DailyFocusWidgetDayProgress {
+  final String dayLetter;
+  final int ratePercent;
+  final bool isToday;
+  final bool isFuture;
+
+  const DailyFocusWidgetDayProgress({
+    required this.dayLetter,
+    required this.ratePercent,
+    required this.isToday,
+    required this.isFuture,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'dayLetter': dayLetter,
+        'ratePercent': ratePercent,
+        'isToday': isToday,
+        'isFuture': isFuture,
+      };
+}
+
 class DailyFocusWidgetSnapshot {
   final int completedCount;
   final int totalScheduled;
@@ -16,6 +37,10 @@ class DailyFocusWidgetSnapshot {
   final int bestStreak;
   final int focusMinutes;
   final int xpEarnedToday;
+  final int remainingCount;
+  final String? nextHabitTitle;
+  final int? nextHabitStreak;
+  final List<DailyFocusWidgetDayProgress> weeklyHistory;
 
   const DailyFocusWidgetSnapshot({
     required this.completedCount,
@@ -24,6 +49,10 @@ class DailyFocusWidgetSnapshot {
     required this.bestStreak,
     required this.focusMinutes,
     required this.xpEarnedToday,
+    this.remainingCount = 0,
+    this.nextHabitTitle,
+    this.nextHabitStreak,
+    this.weeklyHistory = const [],
   });
 
   Map<String, dynamic> toJson() => {
@@ -33,6 +62,10 @@ class DailyFocusWidgetSnapshot {
         'bestStreak': bestStreak,
         'focusMinutes': focusMinutes,
         'xpEarnedToday': xpEarnedToday,
+        'remainingCount': remainingCount,
+        'nextHabitTitle': nextHabitTitle,
+        'nextHabitStreak': nextHabitStreak,
+        'weeklyHistory': weeklyHistory.map((w) => w.toJson()).toList(),
       };
 }
 
@@ -44,6 +77,7 @@ class TodaysHabitWidgetSnapshotItem {
   final bool isCompleted;
   final int currentStreak;
   final bool pinned;
+  final String iconKey;
 
   const TodaysHabitWidgetSnapshotItem({
     required this.id,
@@ -53,6 +87,7 @@ class TodaysHabitWidgetSnapshotItem {
     required this.isCompleted,
     required this.currentStreak,
     required this.pinned,
+    this.iconKey = 'check_circle',
   });
 
   Map<String, dynamic> toJson() => {
@@ -63,6 +98,7 @@ class TodaysHabitWidgetSnapshotItem {
         'isCompleted': isCompleted,
         'currentStreak': currentStreak,
         'pinned': pinned,
+        'iconKey': iconKey,
       };
 }
 
@@ -98,6 +134,8 @@ class StreakHabitWidgetSnapshotItem {
   final int bestStreak;
   final bool isScheduledToday;
   final bool isCompletedToday;
+  final String iconKey;
+  final List<bool> weeklyHistory;
 
   const StreakHabitWidgetSnapshotItem({
     required this.id,
@@ -107,6 +145,8 @@ class StreakHabitWidgetSnapshotItem {
     required this.bestStreak,
     required this.isScheduledToday,
     required this.isCompletedToday,
+    this.iconKey = 'flame',
+    this.weeklyHistory = const [],
   });
 
   bool get isAtRiskToday =>
@@ -121,6 +161,8 @@ class StreakHabitWidgetSnapshotItem {
         'isScheduledToday': isScheduledToday,
         'isCompletedToday': isCompletedToday,
         'isAtRiskToday': isAtRiskToday,
+        'iconKey': iconKey,
+        'weeklyHistory': weeklyHistory,
       };
 }
 
@@ -190,6 +232,7 @@ class XpMasteryWidgetSnapshot {
   final int nextBadgeTarget;
   final String nextBadgeUnit;
   final double activeStreakMultiplier;
+  final int levelProgressPercent;
 
   const XpMasteryWidgetSnapshot({
     required this.level,
@@ -206,6 +249,7 @@ class XpMasteryWidgetSnapshot {
     this.nextBadgeTarget = 10,
     this.nextBadgeUnit = 'days',
     this.activeStreakMultiplier = 1.0,
+    this.levelProgressPercent = 0,
   });
 
   Map<String, dynamic> toJson() => {
@@ -223,6 +267,7 @@ class XpMasteryWidgetSnapshot {
         'nextBadgeTarget': nextBadgeTarget,
         'nextBadgeUnit': nextBadgeUnit,
         'activeStreakMultiplier': activeStreakMultiplier,
+        'levelProgressPercent': levelProgressPercent,
       };
 }
 
@@ -414,6 +459,20 @@ class WidgetSyncService {
 
       final categoryName = categories[habit.categoryId] ?? 'General';
 
+      // 7-day completion history for streaks (past 6 days + today)
+      final habitWeekHistory = <bool>[];
+      for (int d = 6; d >= 0; d--) {
+        final checkDay = today.subtract(Duration(days: d));
+        final checkDayStr = StreakCalculator.formatIsoDate(checkDay);
+        final checkDayLogs =
+            (allLogsByHabit[habit.id] ?? const []).where((l) => l.date == checkDayStr).toList();
+        final completedOnDay = StreakCalculator.isHabitCompletedOnDate(
+          habit,
+          checkDayLogs.cast(),
+        );
+        habitWeekHistory.add(completedOnDay);
+      }
+
       if (isScheduled) {
         scheduledCount++;
         if (isDone) {
@@ -439,6 +498,7 @@ class WidgetSyncService {
             isCompleted: isDone,
             currentStreak: streakResult.currentStreak,
             pinned: habit.pinned,
+            iconKey: habit.icon ?? 'check_circle',
           ),
         );
       }
@@ -452,6 +512,8 @@ class WidgetSyncService {
           bestStreak: streakResult.bestStreak,
           isScheduledToday: isScheduled,
           isCompletedToday: isDone,
+          iconKey: habit.icon ?? 'flame',
+          weeklyHistory: habitWeekHistory,
         ),
       );
     }
@@ -471,7 +533,48 @@ class WidgetSyncService {
         ? ((completedCount / scheduledCount) * 100).round()
         : 0;
 
-    // 1. Daily Focus
+    // Weekly adherence trend for current week (Monday to Sunday)
+    final monday = today.subtract(Duration(days: today.weekday - 1));
+    const dayLetters = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    final weeklyProgress = <DailyFocusWidgetDayProgress>[];
+
+    for (int i = 0; i < 7; i++) {
+      final dayDate = DateTime(monday.year, monday.month, monday.day + i);
+      final isToday = dayDate.year == today.year &&
+          dayDate.month == today.month &&
+          dayDate.day == today.day;
+      final isFuture = dayDate.isAfter(DateTime(today.year, today.month, today.day));
+
+      int daySched = 0;
+      int dayDone = 0;
+
+      if (!isFuture) {
+        final dayIso = StreakCalculator.formatIsoDate(dayDate);
+        for (final h in activeHabits) {
+          if (StreakCalculator.isHabitScheduledOnDate(h, dayDate)) {
+            daySched++;
+            final hLogs = (allLogsByHabit[h.id] ?? const []).where((l) => l.date == dayIso).toList();
+            if (StreakCalculator.isHabitCompletedOnDate(h, hLogs.cast())) {
+              dayDone++;
+            }
+          }
+        }
+      }
+
+      final dayRate = daySched > 0 ? ((dayDone / daySched) * 100).round() : (isFuture ? 0 : 100);
+      weeklyProgress.add(
+        DailyFocusWidgetDayProgress(
+          dayLetter: dayLetters[i],
+          ratePercent: dayRate,
+          isToday: isToday,
+          isFuture: isFuture,
+        ),
+      );
+    }
+
+    final upcomingUncompleted = scheduledItems.where((h) => !h.isCompleted).firstOrNull;
+
+    // 1. Daily Focus / Daily Progress
     lastDailyFocus = DailyFocusWidgetSnapshot(
       completedCount: completedCount,
       totalScheduled: scheduledCount,
@@ -479,6 +582,10 @@ class WidgetSyncService {
       bestStreak: maxStreak,
       focusMinutes: (totalFocusSec / 60).toInt(),
       xpEarnedToday: totalXpToday,
+      remainingCount: (scheduledCount - completedCount).clamp(0, 999),
+      nextHabitTitle: upcomingUncompleted?.title,
+      nextHabitStreak: upcomingUncompleted?.currentStreak,
+      weeklyHistory: weeklyProgress,
     );
 
     // 2. Today's Habits
@@ -556,6 +663,7 @@ class WidgetSyncService {
           nextBadgeTarget: inProgressBadge?.definition.targetValue ?? 10,
           nextBadgeUnit: inProgressBadge?.definition.unit ?? 'days',
           activeStreakMultiplier: prog.activeStreakMultiplier,
+          levelProgressPercent: (prog.progressFraction * 100).round(),
         );
       } catch (_) {}
     }
