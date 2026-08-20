@@ -80,5 +80,25 @@ void main() {
     expect(find.text('Passkey / Password'), findsOneWidget);
     expect(find.text('Confirm Passkey'), findsOneWidget);
     expect(find.text('Export...'), findsOneWidget);
+
+    // Cancel dialog
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    // Tap Export Backup (JSON) to open destination chooser
+    await tester.tap(find.text('Export Backup (JSON)'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Export JSON Backup'), findsOneWidget);
+    expect(find.text('Compress Backup (.json.gz)'), findsOneWidget);
+    expect(find.text('Save to Storage (.json)'), findsOneWidget);
+    expect(find.text('Share via Apps (.json)'), findsOneWidget);
+
+    // Toggle compression switch
+    await tester.tap(find.byType(SwitchListTile));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Save to Storage (.json.gz)'), findsOneWidget);
+    expect(find.text('Share via Apps (.json.gz)'), findsOneWidget);
   });
 }

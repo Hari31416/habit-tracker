@@ -20,19 +20,28 @@ class BackupService {
   /// Exports full JSON backup and opens native OS Share Sheet.
   Future<bool> exportAndShareBackupJson({
     String? deviceId,
+    bool compress = false,
     Rect? sharePositionOrigin,
   }) async {
     try {
       final jsonString = await backupRepository.exportBackupJson(deviceId: deviceId);
       final tempDir = await getTemporaryDirectory();
       final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-      final file = File('${tempDir.path}/phial_backup_$timestamp.json');
-      await file.writeAsString(jsonString);
+      final extension = compress ? 'json.gz' : 'json';
+      final mimeType = compress ? 'application/gzip' : 'application/json';
+      final file = File('${tempDir.path}/phial_backup_$timestamp.$extension');
+
+      if (compress) {
+        final compressedBytes = gzip.encode(utf8.encode(jsonString));
+        await file.writeAsBytes(compressedBytes);
+      } else {
+        await file.writeAsString(jsonString);
+      }
 
       final result = await Share.shareXFiles(
-        [XFile(file.path, mimeType: 'application/json')],
+        [XFile(file.path, mimeType: mimeType)],
         subject: 'Phial Habit Tracker Backup ($timestamp)',
-        text: 'Phial Habit Tracker JSON Backup',
+        text: 'Phial Habit Tracker Backup',
         sharePositionOrigin: sharePositionOrigin,
       );
 
@@ -49,6 +58,7 @@ class BackupService {
   Future<bool> exportAndShareEncryptedBackupJson({
     required String password,
     String? deviceId,
+    bool compress = false,
     Rect? sharePositionOrigin,
   }) async {
     try {
@@ -59,11 +69,19 @@ class BackupService {
       );
       final tempDir = await getTemporaryDirectory();
       final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-      final file = File('${tempDir.path}/phial_backup_encrypted_$timestamp.json');
-      await file.writeAsString(encryptedJson);
+      final extension = compress ? 'json.gz' : 'json';
+      final mimeType = compress ? 'application/gzip' : 'application/json';
+      final file = File('${tempDir.path}/phial_backup_encrypted_$timestamp.$extension');
+
+      if (compress) {
+        final compressedBytes = gzip.encode(utf8.encode(encryptedJson));
+        await file.writeAsBytes(compressedBytes);
+      } else {
+        await file.writeAsString(encryptedJson);
+      }
 
       final result = await Share.shareXFiles(
-        [XFile(file.path, mimeType: 'application/json')],
+        [XFile(file.path, mimeType: mimeType)],
         subject: 'Phial Habit Tracker Encrypted Backup ($timestamp)',
         text: 'Phial Habit Tracker Encrypted Backup (Password Protected)',
         sharePositionOrigin: sharePositionOrigin,
@@ -79,16 +97,23 @@ class BackupService {
   }
 
   /// Opens native folder/file save dialog to save JSON backup directly to user-specified location.
-  Future<String?> saveBackupJsonToStorage({String? deviceId}) async {
+  Future<String?> saveBackupJsonToStorage({
+    String? deviceId,
+    bool compress = false,
+  }) async {
     try {
       final jsonString = await backupRepository.exportBackupJson(deviceId: deviceId);
       final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-      final bytes = Uint8List.fromList(utf8.encode(jsonString));
+      final extension = compress ? 'json.gz' : 'json';
+      final bytes = compress
+          ? Uint8List.fromList(gzip.encode(utf8.encode(jsonString)))
+          : Uint8List.fromList(utf8.encode(jsonString));
+
       return await FilePicker.platform.saveFile(
         dialogTitle: 'Save Backup File',
-        fileName: 'phial_backup_$timestamp.json',
+        fileName: 'phial_backup_$timestamp.$extension',
         type: FileType.custom,
-        allowedExtensions: ['json'],
+        allowedExtensions: [extension, 'gz', 'json'],
         bytes: bytes,
       );
     } catch (e, stack) {
@@ -102,6 +127,7 @@ class BackupService {
   Future<String?> saveEncryptedBackupJsonToStorage({
     required String password,
     String? deviceId,
+    bool compress = false,
   }) async {
     try {
       final plaintextJson = await backupRepository.exportBackupJson(deviceId: deviceId);
@@ -110,12 +136,16 @@ class BackupService {
         password: password,
       );
       final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-      final bytes = Uint8List.fromList(utf8.encode(encryptedJson));
+      final extension = compress ? 'json.gz' : 'json';
+      final bytes = compress
+          ? Uint8List.fromList(gzip.encode(utf8.encode(encryptedJson)))
+          : Uint8List.fromList(utf8.encode(encryptedJson));
+
       return await FilePicker.platform.saveFile(
         dialogTitle: 'Save Encrypted Backup File',
-        fileName: 'phial_backup_encrypted_$timestamp.json',
+        fileName: 'phial_backup_encrypted_$timestamp.$extension',
         type: FileType.custom,
-        allowedExtensions: ['json'],
+        allowedExtensions: [extension, 'gz', 'json'],
         bytes: bytes,
       );
     } catch (e, stack) {
@@ -158,17 +188,25 @@ class BackupService {
     }
   }
 
-  /// Opens native file picker to select a backup JSON file. Returns file content string.
+  /// Opens native file picker to select a backup JSON or compressed GZ file. Returns file content string.
   Future<String?> pickBackupFile() async {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['json'],
+        allowedExtensions: ['json', 'gz'],
       );
 
       if (result != null && result.files.single.path != null) {
         final file = File(result.files.single.path!);
-        return await file.readAsString();
+        final bytes = await file.readAsBytes();
+
+        // Check if gzip compressed (magic bytes 0x1F, 0x8B)
+        if (bytes.length >= 2 && bytes[0] == 0x1F && bytes[1] == 0x8B) {
+          final decompressedBytes = gzip.decode(bytes);
+          return utf8.decode(decompressedBytes);
+        } else {
+          return utf8.decode(bytes);
+        }
       }
       return null;
     } catch (_) {

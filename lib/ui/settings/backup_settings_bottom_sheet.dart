@@ -55,6 +55,8 @@ class _BackupSettingsBottomSheetState
 
   void _showExportOptionsDialog({required bool isEncrypted, String? password}) {
     final theme = Theme.of(context);
+    bool compress = false;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: theme.colorScheme.surface,
@@ -62,59 +64,75 @@ class _BackupSettingsBottomSheetState
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (sheetContext) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  isEncrypted ? 'Export Encrypted Backup' : 'Export JSON Backup',
-                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      isEncrypted ? 'Export Encrypted Backup' : 'Export JSON Backup',
+                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    SwitchListTile(
+                      secondary: const Icon(Icons.compress_outlined),
+                      title: const Text('Compress Backup (.json.gz)'),
+                      subtitle: const Text('Reduces file size by up to 90%'),
+                      value: compress,
+                      onChanged: (val) {
+                        setSheetState(() {
+                          compress = val;
+                        });
+                      },
+                    ),
+                    const Divider(),
+                    ListTile(
+                      leading: const Icon(Icons.folder_open_outlined),
+                      title: Text(compress ? 'Save to Storage (.json.gz)' : 'Save to Storage (.json)'),
+                      subtitle: const Text('Save directly to Downloads, Documents, or SD Card'),
+                      onTap: () {
+                        Navigator.of(sheetContext).pop();
+                        if (isEncrypted && password != null) {
+                          _handleSaveEncryptedJsonToStorage(password, compress: compress);
+                        } else {
+                          _handleSaveJsonToStorage(compress: compress);
+                        }
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.share_outlined),
+                      title: Text(compress ? 'Share via Apps (.json.gz)' : 'Share via Apps (.json)'),
+                      subtitle: const Text('Send to Google Drive, Gmail, Quick Share, etc.'),
+                      onTap: () {
+                        Navigator.of(sheetContext).pop();
+                        if (isEncrypted && password != null) {
+                          _handleExportEncryptedJson(password, compress: compress);
+                        } else {
+                          _handleExportJson(compress: compress);
+                        }
+                      },
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                ListTile(
-                  leading: const Icon(Icons.folder_open_outlined),
-                  title: const Text('Save to Storage (Select Folder)'),
-                  subtitle: const Text('Save directly to Downloads, Documents, or SD Card'),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    if (isEncrypted && password != null) {
-                      _handleSaveEncryptedJsonToStorage(password);
-                    } else {
-                      _handleSaveJsonToStorage();
-                    }
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.share_outlined),
-                  title: const Text('Share via Apps...'),
-                  subtitle: const Text('Send to Google Drive, Gmail, Quick Share, etc.'),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    if (isEncrypted && password != null) {
-                      _handleExportEncryptedJson(password);
-                    } else {
-                      _handleExportJson();
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
   }
 
-  Future<void> _handleSaveJsonToStorage() async {
+  Future<void> _handleSaveJsonToStorage({bool compress = false}) async {
     setState(() {
       _isLoading = true;
       _statusMessage = 'Opening storage picker...';
     });
 
     final service = ref.read(backupServiceProvider);
-    final savedPath = await service.saveBackupJsonToStorage();
+    final savedPath = await service.saveBackupJsonToStorage(compress: compress);
 
     if (mounted) {
       setState(() {
@@ -123,19 +141,22 @@ class _BackupSettingsBottomSheetState
       });
       if (savedPath != null) {
         HapticsHelper.performLightHaptic();
-        _showSuccess('Backup saved to storage');
+        _showSuccess(compress ? 'Compressed backup (.json.gz) saved' : 'Backup saved to storage');
       }
     }
   }
 
-  Future<void> _handleSaveEncryptedJsonToStorage(String password) async {
+  Future<void> _handleSaveEncryptedJsonToStorage(String password, {bool compress = false}) async {
     setState(() {
       _isLoading = true;
       _statusMessage = 'Encrypting & opening storage picker...';
     });
 
     final service = ref.read(backupServiceProvider);
-    final savedPath = await service.saveEncryptedBackupJsonToStorage(password: password);
+    final savedPath = await service.saveEncryptedBackupJsonToStorage(
+      password: password,
+      compress: compress,
+    );
 
     if (mounted) {
       setState(() {
@@ -144,22 +165,25 @@ class _BackupSettingsBottomSheetState
       });
       if (savedPath != null) {
         HapticsHelper.performLightHaptic();
-        _showSuccess('Encrypted backup saved to storage');
+        _showSuccess(compress ? 'Compressed encrypted backup saved' : 'Encrypted backup saved to storage');
       }
     }
   }
 
-  Future<void> _handleExportJson() async {
+  Future<void> _handleExportJson({bool compress = false}) async {
     setState(() {
       _isLoading = true;
-      _statusMessage = 'Generating JSON backup...';
+      _statusMessage = compress ? 'Compressing JSON backup (.json.gz)...' : 'Generating JSON backup...';
     });
 
     final box = context.findRenderObject() as RenderBox?;
     final origin = box != null ? box.localToGlobal(Offset.zero) & box.size : null;
 
     final service = ref.read(backupServiceProvider);
-    final success = await service.exportAndShareBackupJson(sharePositionOrigin: origin);
+    final success = await service.exportAndShareBackupJson(
+      compress: compress,
+      sharePositionOrigin: origin,
+    );
 
     if (mounted) {
       setState(() {
@@ -168,7 +192,7 @@ class _BackupSettingsBottomSheetState
       });
       if (success) {
         HapticsHelper.performLightHaptic();
-        _showSuccess('Backup exported successfully');
+        _showSuccess(compress ? 'Compressed backup exported successfully' : 'Backup exported successfully');
       } else {
         _showError('Failed to export backup');
       }
@@ -368,10 +392,12 @@ class _BackupSettingsBottomSheetState
     );
   }
 
-  Future<void> _handleExportEncryptedJson(String password) async {
+  Future<void> _handleExportEncryptedJson(String password, {bool compress = false}) async {
     setState(() {
       _isLoading = true;
-      _statusMessage = 'Encrypting backup (AES-256)...';
+      _statusMessage = compress
+          ? 'Compressing & encrypting backup (AES-256)...'
+          : 'Encrypting backup (AES-256)...';
     });
 
     final box = context.findRenderObject() as RenderBox?;
@@ -380,6 +406,7 @@ class _BackupSettingsBottomSheetState
     final service = ref.read(backupServiceProvider);
     final success = await service.exportAndShareEncryptedBackupJson(
       password: password,
+      compress: compress,
       sharePositionOrigin: origin,
     );
 
@@ -390,7 +417,7 @@ class _BackupSettingsBottomSheetState
       });
       if (success) {
         HapticsHelper.performLightHaptic();
-        _showSuccess('Encrypted backup exported successfully');
+        _showSuccess(compress ? 'Compressed encrypted backup exported' : 'Encrypted backup exported successfully');
       } else {
         _showError('Failed to export encrypted backup');
       }
