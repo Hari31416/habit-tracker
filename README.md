@@ -1,151 +1,237 @@
 # Phial: Habit Tracker & Focus
 
-A modern, standalone habit tracking and focus companion built with Flutter, Riverpod, Drift persistence, and Material 3 design.
+Phial is an offline-first, high-performance habit tracking and focus companion built with Flutter, Riverpod, Drift persistence, and Material 3 design.
 
-## Overview
+## Architecture Overview
 
-Phial provides flexible tracking across multiple habit models:
+Phial follows Clean Architecture principles with a reactive, unidirectional data flow. UI components observe domain state through Riverpod providers, while user interactions trigger repository methods that execute business logic engines and persist updates to a local Drift (SQLite) database. Platform channels bridge notifications, foreground timer services, and home screen widgets.
 
-- Daily Habits with rolling date navigation and active streak preservation
-- Weekly Habits with ISO Monday–Sunday week boundaries and week-unit streaks
-- Custom Day Scheduling skipping non-scheduled days without penalty
-- Numeric Stepper Habits with magnitude-aware step sizing and quick-add chips
-- Duration and Timer Habits with countdown focus sessions
-- Subday Interval and Slot Habits for structured daytime routines
-- Gamification with XP, streak multipliers, player titles, and achievement badges
+```mermaid
+graph TD
+    subgraph UI ["Presentation Layer (Material 3)"]
+        Daily["Daily View"]
+        Matrix["Habit Matrix"]
+        Analytics["Analytics & Heatmap"]
+        Badges["Gamification & Badges"]
+        Detail["Habit Detail & Focus Timer"]
+    end
 
-## Architecture and Technology Stack
+    subgraph State ["State Management (Riverpod)"]
+        Providers["AsyncNotifier & StateNotifier Providers"]
+    end
 
-### Primary Framework: Flutter
-- Language: Dart 3.13+ / Flutter 3.47+ (min SDK 26, target SDK 34)
-- UI Toolkit: Flutter Material 3 Design System
-- State Management: Flutter Riverpod 2.6+
-- Local Persistence: Drift Database with reactive Streams and type-safe DAOs
-- Background Tasks: `flutter_local_notifications`, native focus timer service, and background rollover tasks
-- Widgets: Native Android AppWidgets & iOS WidgetKit via shared preferences synchronization
-- Charts: Custom / `fl_chart` configured for Vico visual parity
+    subgraph Domain ["Domain Calculation Engines"]
+        Streak["Streak Calculator"]
+        StepEngine["Dynamic Step Engine"]
+        SlotEngine["Subday Slot Engine"]
+        Gamify["Gamification Engine"]
+        Shield["Shield Banking Engine"]
+        Wellbeing["Wellbeing Correlation Engine"]
+    end
 
-### Reference Implementation: Native Android (Kotlin)
-- Location: `app/src/main/java/com/productivity/habits/`
-- Stack: Kotlin 2.0, Jetpack Compose, Room, Hilt, Glance widgets
+    subgraph Data ["Data & Persistence Layer"]
+        Repo["Repository Implementations"]
+        DB[("Drift SQLite Database")]
+        DAOs["DAOs & Type Converters"]
+        Prefs["Theme & App Preferences"]
+    end
+
+    subgraph Platform ["Native & Platform Services"]
+        Notif["Notification Service"]
+        TimerSvc["Native Focus Timer Service"]
+        Widgets["AppWidgets & WidgetKit Sync"]
+        Audio["Ambient Audio Player"]
+    end
+
+    UI --> Providers
+    Providers --> Domain
+    Providers --> Repo
+    Repo --> DAOs
+    DAOs --> DB
+    Repo --> Prefs
+    Providers --> Notif
+    Providers --> TimerSvc
+    Providers --> Widgets
+    Providers --> Audio
+```
+
+## Key Features
+
+- Flexible Habit Models
+  - Daily Habits: Continuous tracking with in-progress day preservation for unlogged current days
+  - Weekly Habits: ISO Monday–Sunday boundary evaluation with week-unit streaks
+  - Custom Schedules: Day-of-week target scheduling skipping non-target days without streak penalties
+  - Stepper Habits: Dynamic magnitude-aware incrementation and quick-add chips
+  - Subday Slot Habits: Multi-slot time-of-day tracking (Morning, Afternoon, Evening, Night)
+  - Duration & Timers: Integrated focus countdowns and stopwatches with ambient audio
+- Offline Gamification System
+  - XP rewards based on habit completion and streak lengths
+  - Streak multipliers and tiered player titles
+  - Milestone and consistency achievement badges
+- Analytics and Visualizations
+  - Multi-year completion heatmaps and monthly performance matrices
+  - Habit completion trends and wellbeing correlation analysis
+- Platform Integrations
+  - Native home screen widgets for Android (AppWidgets) and iOS (WidgetKit)
+  - Rich notifications with action buttons for direct check-in
+  - Foreground focus timer service for uninterrupted countdowns
+- Privacy First
+  - Zero analytics, zero tracking, and fully offline SQLite local storage
+
+## Tech Stack
+
+| Layer / Concern            | Technology                    | Details                                               |
+| -------------------------- | ----------------------------- | ----------------------------------------------------- |
+| Language                   | Dart 3.13+                    | Sound null safety, functional patterns                |
+| UI Framework               | Flutter 3.47+                 | Material 3, custom canvas charts                      |
+| State Management           | Riverpod 2.6+                 | `AsyncNotifier`, `StateNotifier`, `ProviderContainer` |
+| Local Database             | Drift 2.24+                   | SQLite with reactive streams, DAOs, schema migrations |
+| Native Android             | Kotlin / Gradle               | Jetpack Glance AppWidgets, Foreground Service         |
+| Native iOS                 | Swift / WidgetKit             | Shared UserDefaults synchronization                   |
+| Scheduling & Notifications | `flutter_local_notifications` | Timezone-aware local reminders                        |
+| Audio                      | `audioplayers`                | Ambient focus sounds (White Noise, Rain, Cafe)        |
+| Tooling                    | Make / build_runner           | Automated compilation, codegen, and testing pipelines |
 
 ## Project Structure
 
 ```text
 habit-tracker-android/
-├── lib/                                # Flutter source code
+├── lib/
 │   ├── data/
-│   │   ├── local/                      # Drift database, DAOs, tables, converters
-│   │   ├── preferences/                # SharedPreferences / Theme preferences
-│   │   ├── repositories/               # Repository implementations
-│   │   └── schedulers/                 # Notification and background schedulers
-│   ├── di/                             # Riverpod provider definitions
+│   │   ├── local/                      # Drift database, DAOs, schema tables, and converters
+│   │   ├── preferences/                # SharedPreferences, theme, and user settings
+│   │   ├── repositories/               # Concrete repository implementations
+│   │   └── schedulers/                 # Reminder and rollover background schedulers
+│   ├── di/                             # Riverpod dependency injection and provider definitions
 │   ├── domain/
-│   │   ├── engines/                    # Pure Dart calculation engines (Streak, Stepper, Slots)
-│   │   ├── gamification/               # XP and achievement evaluation engines
-│   │   ├── models/                     # Domain models
-│   │   └── repositories/               # Repository interfaces
-│   ├── services/                       # Focus timer, widget sync, rollover services
-│   └── ui/                             # Material 3 UI (Daily, Matrix, Analytics, Detail, Form)
-├── test/                               # Flutter unit, widget, and domain test suite
-├── android/                            # Android native host project & widgets
-│   ├── app/
-│   │   ├── build.gradle.kts            # Android application gradle config
-│   │   └── src/main/kotlin/com/productivity/habits/
-│   │       ├── MainActivity.kt
-│   │       ├── FocusTimerService.kt
-│   │       └── widgets/                # Android AppWidget receivers & layouts
-├── app/                                # Kotlin reference source implementation
-├── plans/                              # Architecture specifications and migration roadmap
-├── Makefile                            # Build, test, run, and emulator automation
-└── pubspec.yaml                        # Flutter package dependencies
+│   │   ├── engines/                    # Pure Dart computation engines (Streaks, Steppers, Slots)
+│   │   ├── gamification/               # XP calculations, player titles, and achievement rules
+│   │   ├── models/                     # Immutable domain entity models
+│   │   └── repositories/               # Domain repository interfaces
+│   ├── services/                       # Audio, DND, notifications, and native widget sync
+│   ├── ui/                             # Material 3 screens, custom painters, and view models
+│   └── main.dart                       # App entrypoint and startup initialization pipeline
+├── android/                            # Android host project, Foreground Service, and AppWidgets
+├── ios/                                # iOS host runner and WidgetKit extensions
+├── test/                               # Comprehensive unit, widget, and calculation test suite
+├── Makefile                            # Build, test, and emulator automation commands
+├── pubspec.yaml                        # Flutter package dependencies and assets configuration
+└── README.md                           # Project documentation
 ```
 
-## Getting Started
+## Logic Flows
+
+### Habit Check-In and Synchronization Flow
+
+The following sequence diagram illustrates the lifecycle of a habit check-in, from user interaction through engine evaluation, database persistence, and native widget updates:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant UI as Daily Habit View
+    participant Provider as HabitStateNotifier
+    participant Engine as Streak & Gamification Engine
+    participant Repo as HabitRepository
+    participant DB as Drift SQLite Database
+    participant Sync as WidgetSyncService
+    participant Widget as Native AppWidget
+
+    User->>UI: Tap Check-in / Increment
+    UI->>Provider: logHabitCompletion(habitId, date, value)
+    Provider->>Repo: getHabitWithLogs(habitId)
+    Repo->>DB: Query habit and historical logs
+    DB-->>Repo: Return records
+    Repo->>Engine: recalculateStreak(habit, logs)
+    Engine-->>Repo: Updated streak metadata
+    Repo->>Engine: evaluateGamification(habit, streak)
+    Engine-->>Repo: Awarded XP & Achievements
+    Repo->>DB: Upsert log record & habit streak state
+    DB-->>Repo: Confirmation
+    Repo-->>Provider: Updated Habit entity
+    Provider-->>UI: Re-render with new state and animations
+    Provider->>Sync: syncAllWidgets()
+    Sync->>Widget: Push serialized state via MethodChannel
+    Widget-->>User: Refresh Home Screen Widget UI
+```
+
+## Installation and Setup
 
 ### Prerequisites
 
-- Flutter SDK 3.47+
-- Dart SDK 3.13+
-- Java 17 or Java 21 JDK
-- Android SDK installed (`ANDROID_HOME` or `~/Library/Android/sdk`) with Platform SDK 34
+- Flutter SDK version 3.47.0 or higher
+- Dart SDK version 3.13.0 or higher
+- Java Development Kit (JDK 17 or JDK 21)
+- Android SDK with platform tools and API 34 installed
 
-### Building with Flutter
-
-To build the debug APK:
+### Clone and Dependency Setup
 
 ```bash
-flutter build apk --debug --android-skip-build-dependency-validation
-```
+# Clone the repository
+git clone https://github.com/Hari31416/habit-tracker.git
+cd habit-tracker-android
 
-Debug builds use the default Android debug key. Release builds require a private keystore via `ANDROID_KEYSTORE_PATH`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, and `ANDROID_KEY_PASSWORD`, or a gitignored `android/key.properties` file.
+# Fetch Flutter dependencies
+flutter pub get
 
-To build release split-ABI APKs:
-
-```bash
-flutter build apk --release --split-per-abi --android-skip-build-dependency-validation
-```
-
-To build the release Android App Bundle (AAB):
-
-```bash
-flutter build appbundle --release --android-skip-build-dependency-validation
-```
-
-### Running Unit & Widget Tests
-
-Execute the automated test suite:
-
-```bash
-flutter test
-```
-
-### Using Make Commands
-
-A `Makefile` is provided for common development and debugging tasks:
-
-```bash
-# Display help and available commands
-make help
-
-# Build the Flutter debug APK
-make build
-
-# Run all Flutter unit and widget tests
-make test
-
-# Run Flutter code analysis
-make lint
-
-# Run Drift/Riverpod code generator
+# Generate Drift database code and Riverpod bindings
 make codegen
+```
 
-# List available Android Virtual Devices (AVDs)
-make emulator-list
+### Running Automated Tests
 
-# Start the default emulator in the background
-make emulator-start
+```bash
+# Run all unit, widget, and domain calculation engine tests
+make test
+```
 
-# Stop running emulator
-make emulator-stop
+### Code Quality and Analysis
 
-# Build, install, and launch Flutter app (starts emulator if none running)
+```bash
+# Run Flutter linter and static analysis
+make lint
+```
+
+## Usage Examples
+
+### Build and Launch on Android
+
+```bash
+# Complete automated pipeline (starts default emulator if needed, builds, installs, and launches)
 make run
 
-# Stream colored logcat logs for the application
+# Build debug APK directly
+make build
+
+# Stream live filtered application logs
 make logcat
 ```
 
-### Native Kotlin Reference Commands
+### Building Release Artifacts
+
+Release builds require keystore configuration in `android/key.properties` or environment variables (`ANDROID_KEYSTORE_PATH`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`):
 
 ```bash
-# Run native Kotlin unit tests
-make kotlin-test
+# Build release split-ABI APKs
+make build-release
 
-# Build native Kotlin debug APK
-make kotlin-build
+# Build release Android App Bundle (.aab)
+make build-appbundle
+```
+
+### Managing Development Emulator
+
+```bash
+# List available Android Virtual Devices (AVDs)
+make emulator-list
+
+# Start emulator in background
+make emulator-start AVD=Pixel_8_API_34
+
+# Stop running emulator
+make emulator-stop
 ```
 
 ## Privacy Policy
 
-Habit Tracker is completely offline and stores all data locally. For details, see [PRIVACY.md](PRIVACY.md).
+Phial operates completely offline. All habit entries, notes, analytics, and settings remain on the local device. For full privacy details, refer to [PRIVACY.md](PRIVACY.md).
