@@ -5,7 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.8.0-alpha.1] - 2026-08-19
+## [0.8.1] - 2026-08-20
+
+### Added
+
+- Responsive Android Home-Screen Widgets (2x2, 2x4, and 4x4) supporting dynamic density scaling, dark/light theme tokens, and interactive quick check-in actions.
+- Interactive scrollable `ListView` (`RemoteViewsService` / `TodaysHabitsWidgetService`) for 2x4 and 4x4 Today's Habits widgets.
+- Widget preview screen (`HabitWidgetPreviewsScreen`) and mock data fixtures for interactive widget visual verification.
+- Comprehensive system architecture, module boundaries, and reactive logic flow diagrams in project documentation.
+
+### Fixed
+
+- Do Not Disturb (DND) mode lifecycle handling, permission verification, and state synchronization with native Android notification policy.
+- Focus Timer screen UI state preservation during external notification interactions and background service resets.
+
+
+## [0.8.0] - 2026-08-19
 
 ### Added
 
