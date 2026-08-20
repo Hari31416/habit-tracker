@@ -34,6 +34,11 @@ dependencies:
   cupertino_icons: ^1.0.8
   material_design_icons_flutter: ^7.0.7296
 
+  # File & Share
+  file_picker: ^8.1.7
+  share_plus: ^10.1.4
+  clock: ^1.1.2
+
   # Audio
   audioplayers: ^6.1.0
 

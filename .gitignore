@@ -69,3 +69,4 @@ secrets.xml
 .pub/
 .metadata
 devtools_options.yaml
+exports/
