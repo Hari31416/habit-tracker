@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../data/preferences/theme_preferences.dart';
 import '../../di/providers.dart';
 import '../../domain/repositories/backup_repository.dart';
+import '../../domain/sync/backup_encryption_engine.dart';
 import '../../domain/sync/sync_merge_engine.dart';
 import '../common/haptics_helper.dart';
 
@@ -31,21 +33,22 @@ class _BackupSettingsBottomSheetState
   String? _statusMessage;
 
   void _showError(String message) {
-    if (!mounted) return;
+    HapticsHelper.performHeavyConfirmationHaptic();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
         backgroundColor: Theme.of(context).colorScheme.error,
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
 
   void _showSuccess(String message) {
-    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
         backgroundColor: Theme.of(context).colorScheme.primary,
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -72,6 +75,228 @@ class _BackupSettingsBottomSheetState
         _showSuccess('Backup exported successfully');
       } else {
         _showError('Failed to export backup');
+      }
+    }
+  }
+
+  void _showEncryptedExportDialog() {
+    final theme = Theme.of(context);
+    final passwordController = TextEditingController();
+    final confirmController = TextEditingController();
+    bool obscure = true;
+    String? errorText;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Row(
+                children: [
+                  Icon(Icons.lock_outline, color: theme.colorScheme.primary, size: 24),
+                  const SizedBox(width: 8),
+                  const Text('Encrypted Backup'),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Protect your habits, notes, and logs with AES-256 zero-knowledge encryption.',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(40),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      icon: const Icon(Icons.key_outlined, size: 18),
+                      label: const Text('Generate Random Passkey'),
+                      onPressed: () {
+                        final key = BackupEncryptionEngine.generatePasskey();
+                        passwordController.text = key;
+                        confirmController.text = key;
+                        Clipboard.setData(ClipboardData(text: key));
+                        setDialogState(() {
+                          obscure = false;
+                          errorText = null;
+                        });
+                        HapticsHelper.performLightHaptic();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Passkey generated & copied to clipboard!'),
+                            behavior: SnackBarBehavior.floating,
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: passwordController,
+                      obscureText: obscure,
+                      decoration: InputDecoration(
+                        labelText: 'Passkey / Password',
+                        prefixIcon: const Icon(Icons.password_outlined),
+                        suffixIcon: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (passwordController.text.isNotEmpty)
+                              IconButton(
+                                icon: const Icon(Icons.copy_outlined, size: 20),
+                                tooltip: 'Copy',
+                                onPressed: () {
+                                  Clipboard.setData(ClipboardData(text: passwordController.text));
+                                  HapticsHelper.performLightHaptic();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Passkey copied to clipboard'),
+                                      behavior: SnackBarBehavior.floating,
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                },
+                              ),
+                            IconButton(
+                              icon: Icon(obscure ? Icons.visibility_off : Icons.visibility, size: 20),
+                              onPressed: () {
+                                setDialogState(() {
+                                  obscure = !obscure;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: confirmController,
+                      obscureText: obscure,
+                      decoration: const InputDecoration(
+                        labelText: 'Confirm Passkey',
+                        prefixIcon: Icon(Icons.check_outlined),
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    if (errorText != null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        errorText!,
+                        style: TextStyle(
+                          color: theme.colorScheme.error,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 14),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.errorContainer.withOpacity(0.4),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            color: theme.colorScheme.error,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Warning: If you lose this passkey, this backup cannot be decrypted or restored.',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onErrorContainer,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton.icon(
+                  icon: const Icon(Icons.lock, size: 18),
+                  label: const Text('Encrypt & Export'),
+                  onPressed: () {
+                    final pass = passwordController.text.trim();
+                    final conf = confirmController.text.trim();
+
+                    if (pass.isEmpty) {
+                      setDialogState(() {
+                        errorText = 'Please enter or generate a passkey';
+                      });
+                      return;
+                    }
+                    if (pass.length < 6) {
+                      setDialogState(() {
+                        errorText = 'Passkey must be at least 6 characters';
+                      });
+                      return;
+                    }
+                    if (pass != conf) {
+                      setDialogState(() {
+                        errorText = 'Passkeys do not match';
+                      });
+                      return;
+                    }
+
+                    Navigator.of(dialogContext).pop();
+                    _handleExportEncryptedJson(pass);
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _handleExportEncryptedJson(String password) async {
+    setState(() {
+      _isLoading = true;
+      _statusMessage = 'Encrypting backup (AES-256)...';
+    });
+
+    final box = context.findRenderObject() as RenderBox?;
+    final origin = box != null ? box.localToGlobal(Offset.zero) & box.size : null;
+
+    final service = ref.read(backupServiceProvider);
+    final success = await service.exportAndShareEncryptedBackupJson(
+      password: password,
+      sharePositionOrigin: origin,
+    );
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+        _statusMessage = null;
+      });
+      if (success) {
+        HapticsHelper.performLightHaptic();
+        _showSuccess('Encrypted backup exported successfully');
+      } else {
+        _showError('Failed to export encrypted backup');
       }
     }
   }
@@ -104,11 +329,152 @@ class _BackupSettingsBottomSheetState
 
   Future<void> _handleImportJson() async {
     final service = ref.read(backupServiceProvider);
-    final jsonString = await service.pickBackupFile();
+    final rawFileString = await service.pickBackupFile();
 
-    if (jsonString == null || jsonString.isEmpty) {
+    if (rawFileString == null || rawFileString.isEmpty) {
       return;
     }
+
+    if (BackupEncryptionEngine.isEncrypted(rawFileString)) {
+      _showDecryptionPasswordPrompt(rawFileString);
+    } else {
+      _processPlaintextBackup(rawFileString);
+    }
+  }
+
+  void _showDecryptionPasswordPrompt(String encryptedJson) {
+    final theme = Theme.of(context);
+    final passwordController = TextEditingController();
+    bool obscure = true;
+    String? errorText;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Row(
+                children: [
+                  Icon(Icons.lock, color: theme.colorScheme.primary, size: 24),
+                  const SizedBox(width: 8),
+                  const Text('Encrypted Backup'),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'This backup is protected with AES-256 encryption. Enter the passphrase to unlock it.',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: passwordController,
+                      obscureText: obscure,
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        labelText: 'Passkey / Password',
+                        prefixIcon: const Icon(Icons.key_outlined),
+                        suffixIcon: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.paste_outlined, size: 20),
+                              tooltip: 'Paste from Clipboard',
+                              onPressed: () async {
+                                final data = await Clipboard.getData(Clipboard.kTextPlain);
+                                if (data?.text != null) {
+                                  passwordController.text = data!.text!.trim();
+                                  setDialogState(() {
+                                    errorText = null;
+                                  });
+                                  HapticsHelper.performLightHaptic();
+                                }
+                              },
+                            ),
+                            IconButton(
+                              icon: Icon(obscure ? Icons.visibility_off : Icons.visibility, size: 20),
+                              onPressed: () {
+                                setDialogState(() {
+                                  obscure = !obscure;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                    if (errorText != null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        errorText!,
+                        style: TextStyle(
+                          color: theme.colorScheme.error,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton.icon(
+                  icon: const Icon(Icons.lock_open, size: 18),
+                  label: const Text('Unlock'),
+                  onPressed: () async {
+                    final pass = passwordController.text.trim();
+                    if (pass.isEmpty) {
+                      setDialogState(() {
+                        errorText = 'Please enter your password';
+                      });
+                      return;
+                    }
+
+                    Navigator.of(dialogContext).pop();
+
+                    setState(() {
+                      _isLoading = true;
+                      _statusMessage = 'Decrypting backup...';
+                    });
+
+                    try {
+                      final decryptedJson = await BackupEncryptionEngine.decrypt(
+                        encryptedEnvelopeJson: encryptedJson,
+                        password: pass,
+                      );
+                      if (!mounted) return;
+                      await _processPlaintextBackup(decryptedJson);
+                    } catch (e) {
+                      if (mounted) {
+                        setState(() {
+                          _isLoading = false;
+                          _statusMessage = null;
+                        });
+                        _showError('Incorrect password or corrupted backup');
+                      }
+                    }
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _processPlaintextBackup(String jsonString) async {
+    final service = ref.read(backupServiceProvider);
 
     setState(() {
       _isLoading = true;
@@ -450,10 +816,37 @@ class _BackupSettingsBottomSheetState
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
               subtitle: const Text(
-                'Complete snapshot of habits, logs, XP, and shields',
+                'Standard unencrypted JSON for data inspection',
               ),
               trailing: const Icon(Icons.share_outlined),
               onTap: _handleExportJson,
+            ),
+            const SizedBox(height: 4),
+
+            // Export Encrypted Backup
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.lock_outline,
+                  color: theme.colorScheme.onPrimaryContainer,
+                  size: 20,
+                ),
+              ),
+              title: const Text(
+                'Export Encrypted Backup',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              subtitle: const Text(
+                'Password-protected (AES-256) for secure cloud/email',
+              ),
+              trailing: const Icon(Icons.share_outlined),
+              onTap: _showEncryptedExportDialog,
             ),
             const SizedBox(height: 4),
 

@@ -67,7 +67,18 @@ void main() {
 
     expect(find.text('Data & Backup'), findsOneWidget);
     expect(find.text('Export Backup (JSON)'), findsOneWidget);
+    expect(find.text('Export Encrypted Backup'), findsOneWidget);
     expect(find.text('Import Backup (JSON)'), findsOneWidget);
     expect(find.text('Export Spreadsheets (CSV)'), findsOneWidget);
+
+    // Tap Export Encrypted Backup to open password dialog
+    await tester.tap(find.text('Export Encrypted Backup'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Encrypted Backup'), findsOneWidget);
+    expect(find.text('Generate Random Passkey'), findsOneWidget);
+    expect(find.text('Passkey / Password'), findsOneWidget);
+    expect(find.text('Confirm Passkey'), findsOneWidget);
+    expect(find.text('Encrypt & Export'), findsOneWidget);
   });
 }
