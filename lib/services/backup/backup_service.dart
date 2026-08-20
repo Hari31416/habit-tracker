@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../domain/repositories/backup_repository.dart';
+import '../../domain/sync/backup_encryption_engine.dart';
 import '../../domain/sync/sync_merge_engine.dart';
 
 class BackupService {
@@ -38,6 +39,39 @@ class BackupService {
     } catch (e, stack) {
       // ignore: avoid_print
       print('exportAndShareBackupJson error: $e\n$stack');
+      return false;
+    }
+  }
+
+  /// Exports encrypted JSON backup with password protection and opens native OS Share Sheet.
+  Future<bool> exportAndShareEncryptedBackupJson({
+    required String password,
+    String? deviceId,
+    Rect? sharePositionOrigin,
+  }) async {
+    try {
+      final plaintextJson = await backupRepository.exportBackupJson(deviceId: deviceId);
+      final encryptedJson = await BackupEncryptionEngine.encrypt(
+        plaintextJson: plaintextJson,
+        password: password,
+      );
+      final tempDir = await getTemporaryDirectory();
+      final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+      final file = File('${tempDir.path}/phial_backup_encrypted_$timestamp.json');
+      await file.writeAsString(encryptedJson);
+
+      final result = await Share.shareXFiles(
+        [XFile(file.path, mimeType: 'application/json')],
+        subject: 'Phial Habit Tracker Encrypted Backup ($timestamp)',
+        text: 'Phial Habit Tracker Encrypted Backup (Password Protected)',
+        sharePositionOrigin: sharePositionOrigin,
+      );
+
+      return result.status == ShareResultStatus.success ||
+          result.status == ShareResultStatus.dismissed;
+    } catch (e, stack) {
+      // ignore: avoid_print
+      print('exportAndShareEncryptedBackupJson error: $e\n$stack');
       return false;
     }
   }
