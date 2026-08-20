@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -73,6 +75,53 @@ class BackupService {
       // ignore: avoid_print
       print('exportAndShareEncryptedBackupJson error: $e\n$stack');
       return false;
+    }
+  }
+
+  /// Opens native folder/file save dialog to save JSON backup directly to user-specified location.
+  Future<String?> saveBackupJsonToStorage({String? deviceId}) async {
+    try {
+      final jsonString = await backupRepository.exportBackupJson(deviceId: deviceId);
+      final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+      final bytes = Uint8List.fromList(utf8.encode(jsonString));
+      return await FilePicker.platform.saveFile(
+        dialogTitle: 'Save Backup File',
+        fileName: 'phial_backup_$timestamp.json',
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+        bytes: bytes,
+      );
+    } catch (e, stack) {
+      // ignore: avoid_print
+      print('saveBackupJsonToStorage error: $e\n$stack');
+      return null;
+    }
+  }
+
+  /// Opens native folder/file save dialog to save encrypted backup directly to user-specified location.
+  Future<String?> saveEncryptedBackupJsonToStorage({
+    required String password,
+    String? deviceId,
+  }) async {
+    try {
+      final plaintextJson = await backupRepository.exportBackupJson(deviceId: deviceId);
+      final encryptedJson = await BackupEncryptionEngine.encrypt(
+        plaintextJson: plaintextJson,
+        password: password,
+      );
+      final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+      final bytes = Uint8List.fromList(utf8.encode(encryptedJson));
+      return await FilePicker.platform.saveFile(
+        dialogTitle: 'Save Encrypted Backup File',
+        fileName: 'phial_backup_encrypted_$timestamp.json',
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+        bytes: bytes,
+      );
+    } catch (e, stack) {
+      // ignore: avoid_print
+      print('saveEncryptedBackupJsonToStorage error: $e\n$stack');
+      return null;
     }
   }
 

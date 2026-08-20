@@ -53,6 +53,102 @@ class _BackupSettingsBottomSheetState
     );
   }
 
+  void _showExportOptionsDialog({required bool isEncrypted, String? password}) {
+    final theme = Theme.of(context);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: theme.colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  isEncrypted ? 'Export Encrypted Backup' : 'Export JSON Backup',
+                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                ListTile(
+                  leading: const Icon(Icons.folder_open_outlined),
+                  title: const Text('Save to Storage (Select Folder)'),
+                  subtitle: const Text('Save directly to Downloads, Documents, or SD Card'),
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    if (isEncrypted && password != null) {
+                      _handleSaveEncryptedJsonToStorage(password);
+                    } else {
+                      _handleSaveJsonToStorage();
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.share_outlined),
+                  title: const Text('Share via Apps...'),
+                  subtitle: const Text('Send to Google Drive, Gmail, Quick Share, etc.'),
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    if (isEncrypted && password != null) {
+                      _handleExportEncryptedJson(password);
+                    } else {
+                      _handleExportJson();
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _handleSaveJsonToStorage() async {
+    setState(() {
+      _isLoading = true;
+      _statusMessage = 'Opening storage picker...';
+    });
+
+    final service = ref.read(backupServiceProvider);
+    final savedPath = await service.saveBackupJsonToStorage();
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+        _statusMessage = null;
+      });
+      if (savedPath != null) {
+        HapticsHelper.performLightHaptic();
+        _showSuccess('Backup saved to storage');
+      }
+    }
+  }
+
+  Future<void> _handleSaveEncryptedJsonToStorage(String password) async {
+    setState(() {
+      _isLoading = true;
+      _statusMessage = 'Encrypting & opening storage picker...';
+    });
+
+    final service = ref.read(backupServiceProvider);
+    final savedPath = await service.saveEncryptedBackupJsonToStorage(password: password);
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+        _statusMessage = null;
+      });
+      if (savedPath != null) {
+        HapticsHelper.performLightHaptic();
+        _showSuccess('Encrypted backup saved to storage');
+      }
+    }
+  }
+
   Future<void> _handleExportJson() async {
     setState(() {
       _isLoading = true;
@@ -236,7 +332,7 @@ class _BackupSettingsBottomSheetState
                 ),
                 FilledButton.icon(
                   icon: const Icon(Icons.lock, size: 18),
-                  label: const Text('Encrypt & Export'),
+                  label: const Text('Export...'),
                   onPressed: () {
                     final pass = passwordController.text.trim();
                     final conf = confirmController.text.trim();
@@ -261,7 +357,7 @@ class _BackupSettingsBottomSheetState
                     }
 
                     Navigator.of(dialogContext).pop();
-                    _handleExportEncryptedJson(pass);
+                    _showExportOptionsDialog(isEncrypted: true, password: pass);
                   },
                 ),
               ],
@@ -818,8 +914,8 @@ class _BackupSettingsBottomSheetState
               subtitle: const Text(
                 'Standard unencrypted JSON for data inspection',
               ),
-              trailing: const Icon(Icons.share_outlined),
-              onTap: _handleExportJson,
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _showExportOptionsDialog(isEncrypted: false),
             ),
             const SizedBox(height: 4),
 

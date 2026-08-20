@@ -79,6 +79,6 @@ void main() {
     expect(find.text('Generate Random Passkey'), findsOneWidget);
     expect(find.text('Passkey / Password'), findsOneWidget);
     expect(find.text('Confirm Passkey'), findsOneWidget);
-    expect(find.text('Encrypt & Export'), findsOneWidget);
+    expect(find.text('Export...'), findsOneWidget);
   });
 }
