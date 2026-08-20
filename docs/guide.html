@@ -147,6 +147,7 @@
           <li><a href="#app-widgets">Home Screen AppWidgets</a></li>
           <li><a href="#app-shortcuts">Launcher Shortcuts</a></li>
           <li><a href="#midnight-rollover">Midnight Rollover</a></li>
+          <li><a href="#health-connect-sync">Google Health Connect</a></li>
           <li><a href="#app-settings">Profile &amp; Appearance</a></li>
         </ul>
 
@@ -757,13 +758,68 @@
             <li>Evaluates streak risk for yesterday's uncompleted habits.</li>
             <li>Automatically applies available bank shields if Auto-Consume is enabled.</li>
             <li>Recalculates active streaks and clears day caches.</li>
-            <li>Refreshes all home screen AppWidgets for the new day.</li>
-          </ul>
+          <h3 id="health-connect-sync">Google Health Connect Integration</h3>
+          <p>
+            Phial integrates natively with Android's <strong>Google Health Connect</strong> platform to provide automated,
+            zero-touch habit check-ins synced from Google Fit, smartwatches, and connected health trackers:
+          </p>
+
+          <div class="guide-visual-card">
+            <div class="guide-screenshot-wrap">
+              <img src="assets/img/screen_health_connect_settings.png" alt="Google Health Connect Settings & Permissions">
+            </div>
+            <div>
+              <h4>7 Physical Health Metrics</h4>
+              <p>
+                Manage permissions and sync controls in <strong>Profile Avatar → Google Health Connect</strong>:
+              </p>
+              <ul>
+                <li><strong>Daily Steps:</strong> Automatically updates numeric step goals from pedometers and fitness bands.</li>
+                <li><strong>Active Exercise:</strong> Tracks workout and athletic session durations in minutes.</li>
+                <li><strong>Move Minutes:</strong> Google Fit-aligned discrete active movement minutes (&ge;30 steps/min cadence).</li>
+                <li><strong>Distance:</strong> Total running, walking, and cycling distance with automatic km/miles conversion.</li>
+                <li><strong>Active Energy / Calories:</strong> Live elapsed daily calorie burn synced in real-time.</li>
+                <li><strong>Hydration:</strong> Water intake volume with auto-normalizations across ml, liters, and glasses.</li>
+                <li><strong>Sleep Duration:</strong> Bedtime and sleep tracking logs from sleep sensors and wearables.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="guide-visual-card reverse">
+            <div>
+              <h4>Zero-Touch Habit Linking</h4>
+              <p>
+                When creating or editing any habit, enable the <strong>Google Health Connect Sync</strong> toggle:
+              </p>
+              <ul>
+                <li><strong>Auto-Populated Targets:</strong> Select any metric chip to set default targets or customize your own goal (e.g. 5,000 steps or 45 mins).</li>
+                <li><strong>Unit Normalization:</strong> Phial automatically converts units between Health Connect and your custom habit settings (e.g. liters &harr; ml, hours &harr; mins).</li>
+                <li><strong>Background WorkManager Worker:</strong> Periodic background workers keep your habits up-to-date and reconcile late-night activity across the last 3 days.</li>
+              </ul>
+            </div>
+            <div class="guide-screenshot-wrap">
+              <img src="assets/img/screen_habit_form_health_sync.png" alt="Habit Form with Health Connect Sync">
+            </div>
+          </div>
+
+          <div class="guide-visual-card">
+            <div class="guide-screenshot-wrap">
+              <img src="assets/img/screen_habit_detail_health_sync.png" alt="Habit Detail with Health Connect Status Badge">
+            </div>
+            <div>
+              <h4>Live Sync Status &amp; Manual Refresh</h4>
+              <ul>
+                <li><strong>Detail Screen Status Badge:</strong> Displays real-time sync indicators and links directly to Health Connect settings.</li>
+                <li><strong>1-Tap Manual Sync:</strong> Tap the sync button on any habit card, detail screen, or settings sheet to pull fresh metrics immediately.</li>
+                <li><strong>Automatic Completion:</strong> Habits check off automatically once your target is achieved and earn regular XP rewards.</li>
+              </ul>
+            </div>
+          </div>
         </section>
 
-        <!-- Section 9: Data Portability, Secure Backups & Sync Merge -->
+        <!-- Section 10: Data Portability, Secure Backups & Sync Merge -->
         <section id="data-backup-hub" class="guide-section">
-          <h2>9. Data Portability, Secure Backups &amp; Sync Merge</h2>
+          <h2>10. Data Portability, Secure Backups &amp; Sync Merge</h2>
           <p>
             Phial respects your sovereignty over your data. With zero accounts, zero cloud dependencies, and zero telemetry,
             all your habits, logs, reflections, focus records, and shield transactions can be backed up, encrypted, and merged

@@ -24,6 +24,7 @@ graph TD
         Streak["Streak Calculator"]
         StepEngine["Dynamic Step Engine"]
         SlotEngine["Subday Slot Engine"]
+        HealthSync["Health Sync Engine"]
         Gamify["Gamification Engine"]
         Shield["Shield Banking Engine"]
         Wellbeing["Wellbeing Correlation Engine"]
@@ -39,6 +40,7 @@ graph TD
     subgraph Platform ["Native & Platform Services"]
         Notif["Notification Service"]
         TimerSvc["Native Focus Timer Service"]
+        HealthSvc["Health Connect & WorkManager"]
         Widgets["AppWidgets & WidgetKit Sync"]
         Audio["Ambient Audio Player"]
     end
@@ -51,6 +53,7 @@ graph TD
     Repo --> Prefs
     Providers --> Notif
     Providers --> TimerSvc
+    Providers --> HealthSvc
     Providers --> Widgets
     Providers --> Audio
 ```
@@ -64,6 +67,11 @@ graph TD
   - Stepper Habits: Dynamic magnitude-aware incrementation and quick-add chips
   - Subday Slot Habits: Multi-slot time-of-day tracking (Morning, Afternoon, Evening, Night)
   - Duration & Timers: Integrated focus countdowns and stopwatches with ambient audio
+- Google Health Connect Integration
+  - 7 Physical Health Metrics: Daily Steps, Active Exercise, Move Minutes, Distance, Active Calories, Hydration, and Sleep Duration
+  - Zero-Touch Check-Ins: Automatic progress synchronization from Google Fit and connected wearable sensors
+  - Robust Unit Conversions: Automatic normalization across kilometers/miles, milliliters/liters/glasses, and hours/minutes
+  - Background WorkManager Worker: Periodic and multi-day reconciliation ensuring late-night activity is never lost
 - Offline Gamification System
   - XP rewards based on habit completion and streak lengths
   - Streak multipliers and tiered player titles
@@ -91,6 +99,7 @@ graph TD
 | UI Framework               | Flutter 3.47+                 | Material 3, custom canvas charts                      |
 | State Management           | Riverpod 2.6+                 | `AsyncNotifier`, `StateNotifier`, `ProviderContainer` |
 | Local Database             | Drift 2.24+                   | SQLite with reactive streams, DAOs, schema migrations |
+| Health & Fitness           | `androidx.health.connect`     | Google Health Connect Android SDK, WorkManager        |
 | Cryptography & Sync        | `cryptography` / `crypto`     | AES-256-GCM, PBKDF2-HMAC-SHA256, Gzip compression     |
 | Native Android             | Kotlin / Gradle               | Jetpack Glance AppWidgets, Foreground Service         |
 | Native iOS                 | Swift / WidgetKit             | Shared UserDefaults synchronization                   |

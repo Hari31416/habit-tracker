@@ -225,7 +225,20 @@
           <div class="feature-tag">Quadratic XP • 28 Badges</div>
         </div>
 
-        <!-- Feature 6: Local-First & Offline -->
+        <!-- Feature 6: Google Health Connect -->
+        <div class="feature-card">
+          <div class="feature-icon emerald">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+          </div>
+          <h3>Google Health Connect</h3>
+          <p>Zero-touch check-ins for 7 physical health metrics. Auto-sync steps, workouts, move minutes, distance, calories, hydration, and sleep from Google Fit and wearables.</p>
+          <div class="feature-tag">Health Connect SDK • 7 Metrics</div>
+        </div>
+
+        <!-- Feature 7: Local-First & Offline -->
         <div class="feature-card">
           <div class="feature-icon cyan">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -259,6 +272,7 @@
         <button class="tab-btn" data-tab="tab-detail">Habit Detail</button>
         <button class="tab-btn" data-tab="tab-shields">Shield Bank</button>
         <button class="tab-btn" data-tab="tab-reflection">Reflections</button>
+        <button class="tab-btn" data-tab="tab-health">Health Connect</button>
         <button class="tab-btn" data-tab="tab-analytics">Analytics</button>
         <button class="tab-btn" data-tab="tab-mastery">Mastery &amp; Badges</button>
         <button class="tab-btn" data-tab="tab-backups">Data &amp; Backups</button>
@@ -482,7 +496,47 @@
           </div>
         </div>
 
-        <!-- Tab 7: Analytics -->
+        <!-- Tab 7: Health Connect -->
+        <div id="tab-health" class="tab-pane">
+          <div class="tab-content-grid wide">
+            <div class="screenshots-pair">
+              <div class="guide-screenshot-wrap">
+                <img src="assets/img/screen_health_connect_settings.png" alt="Google Health Connect Settings">
+              </div>
+              <div class="guide-screenshot-wrap">
+                <img src="assets/img/screen_habit_detail_health_sync.png" alt="Habit Detail with Health Connect Status">
+              </div>
+            </div>
+            <div class="tab-details">
+              <h4>Google Health Connect Auto-Sync</h4>
+              <p>
+                Seamlessly automate habit check-ins for 7 core physical health metrics synced directly from Google Fit, smartwatches, and fitness trackers.
+              </p>
+              <ul class="tab-feature-list">
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span><strong>7 Health Metrics:</strong> Steps, Active Exercise, Move Minutes, Distance, Calories, Hydration, and Sleep.</span>
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span><strong>Zero-Touch Check-Ins:</strong> Automatically logs numeric values and marks habits complete upon reaching target.</span>
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span><strong>Background Reconciliation:</strong> WorkManager workers sync periodically and reconcile late-night activity over the last 3 days.</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 8: Analytics -->
         <div id="tab-analytics" class="tab-pane">
           <div class="tab-content-grid wide">
             <div class="screenshots-pair">
