@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widget_previews.dart';
 import '../../../domain/gamification/gamification_models.dart';
+import '../../../domain/gamification/player_title.dart';
+import '../../common/previews/phial_previews.dart';
+import '../../common/previews/preview_fixtures.dart';
 
 class PlayerLevelHeaderBadge extends StatelessWidget {
   final PlayerProgression progression;
@@ -186,4 +190,40 @@ class PlayerLevelHeaderBadge extends StatelessWidget {
       ),
     );
   }
+}
+
+// ==========================================
+// Widget Previews
+// ==========================================
+
+@PhialMultiBrightnessPreview(name: 'Player Level Badge - Standard', group: 'Gamification')
+Widget previewPlayerLevelBadgeStandard() {
+  return PhialPreviewWrapper(
+    child: PlayerLevelHeaderBadge(
+      progression: PreviewFixtures.sampleProgression(
+        level: 3,
+        multiplier: 1.0,
+        unlockedBadges: 4,
+        totalBadges: 16,
+        title: PlayerTitle.novice,
+      ),
+      onClick: () {},
+    ),
+  );
+}
+
+@Preview(name: 'Player Level Badge - Multiplier Active', group: 'Gamification')
+Widget previewPlayerLevelBadgeMultiplier() {
+  return PhialPreviewWrapper(
+    child: PlayerLevelHeaderBadge(
+      progression: PreviewFixtures.sampleProgression(
+        level: 7,
+        multiplier: 2.0,
+        unlockedBadges: 12,
+        totalBadges: 16,
+        title: PlayerTitle.pathfinder,
+      ),
+      onClick: () {},
+    ),
+  );
 }

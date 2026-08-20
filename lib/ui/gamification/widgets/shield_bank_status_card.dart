@@ -1,18 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widget_previews.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../di/providers.dart';
+import '../../../domain/engines/shield_banking_engine.dart';
 import '../../common/haptics_helper.dart';
+import '../../common/previews/phial_previews.dart';
+import '../../common/previews/preview_fixtures.dart';
 import '../dialogs/shield_bank_bottom_sheet.dart';
 
-class ShieldBankStatusCard extends ConsumerWidget {
-  const ShieldBankStatusCard({super.key});
+/// Pure presentational widget for the Streak Shield bank status card.
+class ShieldBankStatusView extends StatelessWidget {
+  final ShieldBankState bankState;
+  final VoidCallback onOpenBank;
+
+  const ShieldBankStatusView({
+    super.key,
+    required this.bankState,
+    required this.onOpenBank,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bankState = ref.watch(shieldBankStateStreamProvider).value;
-    if (bankState == null) return const SizedBox.shrink();
-
     final available = bankState.availableShields;
     final maxCapacity = bankState.maxCapacity;
     final daysToNext = bankState.daysToNextShield;
@@ -31,7 +40,7 @@ class ShieldBankStatusCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         onTap: () {
           HapticsHelper.performLightHaptic();
-          ShieldBankBottomSheet.show(context);
+          onOpenBank();
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -124,4 +133,70 @@ class ShieldBankStatusCard extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Connected Riverpod wrapper for [ShieldBankStatusView].
+class ShieldBankStatusCard extends ConsumerWidget {
+  const ShieldBankStatusCard({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bankState = ref.watch(shieldBankStateStreamProvider).value;
+    if (bankState == null) return const SizedBox.shrink();
+
+    return ShieldBankStatusView(
+      bankState: bankState,
+      onOpenBank: () => ShieldBankBottomSheet.show(context),
+    );
+  }
+}
+
+// ==========================================
+// Widget Previews
+// ==========================================
+
+@PhialMultiBrightnessPreview(name: 'Shield Bank - Available', group: 'Gamification')
+Widget previewShieldBankAvailable() {
+  return PhialPreviewWrapper(
+    child: ShieldBankStatusView(
+      bankState: PreviewFixtures.sampleShieldBankState(
+        availableShields: 2,
+        maxCapacity: 3,
+        daysToNext: 3,
+        progress: 0.6,
+      ),
+      onOpenBank: () {},
+    ),
+  );
+}
+
+@Preview(name: 'Shield Bank - Max Capacity', group: 'Gamification')
+Widget previewShieldBankMaxCapacity() {
+  return PhialPreviewWrapper(
+    child: ShieldBankStatusView(
+      bankState: PreviewFixtures.sampleShieldBankState(
+        availableShields: 3,
+        maxCapacity: 3,
+        daysToNext: 0,
+        progress: 1.0,
+      ),
+      onOpenBank: () {},
+    ),
+  );
+}
+
+@Preview(name: 'Shield Bank - Empty', group: 'Gamification')
+Widget previewShieldBankEmpty() {
+  return PhialPreviewWrapper(
+    child: ShieldBankStatusView(
+      bankState: PreviewFixtures.sampleShieldBankState(
+        availableShields: 0,
+        maxCapacity: 3,
+        daysToNext: 7,
+        progress: 0.1,
+        autoConsume: false,
+      ),
+      onOpenBank: () {},
+    ),
+  );
 }

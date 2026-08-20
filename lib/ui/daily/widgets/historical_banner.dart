@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widget_previews.dart';
 import 'package:intl/intl.dart';
+import '../../common/previews/phial_previews.dart';
 
 class HistoricalBanner extends StatelessWidget {
   final DateTime selectedDate;
@@ -85,4 +87,30 @@ class HistoricalBanner extends StatelessWidget {
       ),
     );
   }
+}
+
+// ==========================================
+// Widget Previews
+// ==========================================
+
+@PhialMultiBrightnessPreview(name: 'Historical Banner - Past Date', group: 'Daily')
+Widget previewHistoricalBannerPast() {
+  return PhialPreviewWrapper(
+    padding: EdgeInsets.zero,
+    child: HistoricalBanner(
+      selectedDate: DateTime.now().subtract(const Duration(days: 3)),
+      onReturnToToday: () {},
+    ),
+  );
+}
+
+@Preview(name: 'Historical Banner - Future Date', group: 'Daily')
+Widget previewHistoricalBannerFuture() {
+  return PhialPreviewWrapper(
+    padding: EdgeInsets.zero,
+    child: HistoricalBanner(
+      selectedDate: DateTime.now().add(const Duration(days: 2)),
+      onReturnToToday: () {},
+    ),
+  );
 }

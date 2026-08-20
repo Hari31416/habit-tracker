@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widget_previews.dart';
 import '../../../domain/engines/streak_calculator.dart';
 import '../../../domain/models/habit_frequency_type.dart';
 import '../../../domain/models/habit_target_type.dart';
@@ -6,6 +7,8 @@ import '../../../domain/models/habit_with_progress.dart';
 import '../../common/color_utils.dart';
 import '../../common/habit_icon_registry.dart';
 import '../../common/haptics_helper.dart';
+import '../../common/previews/phial_previews.dart';
+import '../../common/previews/preview_fixtures.dart';
 import 'numeric_habit_controls.dart';
 import 'slot_habit_controls.dart';
 
@@ -363,4 +366,69 @@ class HabitCard extends StatelessWidget {
       ),
     );
   }
+}
+
+// ==========================================
+// Widget Previews
+// ==========================================
+
+@PhialMultiBrightnessPreview(name: 'Habit Card - Incomplete', group: 'Daily')
+Widget previewHabitCardIncomplete() {
+  return PhialPreviewWrapper(
+    child: HabitCard(
+      habitWithProgress: PreviewFixtures.sampleHabitWithProgress(
+        isCompleted: false,
+      ),
+      onHabitClick: (_) {},
+      onToggleCheckIn: () {},
+    ),
+  );
+}
+
+@PhialMultiBrightnessPreview(name: 'Habit Card - Completed', group: 'Daily')
+Widget previewHabitCardCompleted() {
+  return PhialPreviewWrapper(
+    child: HabitCard(
+      habitWithProgress: PreviewFixtures.sampleHabitWithProgress(
+        isCompleted: true,
+      ),
+      onHabitClick: (_) {},
+      onToggleCheckIn: () {},
+    ),
+  );
+}
+
+@Preview(name: 'Habit Card - Shielded', group: 'Daily')
+Widget previewHabitCardShielded() {
+  return PhialPreviewWrapper(
+    child: HabitCard(
+      habitWithProgress: PreviewFixtures.sampleHabitWithProgress(
+        isShielded: true,
+      ),
+      onHabitClick: (_) {},
+      onToggleCheckIn: () {},
+    ),
+  );
+}
+
+@Preview(name: 'Habit Card - Pinned Numeric', group: 'Daily')
+Widget previewHabitCardPinnedNumeric() {
+  return PhialPreviewWrapper(
+    child: HabitCard(
+      habitWithProgress: PreviewFixtures.sampleHabitWithProgress(
+        habit: PreviewFixtures.sampleHabit(
+          title: 'Drink Water',
+          targetType: HabitTargetType.numeric,
+          targetValue: 2500,
+          unit: 'ml',
+          pinned: true,
+          color: '#06B6D4',
+          icon: 'water_drop',
+        ),
+        currentValue: 1250,
+      ),
+      onHabitClick: (_) {},
+      onToggleCheckIn: () {},
+    ),
+  );
 }

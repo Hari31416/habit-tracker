@@ -1,9 +1,12 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/widget_previews.dart';
 import '../../../domain/models/habit.dart';
 import '../../../domain/models/habit_frequency_type.dart';
 import '../../../domain/models/habit_target_type.dart';
 import '../../common/haptics_helper.dart';
+import '../../common/previews/phial_previews.dart';
+import '../../common/previews/preview_fixtures.dart';
 
 class TenDotProgressBar extends StatelessWidget {
   final Habit habit;
@@ -114,4 +117,53 @@ class TenDotProgressBar extends StatelessWidget {
       ),
     );
   }
+}
+
+// ==========================================
+// Widget Previews
+// ==========================================
+
+@PhialMultiBrightnessPreview(name: '10-Dot Progress - Half Complete', group: 'Detail')
+Widget previewTenDotProgressBarHalf() {
+  return PhialPreviewWrapper(
+    child: TenDotProgressBar(
+      habit: PreviewFixtures.sampleHabit(
+        targetType: HabitTargetType.numeric,
+        targetValue: 10.0,
+      ),
+      currentValue: 5.0,
+      accentColor: const Color(0xFF3B82F6),
+      onDotClick: (_) {},
+    ),
+  );
+}
+
+@Preview(name: '10-Dot Progress - Fully Complete', group: 'Detail')
+Widget previewTenDotProgressBarFull() {
+  return PhialPreviewWrapper(
+    child: TenDotProgressBar(
+      habit: PreviewFixtures.sampleHabit(
+        targetType: HabitTargetType.numeric,
+        targetValue: 2000.0,
+      ),
+      currentValue: 2000.0,
+      accentColor: const Color(0xFF10B981),
+      onDotClick: (_) {},
+    ),
+  );
+}
+
+@Preview(name: '10-Dot Progress - Empty', group: 'Detail')
+Widget previewTenDotProgressBarEmpty() {
+  return PhialPreviewWrapper(
+    child: TenDotProgressBar(
+      habit: PreviewFixtures.sampleHabit(
+        targetType: HabitTargetType.numeric,
+        targetValue: 50.0,
+      ),
+      currentValue: 0.0,
+      accentColor: const Color(0xFFF59E0B),
+      onDotClick: (_) {},
+    ),
+  );
 }

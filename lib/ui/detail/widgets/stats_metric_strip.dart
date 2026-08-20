@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widget_previews.dart';
 import '../../../domain/engines/streak_calculator.dart';
+import '../../common/previews/phial_previews.dart';
+import '../../common/previews/preview_fixtures.dart';
 
 class StatsMetricStrip extends StatelessWidget {
   final StreakResult streak;
@@ -113,4 +116,38 @@ class _StatCard extends StatelessWidget {
       ),
     );
   }
+}
+
+// ==========================================
+// Widget Previews
+// ==========================================
+
+@PhialMultiBrightnessPreview(name: 'Stats Metric Strip - Daily', group: 'Detail')
+Widget previewStatsMetricStripDaily() {
+  return PhialPreviewWrapper(
+    child: StatsMetricStrip(
+      streak: PreviewFixtures.sampleStreakResult(
+        currentStreak: 7,
+        bestStreak: 21,
+        totalCompletions: 45,
+      ),
+      streakUnit: 'd',
+      accentColor: const Color(0xFF3B82F6),
+    ),
+  );
+}
+
+@Preview(name: 'Stats Metric Strip - Weekly', group: 'Detail')
+Widget previewStatsMetricStripWeekly() {
+  return PhialPreviewWrapper(
+    child: StatsMetricStrip(
+      streak: PreviewFixtures.sampleStreakResult(
+        currentStreak: 4,
+        bestStreak: 10,
+        totalCompletions: 18,
+      ),
+      streakUnit: 'wks',
+      accentColor: const Color(0xFF10B981),
+    ),
+  );
 }
