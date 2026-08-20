@@ -12,6 +12,7 @@ import '../gamification/dialogs/shield_bank_bottom_sheet.dart';
 import '../navigation/habit_bottom_navigation.dart';
 import '../navigation/screen.dart';
 import '../reflection/reflection_bottom_sheet.dart';
+import '../settings/backup_settings_bottom_sheet.dart';
 import 'controllers/daily_tracker_controller.dart';
 import 'widgets/habit_card.dart';
 import 'widgets/historical_banner.dart';
@@ -302,6 +303,35 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
                   onTap: () {
                     Navigator.of(sheetContext).pop();
                     ShieldBankBottomSheet.show(context);
+                  },
+                ),
+                const SizedBox(height: 4),
+
+                // Data & Backup Option
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.sync_outlined,
+                      color: theme.colorScheme.onPrimaryContainer,
+                      size: 20,
+                    ),
+                  ),
+                  title: const Text(
+                    'Data & Backup',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle:
+                      const Text('Export, import, and spreadsheet sync'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    BackupSettingsBottomSheet.show(context);
                   },
                 ),
               ],
