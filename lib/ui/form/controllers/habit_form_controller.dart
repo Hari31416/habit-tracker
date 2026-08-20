@@ -301,17 +301,31 @@ class HabitFormController extends StateNotifier<HabitFormState> {
         healthSyncEnabled: false,
       );
     } else {
-      final defaultTarget = metric.defaultTargetValue % 1.0 == 0.0
-          ? metric.defaultTargetValue.toInt().toString()
-          : metric.defaultTargetValue.toString();
+      // Preserve existing custom target value if user has already entered one
+      final currentTarget = state.targetValue.trim();
+      final hasCustomTarget = currentTarget.isNotEmpty &&
+          currentTarget != '1' &&
+          currentTarget != '8' &&
+          currentTarget != '25';
+
+      final targetToUse = hasCustomTarget
+          ? currentTarget
+          : (metric.defaultTargetValue % 1.0 == 0.0
+              ? metric.defaultTargetValue.toInt().toString()
+              : metric.defaultTargetValue.toString());
+
+      final unitToUse =
+          state.unit.trim().isEmpty ? metric.defaultUnit : state.unit;
 
       state = state.copyWith(
         healthMetric: metric,
         healthSyncEnabled: true,
         targetType: metric.defaultTargetType,
-        targetValue: defaultTarget,
-        unit: metric.defaultUnit,
-        icon: metric.iconKey,
+        targetValue: targetToUse,
+        unit: unitToUse,
+        icon: (state.icon == 'check' || state.icon.isEmpty)
+            ? metric.iconKey
+            : state.icon,
         clearTargetValueError: true,
       );
     }
