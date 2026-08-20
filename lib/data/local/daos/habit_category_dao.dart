@@ -10,23 +10,31 @@ class HabitCategoryDao extends DatabaseAccessor<AppDatabase> with _$HabitCategor
 
   Stream<List<HabitCategoryRow>> watchAllCategories() {
     return (select(habitCategories)
+          ..where((c) => c.isDeleted.equals(false))
           ..orderBy([(c) => OrderingTerm(expression: c.name, mode: OrderingMode.asc)]))
         .watch();
   }
 
   Future<List<HabitCategoryRow>> getAllCategoriesOnce() {
     return (select(habitCategories)
+          ..where((c) => c.isDeleted.equals(false))
           ..orderBy([(c) => OrderingTerm(expression: c.name, mode: OrderingMode.asc)]))
         .get();
   }
 
+  Future<List<HabitCategoryRow>> getAllCategoriesIncludingDeleted() {
+    return select(habitCategories).get();
+  }
+
   Stream<HabitCategoryRow?> watchCategoryById(String id) {
-    return (select(habitCategories)..where((c) => c.id.equals(id)))
+    return (select(habitCategories)
+          ..where((c) => c.id.equals(id) & c.isDeleted.equals(false)))
         .watchSingleOrNull();
   }
 
   Future<HabitCategoryRow?> getCategoryByIdOnce(String id) {
-    return (select(habitCategories)..where((c) => c.id.equals(id)))
+    return (select(habitCategories)
+          ..where((c) => c.id.equals(id) & c.isDeleted.equals(false)))
         .getSingleOrNull();
   }
 
@@ -45,10 +53,16 @@ class HabitCategoryDao extends DatabaseAccessor<AppDatabase> with _$HabitCategor
   }
 
   Future<int> deleteCategoryRow(HabitCategoryRow category) {
-    return delete(habitCategories).delete(category);
+    return deleteCategoryById(category.id);
   }
 
-  Future<int> deleteCategoryById(String id) {
-    return (delete(habitCategories)..where((c) => c.id.equals(id))).go();
+  Future<int> deleteCategoryById(String id, [DateTime? updatedAt]) {
+    final now = (updatedAt ?? DateTime.now()).toUtc();
+    return (update(habitCategories)..where((c) => c.id.equals(id))).write(
+      HabitCategoriesCompanion(
+        isDeleted: const Value(true),
+        updatedAt: Value(now),
+      ),
+    );
   }
 }

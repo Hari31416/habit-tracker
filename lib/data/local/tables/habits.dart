@@ -23,6 +23,7 @@ class Habits extends Table {
   TextColumn get motivationNotes => text().nullable()();
   BoolColumn get archived => boolean().withDefault(const Constant(false))();
   BoolColumn get promptReflection => boolean().withDefault(const Constant(false))();
+  BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 

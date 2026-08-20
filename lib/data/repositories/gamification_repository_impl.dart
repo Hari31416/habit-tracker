@@ -70,6 +70,7 @@ class GamificationRepositoryImpl implements GamificationRepository {
         motivationNotes: row.motivationNotes,
         archived: row.archived,
         promptReflection: row.promptReflection,
+        isDeleted: row.isDeleted,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
       );
@@ -86,6 +87,7 @@ class GamificationRepositoryImpl implements GamificationRepository {
         note: row.note,
         energyLevel: row.energyLevel,
         mood: row.mood,
+        isDeleted: row.isDeleted,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
       );
@@ -95,6 +97,7 @@ class GamificationRepositoryImpl implements GamificationRepository {
         habitId: row.habitId,
         date: row.date,
         autoApplied: row.autoApplied,
+        isDeleted: row.isDeleted,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
       );
@@ -104,6 +107,9 @@ class GamificationRepositoryImpl implements GamificationRepository {
         name: row.name,
         color: row.color,
         icon: row.icon,
+        isDeleted: row.isDeleted,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
       );
 
   StreamController<_CombinedGamificationData>? _broadcastController;
@@ -275,13 +281,16 @@ class GamificationRepositoryImpl implements GamificationRepository {
             .where((a) => a.isUnlocked && !knownUnlockedIds.contains(a.definition.id))
             .toList();
         if (newlyUnlocked.isNotEmpty) {
+          final now = DateTime.now().toUtc();
           final companions = <AchievementsCompanion>[];
           for (var a in newlyUnlocked) {
             knownUnlockedIds.add(a.definition.id);
             companions.add(AchievementsCompanion(
               id: Value(a.definition.id),
-              unlockedAt: Value(a.unlockedAt ?? DateTime.now().toUtc()),
+              unlockedAt: Value(a.unlockedAt ?? now),
               progress: Value(a.currentProgress),
+              createdAt: Value(now),
+              updatedAt: Value(now),
             ));
           }
           gamificationDao.upsertAchievements(companions);

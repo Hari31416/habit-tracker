@@ -10,6 +10,7 @@ class HabitDao extends DatabaseAccessor<AppDatabase> with _$HabitDaoMixin {
 
   Stream<List<HabitRow>> watchAllHabits() {
     return (select(habits)
+          ..where((h) => h.isDeleted.equals(false))
           ..orderBy([
             (h) => OrderingTerm(expression: h.pinned, mode: OrderingMode.desc),
             (h) => OrderingTerm(expression: h.createdAt, mode: OrderingMode.asc),
@@ -19,7 +20,7 @@ class HabitDao extends DatabaseAccessor<AppDatabase> with _$HabitDaoMixin {
 
   Stream<List<HabitRow>> watchActiveHabits() {
     return (select(habits)
-          ..where((h) => h.archived.equals(false))
+          ..where((h) => h.archived.equals(false) & h.isDeleted.equals(false))
           ..orderBy([
             (h) => OrderingTerm(expression: h.pinned, mode: OrderingMode.desc),
             (h) => OrderingTerm(expression: h.createdAt, mode: OrderingMode.asc),
@@ -29,7 +30,7 @@ class HabitDao extends DatabaseAccessor<AppDatabase> with _$HabitDaoMixin {
 
   Future<List<HabitRow>> getActiveHabitsOnce() {
     return (select(habits)
-          ..where((h) => h.archived.equals(false))
+          ..where((h) => h.archived.equals(false) & h.isDeleted.equals(false))
           ..orderBy([
             (h) => OrderingTerm(expression: h.pinned, mode: OrderingMode.desc),
             (h) => OrderingTerm(expression: h.createdAt, mode: OrderingMode.asc),
@@ -37,9 +38,13 @@ class HabitDao extends DatabaseAccessor<AppDatabase> with _$HabitDaoMixin {
         .get();
   }
 
+  Future<List<HabitRow>> getAllHabitsIncludingDeleted() {
+    return select(habits).get();
+  }
+
   Stream<List<HabitRow>> watchArchivedHabits() {
     return (select(habits)
-          ..where((h) => h.archived.equals(true))
+          ..where((h) => h.archived.equals(true) & h.isDeleted.equals(false))
           ..orderBy([
             (h) => OrderingTerm(expression: h.updatedAt, mode: OrderingMode.desc),
           ]))
@@ -48,7 +53,7 @@ class HabitDao extends DatabaseAccessor<AppDatabase> with _$HabitDaoMixin {
 
   Stream<List<HabitRow>> watchPinnedHabits() {
     return (select(habits)
-          ..where((h) => h.pinned.equals(true) & h.archived.equals(false))
+          ..where((h) => h.pinned.equals(true) & h.archived.equals(false) & h.isDeleted.equals(false))
           ..orderBy([
             (h) => OrderingTerm(expression: h.createdAt, mode: OrderingMode.asc),
           ]))
@@ -56,18 +61,18 @@ class HabitDao extends DatabaseAccessor<AppDatabase> with _$HabitDaoMixin {
   }
 
   Stream<HabitRow?> watchHabitById(String id) {
-    return (select(habits)..where((h) => h.id.equals(id)))
+    return (select(habits)..where((h) => h.id.equals(id) & h.isDeleted.equals(false)))
         .watchSingleOrNull();
   }
 
   Future<HabitRow?> getHabitByIdOnce(String id) {
-    return (select(habits)..where((h) => h.id.equals(id)))
+    return (select(habits)..where((h) => h.id.equals(id) & h.isDeleted.equals(false)))
         .getSingleOrNull();
   }
 
   Stream<List<HabitRow>> watchHabitsByCategory(String categoryId) {
     return (select(habits)
-          ..where((h) => h.categoryId.equals(categoryId) & h.archived.equals(false))
+          ..where((h) => h.categoryId.equals(categoryId) & h.archived.equals(false) & h.isDeleted.equals(false))
           ..orderBy([
             (h) => OrderingTerm(expression: h.pinned, mode: OrderingMode.desc),
             (h) => OrderingTerm(expression: h.createdAt, mode: OrderingMode.asc),
@@ -90,11 +95,17 @@ class HabitDao extends DatabaseAccessor<AppDatabase> with _$HabitDaoMixin {
   }
 
   Future<int> deleteHabitRow(HabitRow habit) {
-    return delete(habits).delete(habit);
+    return deleteHabitById(habit.id);
   }
 
-  Future<int> deleteHabitById(String id) {
-    return (delete(habits)..where((h) => h.id.equals(id))).go();
+  Future<int> deleteHabitById(String id, [DateTime? updatedAt]) {
+    final now = (updatedAt ?? DateTime.now()).toUtc();
+    return (update(habits)..where((h) => h.id.equals(id))).write(
+      HabitsCompanion(
+        isDeleted: const Value(true),
+        updatedAt: Value(now),
+      ),
+    );
   }
 
   Future<int> updatePinned(String id, bool pinned, DateTime updatedAt) {

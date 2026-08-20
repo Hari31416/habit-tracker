@@ -23,6 +23,7 @@ class Habit {
   final String? motivationNotes;
   final bool archived;
   final bool promptReflection;
+  final bool isDeleted;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -47,6 +48,7 @@ class Habit {
     this.motivationNotes,
     this.archived = false,
     this.promptReflection = false,
+    this.isDeleted = false,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -72,6 +74,7 @@ class Habit {
     String? motivationNotes,
     bool? archived,
     bool? promptReflection,
+    bool? isDeleted,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -96,6 +99,7 @@ class Habit {
       motivationNotes: motivationNotes ?? this.motivationNotes,
       archived: archived ?? this.archived,
       promptReflection: promptReflection ?? this.promptReflection,
+      isDeleted: isDeleted ?? this.isDeleted,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

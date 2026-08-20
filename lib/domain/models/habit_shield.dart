@@ -3,6 +3,7 @@ class HabitShield {
   final String habitId;
   final String date; // ISO Date format "yyyy-MM-dd"
   final bool autoApplied;
+  final bool isDeleted;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -11,6 +12,7 @@ class HabitShield {
     required this.habitId,
     required this.date,
     this.autoApplied = false,
+    this.isDeleted = false,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -20,6 +22,7 @@ class HabitShield {
     String? habitId,
     String? date,
     bool? autoApplied,
+    bool? isDeleted,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -28,6 +31,7 @@ class HabitShield {
       habitId: habitId ?? this.habitId,
       date: date ?? this.date,
       autoApplied: autoApplied ?? this.autoApplied,
+      isDeleted: isDeleted ?? this.isDeleted,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -41,9 +45,10 @@ class HabitShield {
           id == other.id &&
           habitId == other.habitId &&
           date == other.date &&
-          autoApplied == other.autoApplied;
+          autoApplied == other.autoApplied &&
+          isDeleted == other.isDeleted;
 
   @override
   int get hashCode =>
-      id.hashCode ^ habitId.hashCode ^ date.hashCode ^ autoApplied.hashCode;
+      id.hashCode ^ habitId.hashCode ^ date.hashCode ^ autoApplied.hashCode ^ isDeleted.hashCode;
 }

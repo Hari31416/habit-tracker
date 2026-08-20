@@ -10,6 +10,7 @@ class HabitLog {
   final String? note;
   final int? energyLevel; // 1 to 5 scale
   final String? mood; // energized, happy, calm, tired, stressed, focused
+  final bool isDeleted;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -25,6 +26,7 @@ class HabitLog {
     this.note,
     this.energyLevel,
     this.mood,
+    this.isDeleted = false,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -41,6 +43,7 @@ class HabitLog {
     String? note,
     int? energyLevel,
     String? mood,
+    bool? isDeleted,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -56,6 +59,7 @@ class HabitLog {
       note: note ?? this.note,
       energyLevel: energyLevel ?? this.energyLevel,
       mood: mood ?? this.mood,
+      isDeleted: isDeleted ?? this.isDeleted,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

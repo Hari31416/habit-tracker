@@ -218,6 +218,21 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -262,6 +277,7 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
     motivationNotes,
     archived,
     promptReflection,
+    isDeleted,
     createdAt,
     updatedAt,
   ];
@@ -391,6 +407,12 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
         ),
       );
     }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -506,6 +528,10 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
         DriftSqlType.bool,
         data['${effectivePrefix}prompt_reflection'],
       )!,
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -559,6 +585,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
   final String? motivationNotes;
   final bool archived;
   final bool promptReflection;
+  final bool isDeleted;
   final DateTime createdAt;
   final DateTime updatedAt;
   const HabitRow({
@@ -582,6 +609,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     this.motivationNotes,
     required this.archived,
     required this.promptReflection,
+    required this.isDeleted,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -646,6 +674,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     }
     map['archived'] = Variable<bool>(archived);
     map['prompt_reflection'] = Variable<bool>(promptReflection);
+    map['is_deleted'] = Variable<bool>(isDeleted);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -691,6 +720,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
           : Value(motivationNotes),
       archived: Value(archived),
       promptReflection: Value(promptReflection),
+      isDeleted: Value(isDeleted),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -726,6 +756,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       motivationNotes: serializer.fromJson<String?>(json['motivationNotes']),
       archived: serializer.fromJson<bool>(json['archived']),
       promptReflection: serializer.fromJson<bool>(json['promptReflection']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -754,6 +785,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       'motivationNotes': serializer.toJson<String?>(motivationNotes),
       'archived': serializer.toJson<bool>(archived),
       'promptReflection': serializer.toJson<bool>(promptReflection),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -780,6 +812,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     Value<String?> motivationNotes = const Value.absent(),
     bool? archived,
     bool? promptReflection,
+    bool? isDeleted,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => HabitRow(
@@ -811,6 +844,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
         : this.motivationNotes,
     archived: archived ?? this.archived,
     promptReflection: promptReflection ?? this.promptReflection,
+    isDeleted: isDeleted ?? this.isDeleted,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -862,6 +896,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       promptReflection: data.promptReflection.present
           ? data.promptReflection.value
           : this.promptReflection,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -890,6 +925,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
           ..write('motivationNotes: $motivationNotes, ')
           ..write('archived: $archived, ')
           ..write('promptReflection: $promptReflection, ')
+          ..write('isDeleted: $isDeleted, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -918,6 +954,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     motivationNotes,
     archived,
     promptReflection,
+    isDeleted,
     createdAt,
     updatedAt,
   ]);
@@ -945,6 +982,7 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
           other.motivationNotes == this.motivationNotes &&
           other.archived == this.archived &&
           other.promptReflection == this.promptReflection &&
+          other.isDeleted == this.isDeleted &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -970,6 +1008,7 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
   final Value<String?> motivationNotes;
   final Value<bool> archived;
   final Value<bool> promptReflection;
+  final Value<bool> isDeleted;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -994,6 +1033,7 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     this.motivationNotes = const Value.absent(),
     this.archived = const Value.absent(),
     this.promptReflection = const Value.absent(),
+    this.isDeleted = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -1019,6 +1059,7 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     this.motivationNotes = const Value.absent(),
     this.archived = const Value.absent(),
     this.promptReflection = const Value.absent(),
+    this.isDeleted = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
@@ -1050,6 +1091,7 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     Expression<String>? motivationNotes,
     Expression<bool>? archived,
     Expression<bool>? promptReflection,
+    Expression<bool>? isDeleted,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -1076,6 +1118,7 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
       if (motivationNotes != null) 'motivation_notes': motivationNotes,
       if (archived != null) 'archived': archived,
       if (promptReflection != null) 'prompt_reflection': promptReflection,
+      if (isDeleted != null) 'is_deleted': isDeleted,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -1103,6 +1146,7 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     Value<String?>? motivationNotes,
     Value<bool>? archived,
     Value<bool>? promptReflection,
+    Value<bool>? isDeleted,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -1128,6 +1172,7 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
       motivationNotes: motivationNotes ?? this.motivationNotes,
       archived: archived ?? this.archived,
       promptReflection: promptReflection ?? this.promptReflection,
+      isDeleted: isDeleted ?? this.isDeleted,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -1207,6 +1252,9 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     if (promptReflection.present) {
       map['prompt_reflection'] = Variable<bool>(promptReflection.value);
     }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -1242,6 +1290,7 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
           ..write('motivationNotes: $motivationNotes, ')
           ..write('archived: $archived, ')
           ..write('promptReflection: $promptReflection, ')
+          ..write('isDeleted: $isDeleted, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -1373,6 +1422,21 @@ class $HabitLogsTable extends HabitLogs
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -1408,6 +1472,7 @@ class $HabitLogsTable extends HabitLogs
     note,
     energyLevel,
     mood,
+    isDeleted,
     createdAt,
     updatedAt,
   ];
@@ -1505,6 +1570,12 @@ class $HabitLogsTable extends HabitLogs
         mood.isAcceptableOrUnknown(data['mood']!, _moodMeta),
       );
     }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -1574,6 +1645,10 @@ class $HabitLogsTable extends HabitLogs
         DriftSqlType.string,
         data['${effectivePrefix}mood'],
       ),
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -1603,6 +1678,7 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
   final String? note;
   final int? energyLevel;
   final String? mood;
+  final bool isDeleted;
   final DateTime createdAt;
   final DateTime updatedAt;
   const HabitLogRow({
@@ -1617,6 +1693,7 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
     this.note,
     this.energyLevel,
     this.mood,
+    required this.isDeleted,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -1646,6 +1723,7 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
     if (!nullToAbsent || mood != null) {
       map['mood'] = Variable<String>(mood);
     }
+    map['is_deleted'] = Variable<bool>(isDeleted);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -1672,6 +1750,7 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
           ? const Value.absent()
           : Value(energyLevel),
       mood: mood == null && nullToAbsent ? const Value.absent() : Value(mood),
+      isDeleted: Value(isDeleted),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -1694,6 +1773,7 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
       note: serializer.fromJson<String?>(json['note']),
       energyLevel: serializer.fromJson<int?>(json['energyLevel']),
       mood: serializer.fromJson<String?>(json['mood']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -1713,6 +1793,7 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
       'note': serializer.toJson<String?>(note),
       'energyLevel': serializer.toJson<int?>(energyLevel),
       'mood': serializer.toJson<String?>(mood),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -1730,6 +1811,7 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
     Value<String?> note = const Value.absent(),
     Value<int?> energyLevel = const Value.absent(),
     Value<String?> mood = const Value.absent(),
+    bool? isDeleted,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => HabitLogRow(
@@ -1748,6 +1830,7 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
     note: note.present ? note.value : this.note,
     energyLevel: energyLevel.present ? energyLevel.value : this.energyLevel,
     mood: mood.present ? mood.value : this.mood,
+    isDeleted: isDeleted ?? this.isDeleted,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -1770,6 +1853,7 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
           ? data.energyLevel.value
           : this.energyLevel,
       mood: data.mood.present ? data.mood.value : this.mood,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -1789,6 +1873,7 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
           ..write('note: $note, ')
           ..write('energyLevel: $energyLevel, ')
           ..write('mood: $mood, ')
+          ..write('isDeleted: $isDeleted, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -1808,6 +1893,7 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
     note,
     energyLevel,
     mood,
+    isDeleted,
     createdAt,
     updatedAt,
   );
@@ -1826,6 +1912,7 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
           other.note == this.note &&
           other.energyLevel == this.energyLevel &&
           other.mood == this.mood &&
+          other.isDeleted == this.isDeleted &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -1842,6 +1929,7 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
   final Value<String?> note;
   final Value<int?> energyLevel;
   final Value<String?> mood;
+  final Value<bool> isDeleted;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -1857,6 +1945,7 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
     this.note = const Value.absent(),
     this.energyLevel = const Value.absent(),
     this.mood = const Value.absent(),
+    this.isDeleted = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -1873,6 +1962,7 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
     this.note = const Value.absent(),
     this.energyLevel = const Value.absent(),
     this.mood = const Value.absent(),
+    this.isDeleted = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
@@ -1895,6 +1985,7 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
     Expression<String>? note,
     Expression<int>? energyLevel,
     Expression<String>? mood,
+    Expression<bool>? isDeleted,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -1911,6 +2002,7 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
       if (note != null) 'note': note,
       if (energyLevel != null) 'energy_level': energyLevel,
       if (mood != null) 'mood': mood,
+      if (isDeleted != null) 'is_deleted': isDeleted,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -1929,6 +2021,7 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
     Value<String?>? note,
     Value<int?>? energyLevel,
     Value<String?>? mood,
+    Value<bool>? isDeleted,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -1945,6 +2038,7 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
       note: note ?? this.note,
       energyLevel: energyLevel ?? this.energyLevel,
       mood: mood ?? this.mood,
+      isDeleted: isDeleted ?? this.isDeleted,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -1987,6 +2081,9 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
     if (mood.present) {
       map['mood'] = Variable<String>(mood.value);
     }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -2013,6 +2110,7 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
           ..write('note: $note, ')
           ..write('energyLevel: $energyLevel, ')
           ..write('mood: $mood, ')
+          ..write('isDeleted: $isDeleted, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -2074,6 +2172,21 @@ class $HabitShieldsTable extends HabitShields
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -2102,6 +2215,7 @@ class $HabitShieldsTable extends HabitShields
     habitId,
     date,
     autoApplied,
+    isDeleted,
     createdAt,
     updatedAt,
   ];
@@ -2147,6 +2261,12 @@ class $HabitShieldsTable extends HabitShields
         ),
       );
     }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -2188,6 +2308,10 @@ class $HabitShieldsTable extends HabitShields
         DriftSqlType.bool,
         data['${effectivePrefix}auto_applied'],
       )!,
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -2210,6 +2334,7 @@ class HabitShieldRow extends DataClass implements Insertable<HabitShieldRow> {
   final String habitId;
   final String date;
   final bool autoApplied;
+  final bool isDeleted;
   final DateTime createdAt;
   final DateTime updatedAt;
   const HabitShieldRow({
@@ -2217,6 +2342,7 @@ class HabitShieldRow extends DataClass implements Insertable<HabitShieldRow> {
     required this.habitId,
     required this.date,
     required this.autoApplied,
+    required this.isDeleted,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -2227,6 +2353,7 @@ class HabitShieldRow extends DataClass implements Insertable<HabitShieldRow> {
     map['habit_id'] = Variable<String>(habitId);
     map['date'] = Variable<String>(date);
     map['auto_applied'] = Variable<bool>(autoApplied);
+    map['is_deleted'] = Variable<bool>(isDeleted);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -2238,6 +2365,7 @@ class HabitShieldRow extends DataClass implements Insertable<HabitShieldRow> {
       habitId: Value(habitId),
       date: Value(date),
       autoApplied: Value(autoApplied),
+      isDeleted: Value(isDeleted),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -2253,6 +2381,7 @@ class HabitShieldRow extends DataClass implements Insertable<HabitShieldRow> {
       habitId: serializer.fromJson<String>(json['habitId']),
       date: serializer.fromJson<String>(json['date']),
       autoApplied: serializer.fromJson<bool>(json['autoApplied']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -2265,6 +2394,7 @@ class HabitShieldRow extends DataClass implements Insertable<HabitShieldRow> {
       'habitId': serializer.toJson<String>(habitId),
       'date': serializer.toJson<String>(date),
       'autoApplied': serializer.toJson<bool>(autoApplied),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -2275,6 +2405,7 @@ class HabitShieldRow extends DataClass implements Insertable<HabitShieldRow> {
     String? habitId,
     String? date,
     bool? autoApplied,
+    bool? isDeleted,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => HabitShieldRow(
@@ -2282,6 +2413,7 @@ class HabitShieldRow extends DataClass implements Insertable<HabitShieldRow> {
     habitId: habitId ?? this.habitId,
     date: date ?? this.date,
     autoApplied: autoApplied ?? this.autoApplied,
+    isDeleted: isDeleted ?? this.isDeleted,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -2293,6 +2425,7 @@ class HabitShieldRow extends DataClass implements Insertable<HabitShieldRow> {
       autoApplied: data.autoApplied.present
           ? data.autoApplied.value
           : this.autoApplied,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -2305,6 +2438,7 @@ class HabitShieldRow extends DataClass implements Insertable<HabitShieldRow> {
           ..write('habitId: $habitId, ')
           ..write('date: $date, ')
           ..write('autoApplied: $autoApplied, ')
+          ..write('isDeleted: $isDeleted, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -2312,8 +2446,15 @@ class HabitShieldRow extends DataClass implements Insertable<HabitShieldRow> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, habitId, date, autoApplied, createdAt, updatedAt);
+  int get hashCode => Object.hash(
+    id,
+    habitId,
+    date,
+    autoApplied,
+    isDeleted,
+    createdAt,
+    updatedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2322,6 +2463,7 @@ class HabitShieldRow extends DataClass implements Insertable<HabitShieldRow> {
           other.habitId == this.habitId &&
           other.date == this.date &&
           other.autoApplied == this.autoApplied &&
+          other.isDeleted == this.isDeleted &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -2331,6 +2473,7 @@ class HabitShieldsCompanion extends UpdateCompanion<HabitShieldRow> {
   final Value<String> habitId;
   final Value<String> date;
   final Value<bool> autoApplied;
+  final Value<bool> isDeleted;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -2339,6 +2482,7 @@ class HabitShieldsCompanion extends UpdateCompanion<HabitShieldRow> {
     this.habitId = const Value.absent(),
     this.date = const Value.absent(),
     this.autoApplied = const Value.absent(),
+    this.isDeleted = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -2348,6 +2492,7 @@ class HabitShieldsCompanion extends UpdateCompanion<HabitShieldRow> {
     required String habitId,
     required String date,
     this.autoApplied = const Value.absent(),
+    this.isDeleted = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
@@ -2361,6 +2506,7 @@ class HabitShieldsCompanion extends UpdateCompanion<HabitShieldRow> {
     Expression<String>? habitId,
     Expression<String>? date,
     Expression<bool>? autoApplied,
+    Expression<bool>? isDeleted,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -2370,6 +2516,7 @@ class HabitShieldsCompanion extends UpdateCompanion<HabitShieldRow> {
       if (habitId != null) 'habit_id': habitId,
       if (date != null) 'date': date,
       if (autoApplied != null) 'auto_applied': autoApplied,
+      if (isDeleted != null) 'is_deleted': isDeleted,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -2381,6 +2528,7 @@ class HabitShieldsCompanion extends UpdateCompanion<HabitShieldRow> {
     Value<String>? habitId,
     Value<String>? date,
     Value<bool>? autoApplied,
+    Value<bool>? isDeleted,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -2390,6 +2538,7 @@ class HabitShieldsCompanion extends UpdateCompanion<HabitShieldRow> {
       habitId: habitId ?? this.habitId,
       date: date ?? this.date,
       autoApplied: autoApplied ?? this.autoApplied,
+      isDeleted: isDeleted ?? this.isDeleted,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -2411,6 +2560,9 @@ class HabitShieldsCompanion extends UpdateCompanion<HabitShieldRow> {
     if (autoApplied.present) {
       map['auto_applied'] = Variable<bool>(autoApplied.value);
     }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -2430,6 +2582,7 @@ class HabitShieldsCompanion extends UpdateCompanion<HabitShieldRow> {
           ..write('habitId: $habitId, ')
           ..write('date: $date, ')
           ..write('autoApplied: $autoApplied, ')
+          ..write('isDeleted: $isDeleted, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -2480,8 +2633,55 @@ class $HabitCategoriesTable extends HabitCategories
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, name, color, icon];
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    color,
+    icon,
+    isDeleted,
+    createdAt,
+    updatedAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -2521,6 +2721,24 @@ class $HabitCategoriesTable extends HabitCategories
         icon.isAcceptableOrUnknown(data['icon']!, _iconMeta),
       );
     }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -2546,6 +2764,18 @@ class $HabitCategoriesTable extends HabitCategories
         DriftSqlType.string,
         data['${effectivePrefix}icon'],
       ),
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
     );
   }
 
@@ -2561,11 +2791,17 @@ class HabitCategoryRow extends DataClass
   final String name;
   final String color;
   final String? icon;
+  final bool isDeleted;
+  final DateTime createdAt;
+  final DateTime updatedAt;
   const HabitCategoryRow({
     required this.id,
     required this.name,
     required this.color,
     this.icon,
+    required this.isDeleted,
+    required this.createdAt,
+    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2576,6 +2812,9 @@ class HabitCategoryRow extends DataClass
     if (!nullToAbsent || icon != null) {
       map['icon'] = Variable<String>(icon);
     }
+    map['is_deleted'] = Variable<bool>(isDeleted);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
@@ -2585,6 +2824,9 @@ class HabitCategoryRow extends DataClass
       name: Value(name),
       color: Value(color),
       icon: icon == null && nullToAbsent ? const Value.absent() : Value(icon),
+      isDeleted: Value(isDeleted),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
     );
   }
 
@@ -2598,6 +2840,9 @@ class HabitCategoryRow extends DataClass
       name: serializer.fromJson<String>(json['name']),
       color: serializer.fromJson<String>(json['color']),
       icon: serializer.fromJson<String?>(json['icon']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
@@ -2608,6 +2853,9 @@ class HabitCategoryRow extends DataClass
       'name': serializer.toJson<String>(name),
       'color': serializer.toJson<String>(color),
       'icon': serializer.toJson<String?>(icon),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
@@ -2616,11 +2864,17 @@ class HabitCategoryRow extends DataClass
     String? name,
     String? color,
     Value<String?> icon = const Value.absent(),
+    bool? isDeleted,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) => HabitCategoryRow(
     id: id ?? this.id,
     name: name ?? this.name,
     color: color ?? this.color,
     icon: icon.present ? icon.value : this.icon,
+    isDeleted: isDeleted ?? this.isDeleted,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
   );
   HabitCategoryRow copyWithCompanion(HabitCategoriesCompanion data) {
     return HabitCategoryRow(
@@ -2628,6 +2882,9 @@ class HabitCategoryRow extends DataClass
       name: data.name.present ? data.name.value : this.name,
       color: data.color.present ? data.color.value : this.color,
       icon: data.icon.present ? data.icon.value : this.icon,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -2637,13 +2894,17 @@ class HabitCategoryRow extends DataClass
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('color: $color, ')
-          ..write('icon: $icon')
+          ..write('icon: $icon, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, color, icon);
+  int get hashCode =>
+      Object.hash(id, name, color, icon, isDeleted, createdAt, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2651,7 +2912,10 @@ class HabitCategoryRow extends DataClass
           other.id == this.id &&
           other.name == this.name &&
           other.color == this.color &&
-          other.icon == this.icon);
+          other.icon == this.icon &&
+          other.isDeleted == this.isDeleted &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
 }
 
 class HabitCategoriesCompanion extends UpdateCompanion<HabitCategoryRow> {
@@ -2659,12 +2923,18 @@ class HabitCategoriesCompanion extends UpdateCompanion<HabitCategoryRow> {
   final Value<String> name;
   final Value<String> color;
   final Value<String?> icon;
+  final Value<bool> isDeleted;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
   final Value<int> rowid;
   const HabitCategoriesCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.color = const Value.absent(),
     this.icon = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   HabitCategoriesCompanion.insert({
@@ -2672,6 +2942,9 @@ class HabitCategoriesCompanion extends UpdateCompanion<HabitCategoryRow> {
     required String name,
     required String color,
     this.icon = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
@@ -2681,6 +2954,9 @@ class HabitCategoriesCompanion extends UpdateCompanion<HabitCategoryRow> {
     Expression<String>? name,
     Expression<String>? color,
     Expression<String>? icon,
+    Expression<bool>? isDeleted,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2688,6 +2964,9 @@ class HabitCategoriesCompanion extends UpdateCompanion<HabitCategoryRow> {
       if (name != null) 'name': name,
       if (color != null) 'color': color,
       if (icon != null) 'icon': icon,
+      if (isDeleted != null) 'is_deleted': isDeleted,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2697,6 +2976,9 @@ class HabitCategoriesCompanion extends UpdateCompanion<HabitCategoryRow> {
     Value<String>? name,
     Value<String>? color,
     Value<String?>? icon,
+    Value<bool>? isDeleted,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
     return HabitCategoriesCompanion(
@@ -2704,6 +2986,9 @@ class HabitCategoriesCompanion extends UpdateCompanion<HabitCategoryRow> {
       name: name ?? this.name,
       color: color ?? this.color,
       icon: icon ?? this.icon,
+      isDeleted: isDeleted ?? this.isDeleted,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2723,6 +3008,15 @@ class HabitCategoriesCompanion extends UpdateCompanion<HabitCategoryRow> {
     if (icon.present) {
       map['icon'] = Variable<String>(icon.value);
     }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -2736,6 +3030,9 @@ class HabitCategoriesCompanion extends UpdateCompanion<HabitCategoryRow> {
           ..write('name: $name, ')
           ..write('color: $color, ')
           ..write('icon: $icon, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -3272,8 +3569,39 @@ class $AchievementsTable extends Achievements
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, unlockedAt, progress, notified];
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    unlockedAt,
+    progress,
+    notified,
+    createdAt,
+    updatedAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -3313,6 +3641,18 @@ class $AchievementsTable extends Achievements
         notified.isAcceptableOrUnknown(data['notified']!, _notifiedMeta),
       );
     }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -3338,6 +3678,14 @@ class $AchievementsTable extends Achievements
         DriftSqlType.bool,
         data['${effectivePrefix}notified'],
       )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
     );
   }
 
@@ -3352,11 +3700,15 @@ class AchievementRow extends DataClass implements Insertable<AchievementRow> {
   final DateTime unlockedAt;
   final int progress;
   final bool notified;
+  final DateTime createdAt;
+  final DateTime updatedAt;
   const AchievementRow({
     required this.id,
     required this.unlockedAt,
     required this.progress,
     required this.notified,
+    required this.createdAt,
+    required this.updatedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3365,6 +3717,8 @@ class AchievementRow extends DataClass implements Insertable<AchievementRow> {
     map['unlocked_at'] = Variable<DateTime>(unlockedAt);
     map['progress'] = Variable<int>(progress);
     map['notified'] = Variable<bool>(notified);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
@@ -3374,6 +3728,8 @@ class AchievementRow extends DataClass implements Insertable<AchievementRow> {
       unlockedAt: Value(unlockedAt),
       progress: Value(progress),
       notified: Value(notified),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
     );
   }
 
@@ -3387,6 +3743,8 @@ class AchievementRow extends DataClass implements Insertable<AchievementRow> {
       unlockedAt: serializer.fromJson<DateTime>(json['unlockedAt']),
       progress: serializer.fromJson<int>(json['progress']),
       notified: serializer.fromJson<bool>(json['notified']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
@@ -3397,6 +3755,8 @@ class AchievementRow extends DataClass implements Insertable<AchievementRow> {
       'unlockedAt': serializer.toJson<DateTime>(unlockedAt),
       'progress': serializer.toJson<int>(progress),
       'notified': serializer.toJson<bool>(notified),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
@@ -3405,11 +3765,15 @@ class AchievementRow extends DataClass implements Insertable<AchievementRow> {
     DateTime? unlockedAt,
     int? progress,
     bool? notified,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) => AchievementRow(
     id: id ?? this.id,
     unlockedAt: unlockedAt ?? this.unlockedAt,
     progress: progress ?? this.progress,
     notified: notified ?? this.notified,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
   );
   AchievementRow copyWithCompanion(AchievementsCompanion data) {
     return AchievementRow(
@@ -3419,6 +3783,8 @@ class AchievementRow extends DataClass implements Insertable<AchievementRow> {
           : this.unlockedAt,
       progress: data.progress.present ? data.progress.value : this.progress,
       notified: data.notified.present ? data.notified.value : this.notified,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -3428,13 +3794,16 @@ class AchievementRow extends DataClass implements Insertable<AchievementRow> {
           ..write('id: $id, ')
           ..write('unlockedAt: $unlockedAt, ')
           ..write('progress: $progress, ')
-          ..write('notified: $notified')
+          ..write('notified: $notified, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, unlockedAt, progress, notified);
+  int get hashCode =>
+      Object.hash(id, unlockedAt, progress, notified, createdAt, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3442,7 +3811,9 @@ class AchievementRow extends DataClass implements Insertable<AchievementRow> {
           other.id == this.id &&
           other.unlockedAt == this.unlockedAt &&
           other.progress == this.progress &&
-          other.notified == this.notified);
+          other.notified == this.notified &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
 }
 
 class AchievementsCompanion extends UpdateCompanion<AchievementRow> {
@@ -3450,12 +3821,16 @@ class AchievementsCompanion extends UpdateCompanion<AchievementRow> {
   final Value<DateTime> unlockedAt;
   final Value<int> progress;
   final Value<bool> notified;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
   final Value<int> rowid;
   const AchievementsCompanion({
     this.id = const Value.absent(),
     this.unlockedAt = const Value.absent(),
     this.progress = const Value.absent(),
     this.notified = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   AchievementsCompanion.insert({
@@ -3463,6 +3838,8 @@ class AchievementsCompanion extends UpdateCompanion<AchievementRow> {
     required DateTime unlockedAt,
     required int progress,
     this.notified = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        unlockedAt = Value(unlockedAt),
@@ -3472,6 +3849,8 @@ class AchievementsCompanion extends UpdateCompanion<AchievementRow> {
     Expression<DateTime>? unlockedAt,
     Expression<int>? progress,
     Expression<bool>? notified,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -3479,6 +3858,8 @@ class AchievementsCompanion extends UpdateCompanion<AchievementRow> {
       if (unlockedAt != null) 'unlocked_at': unlockedAt,
       if (progress != null) 'progress': progress,
       if (notified != null) 'notified': notified,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -3488,6 +3869,8 @@ class AchievementsCompanion extends UpdateCompanion<AchievementRow> {
     Value<DateTime>? unlockedAt,
     Value<int>? progress,
     Value<bool>? notified,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
     return AchievementsCompanion(
@@ -3495,6 +3878,8 @@ class AchievementsCompanion extends UpdateCompanion<AchievementRow> {
       unlockedAt: unlockedAt ?? this.unlockedAt,
       progress: progress ?? this.progress,
       notified: notified ?? this.notified,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -3514,6 +3899,12 @@ class AchievementsCompanion extends UpdateCompanion<AchievementRow> {
     if (notified.present) {
       map['notified'] = Variable<bool>(notified.value);
     }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -3527,6 +3918,8 @@ class AchievementsCompanion extends UpdateCompanion<AchievementRow> {
           ..write('unlockedAt: $unlockedAt, ')
           ..write('progress: $progress, ')
           ..write('notified: $notified, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -3557,6 +3950,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final Index idxHabitLogsHabitIdDate = Index(
     'idx_habit_logs_habit_id_date',
     'CREATE INDEX idx_habit_logs_habit_id_date ON habit_logs (habit_id, date)',
+  );
+  late final Index idxHabitLogsNaturalKey = Index(
+    'idx_habit_logs_natural_key',
+    'CREATE INDEX idx_habit_logs_natural_key ON habit_logs (habit_id, date, interval_index)',
   );
   late final Index idxHabitShieldsHabitId = Index(
     'idx_habit_shields_habit_id',
@@ -3595,6 +3992,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxHabitLogsHabitId,
     idxHabitLogsDate,
     idxHabitLogsHabitIdDate,
+    idxHabitLogsNaturalKey,
     idxHabitShieldsHabitId,
     idxHabitShieldsDate,
     idxHabitShieldsHabitIdDate,
@@ -3639,6 +4037,7 @@ typedef $$HabitsTableCreateCompanionBuilder = HabitsCompanion Function({
   Value<String?> motivationNotes,
   Value<bool> archived,
   Value<bool> promptReflection,
+  Value<bool> isDeleted,
   required DateTime createdAt,
   required DateTime updatedAt,
   Value<int> rowid,
@@ -3664,6 +4063,7 @@ typedef $$HabitsTableUpdateCompanionBuilder = HabitsCompanion Function({
   Value<String?> motivationNotes,
   Value<bool> archived,
   Value<bool> promptReflection,
+  Value<bool> isDeleted,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<int> rowid,
@@ -3821,6 +4221,11 @@ class $$HabitsTableFilterComposer
 
   ColumnFilters<bool> get promptReflection => $composableBuilder(
     column: $table.promptReflection,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3994,6 +4399,11 @@ class $$HabitsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -4105,6 +4515,9 @@ class $$HabitsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -4210,6 +4623,7 @@ class $$HabitsTableTableManager
                 Value<String?> motivationNotes = const Value.absent(),
                 Value<bool> archived = const Value.absent(),
                 Value<bool> promptReflection = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -4234,6 +4648,7 @@ class $$HabitsTableTableManager
                 motivationNotes: motivationNotes,
                 archived: archived,
                 promptReflection: promptReflection,
+                isDeleted: isDeleted,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -4260,6 +4675,7 @@ class $$HabitsTableTableManager
                 Value<String?> motivationNotes = const Value.absent(),
                 Value<bool> archived = const Value.absent(),
                 Value<bool> promptReflection = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -4284,6 +4700,7 @@ class $$HabitsTableTableManager
                 motivationNotes: motivationNotes,
                 archived: archived,
                 promptReflection: promptReflection,
+                isDeleted: isDeleted,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -4381,6 +4798,7 @@ typedef $$HabitLogsTableCreateCompanionBuilder = HabitLogsCompanion Function({
   Value<String?> note,
   Value<int?> energyLevel,
   Value<String?> mood,
+  Value<bool> isDeleted,
   required DateTime createdAt,
   required DateTime updatedAt,
   Value<int> rowid,
@@ -4397,6 +4815,7 @@ typedef $$HabitLogsTableUpdateCompanionBuilder = HabitLogsCompanion Function({
   Value<String?> note,
   Value<int?> energyLevel,
   Value<String?> mood,
+  Value<bool> isDeleted,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<int> rowid,
@@ -4480,6 +4899,11 @@ class $$HabitLogsTableFilterComposer
 
   ColumnFilters<String> get mood => $composableBuilder(
     column: $table.mood,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4576,6 +5000,11 @@ class $$HabitLogsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -4655,6 +5084,9 @@ class $$HabitLogsTableAnnotationComposer
   GeneratedColumn<String> get mood =>
       $composableBuilder(column: $table.mood, builder: (column) => column);
 
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -4724,6 +5156,7 @@ class $$HabitLogsTableTableManager
                 Value<String?> note = const Value.absent(),
                 Value<int?> energyLevel = const Value.absent(),
                 Value<String?> mood = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -4739,6 +5172,7 @@ class $$HabitLogsTableTableManager
                 note: note,
                 energyLevel: energyLevel,
                 mood: mood,
+                isDeleted: isDeleted,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -4756,6 +5190,7 @@ class $$HabitLogsTableTableManager
                 Value<String?> note = const Value.absent(),
                 Value<int?> energyLevel = const Value.absent(),
                 Value<String?> mood = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -4771,6 +5206,7 @@ class $$HabitLogsTableTableManager
                 note: note,
                 energyLevel: energyLevel,
                 mood: mood,
+                isDeleted: isDeleted,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -4846,6 +5282,7 @@ typedef $$HabitShieldsTableCreateCompanionBuilder =
       required String habitId,
       required String date,
       Value<bool> autoApplied,
+      Value<bool> isDeleted,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<int> rowid,
@@ -4856,6 +5293,7 @@ typedef $$HabitShieldsTableUpdateCompanionBuilder =
       Value<String> habitId,
       Value<String> date,
       Value<bool> autoApplied,
+      Value<bool> isDeleted,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -4904,6 +5342,11 @@ class $$HabitShieldsTableFilterComposer
 
   ColumnFilters<bool> get autoApplied => $composableBuilder(
     column: $table.autoApplied,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4965,6 +5408,11 @@ class $$HabitShieldsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -5018,6 +5466,9 @@ class $$HabitShieldsTableAnnotationComposer
     column: $table.autoApplied,
     builder: (column) => column,
   );
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -5081,6 +5532,7 @@ class $$HabitShieldsTableTableManager
                 Value<String> habitId = const Value.absent(),
                 Value<String> date = const Value.absent(),
                 Value<bool> autoApplied = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -5089,6 +5541,7 @@ class $$HabitShieldsTableTableManager
                 habitId: habitId,
                 date: date,
                 autoApplied: autoApplied,
+                isDeleted: isDeleted,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -5099,6 +5552,7 @@ class $$HabitShieldsTableTableManager
                 required String habitId,
                 required String date,
                 Value<bool> autoApplied = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -5107,6 +5561,7 @@ class $$HabitShieldsTableTableManager
                 habitId: habitId,
                 date: date,
                 autoApplied: autoApplied,
+                isDeleted: isDeleted,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -5182,6 +5637,9 @@ typedef $$HabitCategoriesTableCreateCompanionBuilder =
       required String name,
       required String color,
       Value<String?> icon,
+      Value<bool> isDeleted,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
       Value<int> rowid,
     });
 typedef $$HabitCategoriesTableUpdateCompanionBuilder =
@@ -5190,6 +5648,9 @@ typedef $$HabitCategoriesTableUpdateCompanionBuilder =
       Value<String> name,
       Value<String> color,
       Value<String?> icon,
+      Value<bool> isDeleted,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
       Value<int> rowid,
     });
 
@@ -5219,6 +5680,21 @@ class $$HabitCategoriesTableFilterComposer
 
   ColumnFilters<String> get icon => $composableBuilder(
     column: $table.icon,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -5251,6 +5727,21 @@ class $$HabitCategoriesTableOrderingComposer
     column: $table.icon,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$HabitCategoriesTableAnnotationComposer
@@ -5273,6 +5764,15 @@ class $$HabitCategoriesTableAnnotationComposer
 
   GeneratedColumn<String> get icon =>
       $composableBuilder(column: $table.icon, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$HabitCategoriesTableTableManager
@@ -5316,12 +5816,18 @@ class $$HabitCategoriesTableTableManager
                 Value<String> name = const Value.absent(),
                 Value<String> color = const Value.absent(),
                 Value<String?> icon = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => HabitCategoriesCompanion(
                 id: id,
                 name: name,
                 color: color,
                 icon: icon,
+                isDeleted: isDeleted,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -5330,12 +5836,18 @@ class $$HabitCategoriesTableTableManager
                 required String name,
                 required String color,
                 Value<String?> icon = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => HabitCategoriesCompanion.insert(
                 id: id,
                 name: name,
                 color: color,
                 icon: icon,
+                isDeleted: isDeleted,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -5625,6 +6137,8 @@ typedef $$AchievementsTableCreateCompanionBuilder =
       required DateTime unlockedAt,
       required int progress,
       Value<bool> notified,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
       Value<int> rowid,
     });
 typedef $$AchievementsTableUpdateCompanionBuilder =
@@ -5633,6 +6147,8 @@ typedef $$AchievementsTableUpdateCompanionBuilder =
       Value<DateTime> unlockedAt,
       Value<int> progress,
       Value<bool> notified,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
       Value<int> rowid,
     });
 
@@ -5662,6 +6178,16 @@ class $$AchievementsTableFilterComposer
 
   ColumnFilters<bool> get notified => $composableBuilder(
     column: $table.notified,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -5694,6 +6220,16 @@ class $$AchievementsTableOrderingComposer
     column: $table.notified,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$AchievementsTableAnnotationComposer
@@ -5718,6 +6254,12 @@ class $$AchievementsTableAnnotationComposer
 
   GeneratedColumn<bool> get notified =>
       $composableBuilder(column: $table.notified, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$AchievementsTableTableManager
@@ -5755,12 +6297,16 @@ class $$AchievementsTableTableManager
                 Value<DateTime> unlockedAt = const Value.absent(),
                 Value<int> progress = const Value.absent(),
                 Value<bool> notified = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => AchievementsCompanion(
                 id: id,
                 unlockedAt: unlockedAt,
                 progress: progress,
                 notified: notified,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -5769,12 +6315,16 @@ class $$AchievementsTableTableManager
                 required DateTime unlockedAt,
                 required int progress,
                 Value<bool> notified = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => AchievementsCompanion.insert(
                 id: id,
                 unlockedAt: unlockedAt,
                 progress: progress,
                 notified: notified,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

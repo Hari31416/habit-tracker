@@ -62,6 +62,7 @@ class HabitRepositoryImpl implements HabitRepository {
         motivationNotes: row.motivationNotes,
         archived: row.archived,
         promptReflection: row.promptReflection,
+        isDeleted: row.isDeleted,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
       );
@@ -87,6 +88,7 @@ class HabitRepositoryImpl implements HabitRepository {
         motivationNotes: Value(habit.motivationNotes),
         archived: Value(habit.archived),
         promptReflection: Value(habit.promptReflection),
+        isDeleted: Value(habit.isDeleted),
         createdAt: Value(habit.createdAt),
         updatedAt: Value(habit.updatedAt),
       );
@@ -103,6 +105,7 @@ class HabitRepositoryImpl implements HabitRepository {
         note: row.note,
         energyLevel: row.energyLevel,
         mood: row.mood,
+        isDeleted: row.isDeleted,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
       );
@@ -112,6 +115,7 @@ class HabitRepositoryImpl implements HabitRepository {
         habitId: row.habitId,
         date: row.date,
         autoApplied: row.autoApplied,
+        isDeleted: row.isDeleted,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
       );
@@ -121,15 +125,23 @@ class HabitRepositoryImpl implements HabitRepository {
         name: row.name,
         color: row.color,
         icon: row.icon,
+        isDeleted: row.isDeleted,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
       );
 
-  HabitCategoriesCompanion _categoryDomainToCompanion(HabitCategory category) =>
-      HabitCategoriesCompanion(
-        id: Value(category.id),
-        name: Value(category.name),
-        color: Value(category.color),
-        icon: Value(category.icon),
-      );
+  HabitCategoriesCompanion _categoryDomainToCompanion(HabitCategory category) {
+    final now = DateTime.now().toUtc();
+    return HabitCategoriesCompanion(
+      id: Value(category.id),
+      name: Value(category.name),
+      color: Value(category.color),
+      icon: Value(category.icon),
+      isDeleted: Value(category.isDeleted),
+      createdAt: Value(category.createdAt ?? now),
+      updatedAt: Value(category.updatedAt ?? now),
+    );
+  }
 
   // Habits
   @override
@@ -171,7 +183,7 @@ class HabitRepositoryImpl implements HabitRepository {
 
   @override
   Future<void> deleteHabit(Habit habit) async {
-    await habitDao.deleteHabitById(habit.id);
+    await habitDao.deleteHabitById(habit.id, DateTime.now().toUtc());
     await reminderScheduler.cancel(habit.id);
   }
 
@@ -769,5 +781,5 @@ class HabitRepositoryImpl implements HabitRepository {
 
   @override
   Future<void> deleteCategory(HabitCategory category) =>
-      habitCategoryDao.deleteCategoryById(category.id);
+      habitCategoryDao.deleteCategoryById(category.id, DateTime.now().toUtc());
 }

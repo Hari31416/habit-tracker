@@ -10,7 +10,7 @@ class HabitLogDao extends DatabaseAccessor<AppDatabase> with _$HabitLogDaoMixin 
 
   Stream<List<HabitLogRow>> watchLogsForHabit(String habitId) {
     return (select(habitLogs)
-          ..where((l) => l.habitId.equals(habitId))
+          ..where((l) => l.habitId.equals(habitId) & l.isDeleted.equals(false))
           ..orderBy([
             (l) => OrderingTerm(expression: l.date, mode: OrderingMode.desc),
             (l) => OrderingTerm(expression: l.timestamp, mode: OrderingMode.desc),
@@ -20,7 +20,7 @@ class HabitLogDao extends DatabaseAccessor<AppDatabase> with _$HabitLogDaoMixin 
 
   Future<List<HabitLogRow>> getLogsForHabitOnce(String habitId) {
     return (select(habitLogs)
-          ..where((l) => l.habitId.equals(habitId))
+          ..where((l) => l.habitId.equals(habitId) & l.isDeleted.equals(false))
           ..orderBy([
             (l) => OrderingTerm(expression: l.date, mode: OrderingMode.desc),
             (l) => OrderingTerm(expression: l.timestamp, mode: OrderingMode.desc),
@@ -29,28 +29,35 @@ class HabitLogDao extends DatabaseAccessor<AppDatabase> with _$HabitLogDaoMixin 
   }
 
   Stream<List<HabitLogRow>> watchLogsForDate(String date) {
-    return (select(habitLogs)..where((l) => l.date.equals(date))).watch();
+    return (select(habitLogs)
+          ..where((l) => l.date.equals(date) & l.isDeleted.equals(false)))
+        .watch();
   }
 
   Future<List<HabitLogRow>> getLogsForDateOnce(String date) {
-    return (select(habitLogs)..where((l) => l.date.equals(date))).get();
+    return (select(habitLogs)
+          ..where((l) => l.date.equals(date) & l.isDeleted.equals(false)))
+        .get();
   }
 
   Stream<List<HabitLogRow>> watchLogsForHabitAndDate(String habitId, String date) {
     return (select(habitLogs)
-          ..where((l) => l.habitId.equals(habitId) & l.date.equals(date)))
+          ..where((l) => l.habitId.equals(habitId) & l.date.equals(date) & l.isDeleted.equals(false)))
         .watch();
   }
 
   Future<List<HabitLogRow>> getLogsForHabitAndDateOnce(String habitId, String date) {
     return (select(habitLogs)
-          ..where((l) => l.habitId.equals(habitId) & l.date.equals(date)))
+          ..where((l) => l.habitId.equals(habitId) & l.date.equals(date) & l.isDeleted.equals(false)))
         .get();
   }
 
   Stream<List<HabitLogRow>> watchLogsForDateRange(String startDate, String endDate) {
     return (select(habitLogs)
-          ..where((l) => l.date.isBiggerOrEqualValue(startDate) & l.date.isSmallerOrEqualValue(endDate))
+          ..where((l) =>
+              l.date.isBiggerOrEqualValue(startDate) &
+              l.date.isSmallerOrEqualValue(endDate) &
+              l.isDeleted.equals(false))
           ..orderBy([
             (l) => OrderingTerm(expression: l.date, mode: OrderingMode.asc),
           ]))
@@ -59,7 +66,10 @@ class HabitLogDao extends DatabaseAccessor<AppDatabase> with _$HabitLogDaoMixin 
 
   Future<List<HabitLogRow>> getLogsForDateRangeOnce(String startDate, String endDate) {
     return (select(habitLogs)
-          ..where((l) => l.date.isBiggerOrEqualValue(startDate) & l.date.isSmallerOrEqualValue(endDate))
+          ..where((l) =>
+              l.date.isBiggerOrEqualValue(startDate) &
+              l.date.isSmallerOrEqualValue(endDate) &
+              l.isDeleted.equals(false))
           ..orderBy([
             (l) => OrderingTerm(expression: l.date, mode: OrderingMode.asc),
           ]))
@@ -75,7 +85,8 @@ class HabitLogDao extends DatabaseAccessor<AppDatabase> with _$HabitLogDaoMixin 
           ..where((l) =>
               l.habitId.equals(habitId) &
               l.date.isBiggerOrEqualValue(startDate) &
-              l.date.isSmallerOrEqualValue(endDate))
+              l.date.isSmallerOrEqualValue(endDate) &
+              l.isDeleted.equals(false))
           ..orderBy([
             (l) => OrderingTerm(expression: l.date, mode: OrderingMode.asc),
           ]))
@@ -84,6 +95,7 @@ class HabitLogDao extends DatabaseAccessor<AppDatabase> with _$HabitLogDaoMixin 
 
   Stream<List<HabitLogRow>> watchAllLogs() {
     return (select(habitLogs)
+          ..where((l) => l.isDeleted.equals(false))
           ..orderBy([
             (l) => OrderingTerm(expression: l.date, mode: OrderingMode.desc),
             (l) => OrderingTerm(expression: l.timestamp, mode: OrderingMode.desc),
@@ -93,11 +105,16 @@ class HabitLogDao extends DatabaseAccessor<AppDatabase> with _$HabitLogDaoMixin 
 
   Future<List<HabitLogRow>> getAllLogsOnce() {
     return (select(habitLogs)
+          ..where((l) => l.isDeleted.equals(false))
           ..orderBy([
             (l) => OrderingTerm(expression: l.date, mode: OrderingMode.desc),
             (l) => OrderingTerm(expression: l.timestamp, mode: OrderingMode.desc),
           ]))
         .get();
+  }
+
+  Future<List<HabitLogRow>> getAllLogsIncludingDeleted() {
+    return select(habitLogs).get();
   }
 
   Future<void> upsertLog(HabitLogsCompanion log) {
@@ -115,26 +132,44 @@ class HabitLogDao extends DatabaseAccessor<AppDatabase> with _$HabitLogDaoMixin 
   }
 
   Future<int> deleteLogRow(HabitLogRow log) {
-    return delete(habitLogs).delete(log);
+    return deleteLogById(log.id);
   }
 
-  Future<int> deleteLogById(String id) {
-    return (delete(habitLogs)..where((l) => l.id.equals(id))).go();
+  Future<int> deleteLogById(String id, [DateTime? updatedAt]) {
+    final now = (updatedAt ?? DateTime.now()).toUtc();
+    return (update(habitLogs)..where((l) => l.id.equals(id))).write(
+      HabitLogsCompanion(
+        isDeleted: const Value(true),
+        updatedAt: Value(now),
+      ),
+    );
   }
 
-  Future<int> deleteLogsForHabitAndDate(String habitId, String date) {
-    return (delete(habitLogs)
+  Future<int> deleteLogsForHabitAndDate(String habitId, String date, [DateTime? updatedAt]) {
+    final now = (updatedAt ?? DateTime.now()).toUtc();
+    return (update(habitLogs)
           ..where((l) => l.habitId.equals(habitId) & l.date.equals(date)))
-        .go();
+        .write(
+      HabitLogsCompanion(
+        isDeleted: const Value(true),
+        updatedAt: Value(now),
+      ),
+    );
   }
 
-  Future<int> deleteSlotLog(String habitId, String date, int intervalIndex) {
-    return (delete(habitLogs)
+  Future<int> deleteSlotLog(String habitId, String date, int intervalIndex, [DateTime? updatedAt]) {
+    final now = (updatedAt ?? DateTime.now()).toUtc();
+    return (update(habitLogs)
           ..where((l) =>
               l.habitId.equals(habitId) &
               l.date.equals(date) &
               l.intervalIndex.equals(intervalIndex)))
-        .go();
+        .write(
+      HabitLogsCompanion(
+        isDeleted: const Value(true),
+        updatedAt: Value(now),
+      ),
+    );
   }
 
   Future<void> updateReflectionForHabitAndDate(
