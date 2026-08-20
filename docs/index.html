@@ -261,6 +261,7 @@
         <button class="tab-btn" data-tab="tab-reflection">Reflections</button>
         <button class="tab-btn" data-tab="tab-analytics">Analytics</button>
         <button class="tab-btn" data-tab="tab-mastery">Mastery &amp; Badges</button>
+        <button class="tab-btn" data-tab="tab-backups">Data &amp; Backups</button>
       </div>
 
       <div class="mockup-preview-box">
@@ -557,6 +558,53 @@
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
                   <span><strong>28 Milestone Badges:</strong> Filter by Streaks, Volume, Diversity, and Perfection.</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 9: Backups & Data Portability -->
+        <div id="tab-backups" class="tab-pane">
+          <div class="tab-content-grid wide">
+            <div class="screenshots-pair">
+              <div class="guide-screenshot-wrap">
+                <img src="assets/img/screen_backup_sheet.png" alt="Data and Backup Hub">
+              </div>
+              <div class="guide-screenshot-wrap">
+                <img src="assets/img/screen_backup_encrypted_export.png" alt="AES-256 Encrypted Backup Dialog">
+              </div>
+            </div>
+            <div class="tab-details">
+              <h4>Data Portability &amp; Secure Backups</h4>
+              <p>
+                Take full control of your habit records with zero-knowledge AES-256 encrypted backups, Gzip compression,
+                CSV exports, and deterministic multi-device sync merging.
+              </p>
+              <ul class="tab-feature-list">
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span><strong>AES-256 Encryption:</strong> Zero-knowledge client-side encryption with 100,000 PBKDF2 iterations and passkey generation.</span>
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span><strong>Gzip Archive Compression:</strong> Reduces backup file sizes by up to 90% (.json.gz).</span>
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span><strong>Deterministic Sync:</strong> Last-Write-Wins (LWW) conflict resolution for lossless multi-device merging.</span>
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span><strong>CSV Export:</strong> Standard RFC 4180 tabular spreadsheets for Excel, Sheets, and Python data pipelines.</span>
                 </li>
               </ul>
             </div>

@@ -149,6 +149,15 @@
           <li><a href="#midnight-rollover">Midnight Rollover</a></li>
           <li><a href="#app-settings">Profile &amp; Appearance</a></li>
         </ul>
+
+        <div class="toc-group-title">Data &amp; Backups</div>
+        <ul class="toc-list">
+          <li><a href="#data-backup-hub">Data &amp; Backup Hub</a></li>
+          <li><a href="#backup-compression">Plain &amp; Gzip Compression</a></li>
+          <li><a href="#backup-encryption">AES-256 Encryption</a></li>
+          <li><a href="#sync-merge-engine">Deterministic Sync Merge</a></li>
+          <li><a href="#csv-export">CSV Spreadsheet Export</a></li>
+        </ul>
       </aside>
 
       <!-- Main Documentation Content -->
@@ -227,6 +236,15 @@
               <li><a href="#app-shortcuts">Launcher Shortcuts</a></li>
               <li><a href="#midnight-rollover">Midnight Rollover</a></li>
               <li><a href="#app-settings">Profile &amp; Appearance</a></li>
+            </ul>
+
+            <div class="toc-group-title">Data &amp; Backups</div>
+            <ul class="toc-list">
+              <li><a href="#data-backup-hub">Data &amp; Backup Hub</a></li>
+              <li><a href="#backup-compression">Plain &amp; Gzip Compression</a></li>
+              <li><a href="#backup-encryption">AES-256 Encryption</a></li>
+              <li><a href="#sync-merge-engine">Deterministic Sync Merge</a></li>
+              <li><a href="#csv-export">CSV Spreadsheet Export</a></li>
             </ul>
           </div>
         </div>
@@ -396,9 +414,14 @@
 
               <h3 id="dnd-automation">Do Not Disturb (DND) Automation</h3>
               <p>
-                When granted the Android Notification Policy access permission, Phial automatically silences phone
-                notifications upon starting a focus session and restores your sound profile when the timer ends.
-                </p>
+                When granted the Android Notification Policy access permission, Phial synchronizes Do Not Disturb mode
+                dynamically with the native focus timer service:
+              </p>
+              <ul>
+                <li><strong>Live Mode Synchronization:</strong> Silences interruptions and mutes notifications when the countdown starts or resumes.</li>
+                <li><strong>Dynamic State Badges:</strong> Displays real-time <em>DND Active</em> (when suppressing notifications) or <em>DND Standby</em> status indicators.</li>
+                <li><strong>Automatic Lifecycle Teardown:</strong> Restores your device sound profile immediately when the timer is paused, manually stopped, reset, or completed.</li>
+              </ul>
             </div>
             <div class="guide-screenshot-wrap">
               <img src="assets/img/screen_focus_timer.png" alt="Focus Timer Screen">
@@ -690,6 +713,7 @@
                 <li><strong>Custom User Name:</strong> Set your personal greeting name.</li>
                 <li><strong>Appearance Modes:</strong> Seamlessly switch between System Default, Light Mode, and Dark Mode.</li>
                 <li><strong>Direct Shield Bank Access:</strong> Quick shortcut to your Streak Shields Bank and freeze policies.</li>
+                <li><strong>Data &amp; Backup Hub:</strong> Direct entry point to manage local backups, zero-knowledge encryption, and data exports.</li>
               </ul>
 <h3>Exact Notifications &amp; Actions</h3>
 <ul>
@@ -702,20 +726,21 @@
             </div>
             </div>
 
-          <h3 id="app-widgets">Home Screen AppWidgets (4 Types)</h3>
+          <h3 id="app-widgets">Home Screen AppWidgets (Responsive &amp; Scrollable)</h3>
           <p>
-            Stay on top of your habits directly from your Android home screen with 4 specialized AppWidgets synchronized
-            via <code>SharedPreferences</code> and native method channels:
+            Stay on top of your habits directly from your Android home screen with 4 specialized AppWidgets featuring
+            high-DPI canvas graphics and responsive grid layouts (2x2, 2x3, 2x4, and 4x4):
           </p>
           <ul>
             <li><strong>1. Daily Focus Widget:</strong> Glanceable overview displaying daily completion percentage ring,
               completed habit count, best streak, today's focus minutes, and earned XP.</li>
-            <li><strong>2. Today's Habits Checklist Widget:</strong> Interactive scrollable list of today's habits with
-              1-tap check-in buttons and pinned habit prioritization.</li>
+            <li><strong>2. Today's Habits Checklist Widget:</strong> Interactive scrollable <code>ListView</code> with
+              1-tap check-in fill-in intents, pinned habit prioritization, and real-time state sync.</li>
             <li><strong>3. Streaks at Risk Widget:</strong> Highlights habits scheduled today that are uncompleted to
               protect active streak chains.</li>
             <li><strong>4. XP &amp; Mastery Widget:</strong> Displays current level, title, XP progress
               bar, and next milestone badge progress.</li>
+            <li><strong>Direct Deep Linking:</strong> Tap any widget header to open the app or launch directly into habit creation.</li>
           </ul>
 
           <h3 id="app-shortcuts">Dynamic Launcher Shortcuts</h3>
@@ -733,6 +758,109 @@
             <li>Automatically applies available bank shields if Auto-Consume is enabled.</li>
             <li>Recalculates active streaks and clears day caches.</li>
             <li>Refreshes all home screen AppWidgets for the new day.</li>
+          </ul>
+        </section>
+
+        <!-- Section 9: Data Portability, Secure Backups & Sync Merge -->
+        <section id="data-backup-hub" class="guide-section">
+          <h2>9. Data Portability, Secure Backups &amp; Sync Merge</h2>
+          <p>
+            Phial respects your sovereignty over your data. With zero accounts, zero cloud dependencies, and zero telemetry,
+            all your habits, logs, reflections, focus records, and shield transactions can be backed up, encrypted, and merged
+            losslessly across devices.
+          </p>
+
+          <div class="guide-visual-card">
+            <div class="guide-screenshot-wrap">
+              <img src="assets/img/screen_backup_sheet.png" alt="Data and Backup Sheet">
+            </div>
+            <div>
+              <h3>Data &amp; Backup Hub</h3>
+              <p>
+                Open <strong>Settings → Data &amp; Backup</strong> to access all backup and export options in a unified bottom sheet:
+              </p>
+              <ul>
+                <li><strong>Export Backup (JSON):</strong> Standard JSON or compressed archive for data preservation.</li>
+                <li><strong>Export Encrypted Backup:</strong> Password-protected zero-knowledge encrypted bundle.</li>
+                <li><strong>Import Backup (JSON):</strong> Seamlessly merge or restore data from any previous backup.</li>
+                <li><strong>Export Spreadsheets (CSV):</strong> Clean CSV tables for external spreadsheet analysis.</li>
+              </ul>
+            </div>
+          </div>
+
+          <h3 id="backup-compression">Plain &amp; Compressed Backups (.json &amp; .json.gz)</h3>
+          <p>
+            When exporting a standard backup, you can choose between uncompressed human-readable JSON or bandwidth-friendly
+            Gzip compression:
+          </p>
+
+          <div class="guide-visual-card reverse">
+            <div>
+              <ul>
+                <li><strong>Gzip Archive Compression (.json.gz):</strong> Toggle compression to reduce backup file size by up to 90%, perfect for archiving long tracking histories.</li>
+                <li><strong>Save to Storage:</strong> Direct integration with Android's Storage Access Framework to save files into your <code>Downloads</code>, <code>Documents</code>, or external SD card.</li>
+                <li><strong>Share via Apps:</strong> Send backups directly to Google Drive, Nextcloud, Proton Drive, local network drop, or email using the native Android share sheet.</li>
+                <li><strong>Automatic Format Detection:</strong> On import, Phial automatically detects whether a file is uncompressed or Gzip-compressed and decodes it transparently.</li>
+              </ul>
+            </div>
+            <div class="guide-screenshot-wrap">
+              <img src="assets/img/screen_backup_export_dialog.png" alt="Export JSON Backup Options">
+            </div>
+          </div>
+
+          <h3 id="backup-encryption">Zero-Knowledge AES-256-GCM Encryption</h3>
+          <p>
+            For maximum privacy when storing backups in cloud drives or transmitting over email, Phial provides military-grade
+            client-side encryption:
+          </p>
+
+          <div class="guide-visual-card">
+            <div class="guide-screenshot-wrap">
+              <img src="assets/img/screen_backup_encrypted_export.png" alt="Encrypted Backup Export Dialog">
+            </div>
+            <div>
+              <ul>
+                <li><strong>AES-256-GCM Authenticated Encryption:</strong> Encrypts entire backup payloads with 256-bit Galois/Counter Mode, ensuring both confidentiality and data authenticity.</li>
+                <li><strong>PBKDF2 Key Derivation:</strong> Derives cryptographic keys using <code>HMAC-SHA256</code> with <strong>100,000 iterations</strong> and cryptographically secure random 128-bit salts.</li>
+                <li><strong>Random Passkey Generator:</strong> Generate high-entropy, human-friendly passkeys (e.g. <code>L8MQ-ONHZ-PC17-BHJ1</code>) with 1-tap clipboard copying.</li>
+                <li><strong>Envelope Header Verification:</strong> Validates the <code>PHIAL_ENC_v1</code> magic header to prevent corrupted or tampered payloads from executing.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="guide-visual-card reverse">
+            <div>
+              <ul>
+                <li><strong>Zero-Knowledge Protection:</strong> Encryption and decryption occur 100% locally on your device. Phial holds no keys, backdoors, or master recovery passwords.</li>
+                <li><strong>Safe Decryption Prompt:</strong> When importing any <code>.enc.json</code> or <code>.enc.json.gz</code> file, a secure password dialog unlocks and verifies the payload before merging.</li>
+                <li><strong>Typo &amp; Corruption Protection:</strong> Incorrect passkeys produce clear cryptographic verification warnings without corrupting existing database records.</li>
+              </ul>
+            </div>
+            <div class="guide-screenshot-wrap">
+              <img src="assets/img/screen_backup_encrypted_import.png" alt="Encrypted Backup Import Decryption Prompt">
+            </div>
+          </div>
+
+          <h3 id="sync-merge-engine">Deterministic Sync &amp; Merge Engine (LWW / CRDT)</h3>
+          <p>
+            Phial uses a deterministic sync merge engine backed by Drift Schema V5, enabling offline multi-device merging
+            without data loss:
+          </p>
+          <ul>
+            <li><strong>Timestamped Mutations:</strong> Every habit, check-in log, reflection, focus session, and shield transaction tracks <code>updated_at</code> and <code>created_at</code> timestamps.</li>
+            <li><strong>Last-Write-Wins (LWW) Resolution:</strong> When importing a backup, newer edits automatically take precedence over older records on a per-entity basis.</li>
+            <li><strong>Soft-Delete Tombstones:</strong> Deleted habits are tracked with <code>deleted_at</code> timestamps so deletions propagate cleanly during merge without reviving unwanted habits.</li>
+            <li><strong>Idempotent Merging:</strong> Importing the same backup multiple times is completely lossless and produces identical database state.</li>
+          </ul>
+
+          <h3 id="csv-export">Spreadsheet Data Export (CSV)</h3>
+          <p>
+            Need to analyze your habits in Python, R, Excel, or Google Sheets? Phial exports your full history in standard
+            RFC 4180 CSV format:
+          </p>
+          <ul>
+            <li><strong>habits.csv:</strong> Habit metadata, category, frequency rules, target count, current streak, best streak, creation date, and status.</li>
+            <li><strong>habit_logs.csv:</strong> Individual daily check-in records, numeric progress values, energy levels (1–5), mood tags, micro-notes, and completion timestamps.</li>
           </ul>
         </section>
 

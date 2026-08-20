@@ -72,9 +72,14 @@ graph TD
   - Multi-year completion heatmaps and monthly performance matrices
   - Habit completion trends and wellbeing correlation analysis
 - Platform Integrations
-  - Native home screen widgets for Android (AppWidgets) and iOS (WidgetKit)
+  - Native home screen widgets for Android (AppWidgets) and iOS (WidgetKit) with responsive layouts (2x2, 2x3, 2x4, 4x4) and scrollable interactive checklists
   - Rich notifications with action buttons for direct check-in
-  - Foreground focus timer service for uninterrupted countdowns
+  - Foreground focus timer service with dynamic Do Not Disturb synchronization
+- Data Portability & Secure Backups
+  - Zero-knowledge AES-256-GCM client-side encrypted backups with PBKDF2 key derivation (100,000 iterations) and passkey generator
+  - Plain JSON and Gzip-compressed (.json.gz) archives saving up to 90% storage
+  - Deterministic sync merge engine with Last-Write-Wins (LWW) resolution and soft-delete tombstones
+  - Standard RFC 4180 CSV export for external spreadsheet analysis
 - Privacy First
   - Zero analytics, zero tracking, and fully offline SQLite local storage
 
@@ -86,6 +91,7 @@ graph TD
 | UI Framework               | Flutter 3.47+                 | Material 3, custom canvas charts                      |
 | State Management           | Riverpod 2.6+                 | `AsyncNotifier`, `StateNotifier`, `ProviderContainer` |
 | Local Database             | Drift 2.24+                   | SQLite with reactive streams, DAOs, schema migrations |
+| Cryptography & Sync        | `cryptography` / `crypto`     | AES-256-GCM, PBKDF2-HMAC-SHA256, Gzip compression     |
 | Native Android             | Kotlin / Gradle               | Jetpack Glance AppWidgets, Foreground Service         |
 | Native iOS                 | Swift / WidgetKit             | Shared UserDefaults synchronization                   |
 | Scheduling & Notifications | `flutter_local_notifications` | Timezone-aware local reminders                        |
