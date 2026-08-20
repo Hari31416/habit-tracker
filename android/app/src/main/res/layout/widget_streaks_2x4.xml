@@ -71,7 +71,7 @@
             android:id="@+id/tv_bottom_overall_streak"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="🔥 Top overall streak: 0 days"
+            android:text="Top overall streak: 0 days"
             android:textColor="#F59E0B"
             android:textSize="10sp"
             android:textStyle="bold" />

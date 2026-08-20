@@ -105,7 +105,7 @@
             android:layout_weight="1"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="🔥 0d streak"
+            android:text="0d streak"
             android:textColor="#F59E0B"
             android:textSize="11sp"
             android:textStyle="bold" />

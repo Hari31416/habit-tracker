@@ -17,6 +17,7 @@ import 'services/notification_service.dart';
 import 'ui/detail/controllers/timer_state_holder.dart';
 import 'ui/detail/focus_timer_screen.dart';
 import 'ui/detail/habit_detail_screen.dart';
+import 'ui/form/habit_form_bottom_sheet.dart';
 import 'ui/navigation/main_navigation_shell.dart';
 import 'ui/navigation/screen.dart';
 import 'ui/theme/app_theme.dart';
@@ -111,7 +112,15 @@ class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
       final uri = call.arguments as String?;
       if (uri != null && uri.isNotEmpty) {
         final route = Screen.fromUri(uri);
-        if (route != Screen.daily) {
+        if (route == Screen.addHabit) {
+          ref.read(activeNavigationTabProvider.notifier).state = 0;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final ctx = appNavigatorKey.currentContext;
+            if (ctx != null) {
+              HabitFormBottomSheet.show(ctx);
+            }
+          });
+        } else if (route != Screen.daily) {
           appNavigatorKey.currentState?.pushNamed(route);
         }
       }
@@ -144,7 +153,15 @@ class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
 
     if (deepLink != null) {
       final route = Screen.fromUri(deepLink);
-      if (route == Screen.daily) {
+      if (route == Screen.addHabit) {
+        ref.read(activeNavigationTabProvider.notifier).state = 0;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final ctx = appNavigatorKey.currentContext;
+          if (ctx != null) {
+            HabitFormBottomSheet.show(ctx);
+          }
+        });
+      } else if (route == Screen.daily) {
         ref.read(activeNavigationTabProvider.notifier).state = 0;
       } else if (route == Screen.matrix) {
         ref.read(activeNavigationTabProvider.notifier).state = 1;

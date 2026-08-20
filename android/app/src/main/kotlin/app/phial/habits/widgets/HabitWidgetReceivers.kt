@@ -69,13 +69,13 @@ abstract class BaseHabitWidgetProvider : AppWidgetProvider() {
         if (options == null) return false
         val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)
         val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0)
-        return minWidth < 220 && minHeight < 200
+        return minWidth < 200 && minHeight < 180
     }
 
-    protected fun isLargeSize(options: Bundle?): Boolean {
+    protected fun isTallOrLargeSize(options: Bundle?): Boolean {
         if (options == null) return false
         val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0)
-        return minHeight >= 200
+        return minHeight >= 180
     }
 }
 
@@ -190,11 +190,11 @@ class TodaysHabitsWidgetReceiver : BaseHabitWidgetProvider() {
         for (appWidgetId in appWidgetIds) {
             val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
             val isSmall = isSmallSize(options)
-            val isLarge = isLargeSize(options)
+            val isTallOrLarge = isTallOrLargeSize(options)
 
             val layoutId = when {
                 isSmall -> R.layout.widget_todays_habits_2x2
-                isLarge -> R.layout.widget_todays_habits_4x4
+                isTallOrLarge -> R.layout.widget_todays_habits_4x4
                 else -> R.layout.widget_todays_habits_2x4
             }
 
@@ -223,12 +223,12 @@ class TodaysHabitsWidgetReceiver : BaseHabitWidgetProvider() {
                         density = density
                     )
                     setImageViewBitmap(R.id.iv_status_dots_2x2, dotsBitmap)
-                } else if (isLarge) {
+                } else if (isTallOrLarge) {
                     setOnClickPendingIntent(R.id.ll_todays_habits_header, createActivityPendingIntent(context, appWidgetId))
-                    setOnClickPendingIntent(R.id.tv_bottom_add_pill, createDeepLinkPendingIntent(context, appWidgetId, "app://habits/daily"))
+                    setOnClickPendingIntent(R.id.tv_bottom_add_pill, createDeepLinkPendingIntent(context, appWidgetId, "app://habits/add_habit"))
 
                     setTextViewText(R.id.tv_completed_header_4x4, "$completedCount/$totalScheduled completed")
-                    setTextViewText(R.id.tv_bottom_streak, "🔥 ${topStreak}d streak")
+                    setTextViewText(R.id.tv_bottom_streak, "${topStreak}d streak")
                     setTextViewText(R.id.tv_bottom_xp, "+$todayXp XP")
 
                     val ringBitmap = WidgetGraphicsHelper.drawCircularProgressRing(
@@ -287,12 +287,12 @@ class TodaysHabitsWidgetReceiver : BaseHabitWidgetProvider() {
                         }
                     }
                 } else {
-                    // Standard 2x4
+                    // Standard 2x3 / 2x4
                     setOnClickPendingIntent(R.id.ll_todays_habits_header, createActivityPendingIntent(context, appWidgetId))
-                    setOnClickPendingIntent(R.id.tv_bottom_add, createDeepLinkPendingIntent(context, appWidgetId, "app://habits/daily"))
+                    setOnClickPendingIntent(R.id.tv_bottom_add, createDeepLinkPendingIntent(context, appWidgetId, "app://habits/add_habit"))
 
                     setTextViewText(R.id.tv_habit_counts, "$completedCount/$totalScheduled")
-                    setTextViewText(R.id.tv_bottom_streak, "🔥 ${topStreak}d streak")
+                    setTextViewText(R.id.tv_bottom_streak, "${topStreak}d streak")
                     setTextViewText(R.id.tv_bottom_xp, "+$todayXp XP")
 
                     removeAllViews(R.id.ll_habits_container)
@@ -363,8 +363,6 @@ class DailyFocusWidgetReceiver : BaseHabitWidgetProvider() {
         var ratePercent = 0
         var remainingCount = 0
         var xpEarnedToday = 0
-        var nextHabitTitle: String? = null
-        var nextHabitStreak = 0
         val weeklyDays = mutableListOf<DayAdherence>()
 
         if (jsonStr != null) {
@@ -375,8 +373,6 @@ class DailyFocusWidgetReceiver : BaseHabitWidgetProvider() {
                 ratePercent = obj.optInt("ratePercent", 0)
                 remainingCount = obj.optInt("remainingCount", (totalScheduled - completedCount).coerceAtLeast(0))
                 xpEarnedToday = obj.optInt("xpEarnedToday", 0)
-                nextHabitTitle = if (obj.has("nextHabitTitle") && !obj.isNull("nextHabitTitle")) obj.getString("nextHabitTitle") else null
-                nextHabitStreak = obj.optInt("nextHabitStreak", 0)
 
                 val historyArr = obj.optJSONArray("weeklyHistory")
                 if (historyArr != null) {
@@ -398,53 +394,30 @@ class DailyFocusWidgetReceiver : BaseHabitWidgetProvider() {
         for (appWidgetId in appWidgetIds) {
             val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
             val isSmall = isSmallSize(options)
-            val isLarge = isLargeSize(options)
 
-            val layoutId = when {
-                isSmall -> R.layout.widget_daily_focus_2x2
-                isLarge -> R.layout.widget_daily_focus_4x4
-                else -> R.layout.widget_daily_focus_2x4
-            }
+            // Only 2x2 and 2x3 permitted for Daily Focus widget
+            val layoutId = if (isSmall) R.layout.widget_daily_focus_2x2 else R.layout.widget_daily_focus_2x4
 
             val views = RemoteViews(context.packageName, layoutId).apply {
                 setOnClickPendingIntent(R.id.widget_root, createActivityPendingIntent(context, appWidgetId))
 
                 if (isSmall) {
-                    setTextViewText(R.id.tv_progress_ratio_2x2, "$completedCount/$totalScheduled")
-                    setProgressBar(R.id.pb_daily_progress_2x2, 100, ratePercent, false)
-                    setTextViewText(R.id.tv_remaining_2x2, "$remainingCount left")
-                } else if (isLarge) {
                     val ringBitmap = WidgetGraphicsHelper.drawCircularProgressRing(
                         percentage = ratePercent,
                         subtitle = "",
-                        sizeDp = 65,
-                        strokeWidthDp = 6f,
-                        density = density
+                        sizeDp = 56,
+                        strokeWidthDp = 5f,
+                        density = density,
+                        showCheckInside = ratePercent >= 100
                     )
-                    setImageViewBitmap(R.id.iv_progress_ring_4x4, ringBitmap)
-
-                    setTextViewText(R.id.tv_rate_percent_4x4, "$ratePercent% completed")
-                    setTextViewText(R.id.tv_completed_count_4x4, "✓ $completedCount completed")
-                    setTextViewText(R.id.tv_remaining_count_4x4, "○ $remainingCount remaining")
-                    setTextViewText(R.id.tv_xp_available_4x4, "🏆 +$xpEarnedToday XP available")
-
-                    if (!nextHabitTitle.isNullOrBlank()) {
-                        setTextViewText(R.id.tv_next_up_title, nextHabitTitle)
-                        setTextViewText(R.id.tv_next_up_streak, "${nextHabitStreak}d streak")
-                    } else {
-                        setTextViewText(R.id.tv_next_up_title, "All habits done for today")
-                        setTextViewText(R.id.tv_next_up_streak, "✓ Done")
-                    }
-
-                    val weekChartBitmap = WidgetGraphicsHelper.drawWeeklyBarChart(
-                        days = weeklyDays,
-                        widthDp = 220,
-                        heightDp = 50,
-                        density = density
+                    setImageViewBitmap(R.id.iv_progress_ring_2x2, ringBitmap)
+                    setTextViewText(R.id.tv_remaining_2x2, "$completedCount of $totalScheduled completed")
+                    setTextViewText(
+                        R.id.tv_sub_remaining_2x2,
+                        if (remainingCount > 0) "$remainingCount left" else "All completed!"
                     )
-                    setImageViewBitmap(R.id.iv_weekly_completion_4x4, weekChartBitmap)
                 } else {
-                    // Standard 2x4
+                    // Standard 2x3
                     setTextViewText(R.id.tv_rate_percent_2x4, "$ratePercent%")
                     setTextViewText(R.id.tv_completed_count_2x4, "$completedCount of $totalScheduled completed")
                     setProgressBar(R.id.pb_daily_progress_2x4, 100, ratePercent, false)
@@ -493,11 +466,11 @@ class StreaksWidgetReceiver : BaseHabitWidgetProvider() {
         for (appWidgetId in appWidgetIds) {
             val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
             val isSmall = isSmallSize(options)
-            val isLarge = isLargeSize(options)
+            val isTallOrLarge = isTallOrLargeSize(options)
 
             val layoutId = when {
                 isSmall -> R.layout.widget_streaks_2x2
-                isLarge -> R.layout.widget_streaks_4x4
+                isTallOrLarge -> R.layout.widget_streaks_4x4
                 else -> R.layout.widget_streaks_2x4
             }
 
@@ -506,18 +479,18 @@ class StreaksWidgetReceiver : BaseHabitWidgetProvider() {
 
                 if (isSmall) {
                     setTextViewText(R.id.tv_active_streaks_count_2x2, "$activeStreaksCount")
-                    val flameBitmap = WidgetGraphicsHelper.drawFlameRow(
+                    val dropletBitmap = WidgetGraphicsHelper.drawDropletRow(
                         activeCount = activeStreaksCount,
                         maxDisplay = 5,
                         widthDp = 110,
-                        heightDp = 22,
+                        heightDp = 20,
                         density = density
                     )
-                    setImageViewBitmap(R.id.iv_flame_row_2x2, flameBitmap)
-                } else if (isLarge) {
+                    setImageViewBitmap(R.id.iv_flame_row_2x2, dropletBitmap)
+                } else if (isTallOrLarge) {
                     setOnClickPendingIntent(R.id.ll_streaks_header, createActivityPendingIntent(context, appWidgetId))
                     setTextViewText(R.id.tv_active_streaks_badge, "$activeStreaksCount Active")
-                    setTextViewText(R.id.tv_bottom_overall_streak, "🔥 Top overall streak: $bestOverall days")
+                    setTextViewText(R.id.tv_bottom_overall_streak, "Top overall streak: $bestOverall days")
 
                     removeAllViews(R.id.ll_streaks_container)
                     if (habitCount == 0) {
@@ -563,10 +536,10 @@ class StreaksWidgetReceiver : BaseHabitWidgetProvider() {
                         }
                     }
                 } else {
-                    // Standard 2x4
+                    // Standard 2x3 (shows all 5 active habits)
                     setOnClickPendingIntent(R.id.ll_streaks_header, createActivityPendingIntent(context, appWidgetId))
                     setTextViewText(R.id.tv_active_streaks_badge, "$activeStreaksCount")
-                    setTextViewText(R.id.tv_bottom_overall_streak, "🔥 Top overall streak: $bestOverall days")
+                    setTextViewText(R.id.tv_bottom_overall_streak, "Top overall streak: $bestOverall days")
 
                     removeAllViews(R.id.ll_streaks_container)
                     if (habitCount == 0) {
@@ -576,7 +549,7 @@ class StreaksWidgetReceiver : BaseHabitWidgetProvider() {
                         setViewVisibility(R.id.tv_empty_streaks, View.GONE)
                         setViewVisibility(R.id.ll_streaks_container, View.VISIBLE)
 
-                        val maxDisplay = minOf(habitCount, 3)
+                        val maxDisplay = minOf(habitCount, 5)
                         for (i in 0 until maxDisplay) {
                             val h = habitsArray!!.getJSONObject(i)
                             val id = h.optString("id")
@@ -654,13 +627,9 @@ class XpMasteryWidgetReceiver : BaseHabitWidgetProvider() {
         for (appWidgetId in appWidgetIds) {
             val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
             val isSmall = isSmallSize(options)
-            val isLarge = isLargeSize(options)
 
-            val layoutId = when {
-                isSmall -> R.layout.widget_xp_mastery_2x2
-                isLarge -> R.layout.widget_xp_mastery_4x4
-                else -> R.layout.widget_xp_mastery_2x4
-            }
+            // Only 2x2 and 2x3 permitted for XP widget
+            val layoutId = if (isSmall) R.layout.widget_xp_mastery_2x2 else R.layout.widget_xp_mastery_2x4
 
             val views = RemoteViews(context.packageName, layoutId).apply {
                 setOnClickPendingIntent(R.id.widget_root, createActivityPendingIntent(context, appWidgetId))
@@ -676,30 +645,8 @@ class XpMasteryWidgetReceiver : BaseHabitWidgetProvider() {
                     setTextViewText(R.id.tv_rank_title_2x2, title)
                     setTextViewText(R.id.tv_current_xp_2x2, "$totalXp XP")
                     setProgressBar(R.id.pb_xp_progress_2x2, 100, progress, false)
-                } else if (isLarge) {
-                    val medalBitmap = WidgetGraphicsHelper.drawLevelShieldBadge(
-                        level = level,
-                        sizeDp = 60,
-                        density = density,
-                        withRibbon = true
-                    )
-                    setImageViewBitmap(R.id.iv_level_shield_4x4, medalBitmap)
-
-                    setTextViewText(R.id.tv_level_name_4x4, "Level $level")
-                    setTextViewText(R.id.tv_rank_title_4x4, title)
-                    setTextViewText(R.id.tv_xp_ratio_4x4, "$totalXp XP / $nextTargetXp")
-                    setProgressBar(R.id.pb_xp_progress_4x4, 100, progress, false)
-
-                    setTextViewText(R.id.tv_card_xp_needed, "↗ $neededXp XP\nto Level ${level + 1}")
-                    setTextViewText(R.id.tv_card_badges, "⭐ $unlockedBadges/$totalBadges\nBadges")
-                    setTextViewText(R.id.tv_card_progress_pct, "○ $progress%\nProgress")
-
-                    setOnClickPendingIntent(
-                        R.id.ll_card_badges,
-                        createDeepLinkPendingIntent(context, appWidgetId * 100 + 1, "app://habits/badges")
-                    )
                 } else {
-                    // Standard 2x4
+                    // Standard 2x3
                     val shieldBitmap = WidgetGraphicsHelper.drawLevelShieldBadge(
                         level = level,
                         sizeDp = 48,
@@ -713,7 +660,7 @@ class XpMasteryWidgetReceiver : BaseHabitWidgetProvider() {
                     setProgressBar(R.id.pb_xp_progress_2x4, 100, progress, false)
 
                     setTextViewText(R.id.tv_xp_needed_2x4, "$neededXp XP to Level ${level + 1}")
-                    setTextViewText(R.id.tv_badges_count_2x4, "🏆 $unlockedBadges/$totalBadges Badges")
+                    setTextViewText(R.id.tv_badges_count_2x4, "$unlockedBadges/$totalBadges Badges")
                 }
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)

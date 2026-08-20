@@ -4,57 +4,48 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/widget_background"
-    android:gravity="center_horizontal"
+    android:gravity="center"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:paddingLeft="8dp"
+    android:paddingTop="6dp"
+    android:paddingRight="8dp"
+    android:paddingBottom="6dp">
 
     <!-- Header -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Today"
+        android:text="Daily Progress"
         android:textColor="#F1F5F4"
-        android:textSize="13sp"
+        android:textSize="11sp"
         android:textStyle="bold" />
 
-    <!-- Big Ratio: 3/5 -->
-    <TextView
-        android:id="@+id/tv_progress_ratio_2x2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:text="0/0"
-        android:textColor="#10B981"
-        android:textSize="26sp"
-        android:textStyle="bold" />
+    <!-- Circular Progress Ring (Centered, compact) -->
+    <ImageView
+        android:id="@+id/iv_progress_ring_2x2"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="2dp"
+        android:contentDescription="Daily progress ring" />
 
-    <!-- Completed Label -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="completed"
-        android:textColor="#9EADA9"
-        android:textSize="11sp" />
-
-    <!-- Progress Bar -->
-    <ProgressBar
-        android:id="@+id/pb_daily_progress_2x2"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="6dp"
-        android:layout_marginTop="10dp"
-        android:max="100"
-        android:progress="0"
-        android:progressDrawable="@drawable/widget_progress_bar_drawable" />
-
-    <!-- Remaining Text: 2 left -->
+    <!-- Completion Count -->
     <TextView
         android:id="@+id/tv_remaining_2x2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:text="0 of 0 completed"
+        android:textColor="#10B981"
+        android:textSize="10sp"
+        android:textStyle="bold" />
+
+    <!-- Subtitle / Remaining count -->
+    <TextView
+        android:id="@+id/tv_sub_remaining_2x2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:text="0 left"
         android:textColor="#9EADA9"
-        android:textSize="11sp" />
+        android:textSize="9sp" />
 
 </LinearLayout>

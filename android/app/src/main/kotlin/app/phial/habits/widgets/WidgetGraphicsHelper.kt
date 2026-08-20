@@ -77,7 +77,7 @@ object WidgetGraphicsHelper {
             val baseline = centerY - (fontMetrics.ascent + fontMetrics.descent) / 2f
             canvas.drawText("✓", centerX, baseline, textPaint)
         } else {
-            textPaint.textSize = sizePx * 0.28f
+            textPaint.textSize = if (subtitle.isEmpty()) sizePx * 0.32f else sizePx * 0.28f
             val fontMetrics = textPaint.fontMetrics
             val mainBaseline = if (subtitle.isNotEmpty()) {
                 centerY - (fontMetrics.descent) - (1f * density)
@@ -317,7 +317,7 @@ object WidgetGraphicsHelper {
         return bitmap
     }
 
-    fun drawFlameRow(
+    fun drawDropletRow(
         activeCount: Int,
         maxDisplay: Int = 5,
         widthDp: Int,
@@ -331,29 +331,39 @@ object WidgetGraphicsHelper {
 
         val count = maxDisplay.coerceAtLeast(1)
         val spacing = widthPx.toFloat() / count
+        val dropRadius = min(spacing * 0.32f, (heightPx / 2f) * 0.7f)
         val centerY = heightPx / 2f
 
         val activePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = COLOR_AMBER
-            textSize = heightPx * 0.7f
-            textAlign = Paint.Align.CENTER
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            style = Paint.Style.FILL
         }
 
         val inactivePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = COLOR_DARK_MUTED
-            textSize = heightPx * 0.7f
-            textAlign = Paint.Align.CENTER
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            style = Paint.Style.FILL
         }
-
-        val metrics = activePaint.fontMetrics
-        val baseline = centerY - (metrics.ascent + metrics.descent) / 2f
 
         for (i in 0 until count) {
             val cx = (i + 0.5f) * spacing
             val isActive = i < activeCount
-            canvas.drawText("🔥", cx, baseline, if (isActive) activePaint else inactivePaint)
+            val paint = if (isActive) activePaint else inactivePaint
+
+            val path = Path().apply {
+                moveTo(cx, centerY - dropRadius * 1.35f)
+                cubicTo(
+                    cx + dropRadius * 1.15f, centerY - dropRadius * 0.1f,
+                    cx + dropRadius * 1.15f, centerY + dropRadius * 0.9f,
+                    cx, centerY + dropRadius * 1.15f
+                )
+                cubicTo(
+                    cx - dropRadius * 1.15f, centerY + dropRadius * 0.9f,
+                    cx - dropRadius * 1.15f, centerY - dropRadius * 0.1f,
+                    cx, centerY - dropRadius * 1.35f
+                )
+                close()
+            }
+            canvas.drawPath(path, paint)
         }
 
         return bitmap

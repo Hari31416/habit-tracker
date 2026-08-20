@@ -58,6 +58,7 @@ abstract class Screen {
     }
     final first = segments[0];
     if (first == daily) return daily;
+    if (first == addHabit || first == 'create' || first == 'add') return addHabit;
     if (first == matrix) return matrix;
     if (first == analytics) return analytics;
     if (first == badges) return badges;
