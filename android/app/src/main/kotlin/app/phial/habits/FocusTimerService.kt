@@ -26,6 +26,8 @@ class FocusTimerService : Service() {
     private val mainHandler = Handler(Looper.getMainLooper())
     private var tickerRunnable: Runnable? = null
     private var previousInterruptionFilter: Int = NotificationManager.INTERRUPTION_FILTER_ALL
+    private var isDndActive: Boolean = false
+    private var explicitDndEnabled: Boolean? = null
 
     private var habitId: String = ""
     private var habitTitle: String = "Focus Session"
@@ -46,24 +48,43 @@ class FocusTimerService : Service() {
         const val ACTION_STOP = "app.phial.habits.ACTION_STOP"
         const val ACTION_RESET = "app.phial.habits.ACTION_RESET"
         const val ACTION_ADJUST = "app.phial.habits.ACTION_ADJUST"
+        const val ACTION_SET_DND = "app.phial.habits.ACTION_SET_DND"
 
         const val EXTRA_HABIT_ID = "extra_habit_id"
         const val EXTRA_HABIT_TITLE = "extra_habit_title"
         const val EXTRA_DURATION_MINUTES = "extra_duration_minutes"
         const val EXTRA_DELTA_SECONDS = "extra_delta_seconds"
+        const val EXTRA_DND_ENABLED = "extra_dnd_enabled"
 
-        fun startTimer(context: Context, habitId: String, habitTitle: String, durationMinutes: Double) {
+        fun startTimer(
+            context: Context,
+            habitId: String,
+            habitTitle: String,
+            durationMinutes: Double,
+            dndEnabled: Boolean = false
+        ) {
             val intent = Intent(context, FocusTimerService::class.java).apply {
                 action = ACTION_START
                 putExtra(EXTRA_HABIT_ID, habitId)
                 putExtra(EXTRA_HABIT_TITLE, habitTitle)
                 putExtra(EXTRA_DURATION_MINUTES, durationMinutes)
+                putExtra(EXTRA_DND_ENABLED, dndEnabled)
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent)
             } else {
                 context.startService(intent)
             }
+        }
+
+        fun setDndMode(context: Context, enabled: Boolean) {
+            val intent = Intent(context, FocusTimerService::class.java).apply {
+                action = ACTION_SET_DND
+                putExtra(EXTRA_DND_ENABLED, enabled)
+            }
+            try {
+                context.startService(intent)
+            } catch (_: Exception) {}
         }
 
         fun pauseTimer(context: Context) {
@@ -119,6 +140,8 @@ class FocusTimerService : Service() {
                 habitId = intent.getStringExtra(EXTRA_HABIT_ID) ?: ""
                 habitTitle = intent.getStringExtra(EXTRA_HABIT_TITLE) ?: "Focus Session"
                 val duration = intent.getDoubleExtra(EXTRA_DURATION_MINUTES, 25.0)
+                val dndExtra = intent.getBooleanExtra(EXTRA_DND_ENABLED, false)
+                explicitDndEnabled = dndExtra
                 totalSeconds = (duration * 60).toLong().coerceAtLeast(60L)
                 remainingSeconds = totalSeconds
                 isRunning = true
@@ -132,11 +155,23 @@ class FocusTimerService : Service() {
                 startCountdown()
                 MainActivity.updateAllAppWidgets(applicationContext)
             }
+            ACTION_SET_DND -> {
+                val enabled = intent.getBooleanExtra(EXTRA_DND_ENABLED, false)
+                explicitDndEnabled = enabled
+                if (isRunning) {
+                    if (enabled) {
+                        activateDnd()
+                    } else {
+                        deactivateDnd()
+                    }
+                }
+            }
             ACTION_PAUSE -> {
                 if (isRunning) {
                     isRunning = false
                     isPaused = true
                     stopCountdown()
+                    deactivateDnd()
                     saveStateToPreferences("Paused")
                     emitStateToFlutter()
                     updateNotification()
@@ -451,20 +486,34 @@ class FocusTimerService : Service() {
 
     private fun activateDnd() {
         val prefs = getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
-        val dndEnabled = prefs.getBoolean("flutter.key_focus_dnd_enabled", prefs.getBoolean("key_focus_dnd_enabled", false))
+        val dndPref = prefs.getBoolean("flutter.key_focus_dnd_enabled", prefs.getBoolean("key_focus_dnd_enabled", false))
+        val dndEnabled = explicitDndEnabled ?: dndPref
         if (!dndEnabled) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (!notificationManager.isNotificationPolicyAccessGranted) return
-            previousInterruptionFilter = notificationManager.currentInterruptionFilter
-            notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
+            if (!isDndActive) {
+                previousInterruptionFilter = notificationManager.currentInterruptionFilter
+                isDndActive = true
+            }
+            try {
+                notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
+            } catch (_: Exception) {}
         }
     }
 
     private fun deactivateDnd() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (!notificationManager.isNotificationPolicyAccessGranted) return
-            if (notificationManager.currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_PRIORITY) {
-                notificationManager.setInterruptionFilter(previousInterruptionFilter)
+            if (isDndActive) {
+                try {
+                    val filterToRestore = if (previousInterruptionFilter != NotificationManager.INTERRUPTION_FILTER_PRIORITY) {
+                        previousInterruptionFilter
+                    } else {
+                        NotificationManager.INTERRUPTION_FILTER_ALL
+                    }
+                    notificationManager.setInterruptionFilter(filterToRestore)
+                } catch (_: Exception) {}
+                isDndActive = false
             }
         }
     }

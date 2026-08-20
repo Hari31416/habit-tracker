@@ -18,6 +18,14 @@ class DndService {
     }
   }
 
+  /// Sets Do Not Disturb mode for active focus timer sessions.
+  static Future<void> setDndMode(bool enabled) async {
+    if (kIsWeb || !Platform.isAndroid) return;
+    try {
+      await _channel.invokeMethod('setDndMode', {'enabled': enabled});
+    } catch (_) {}
+  }
+
   /// Opens the system Do Not Disturb / Notification Policy access settings page.
   static Future<void> openDndSettings() async {
     if (kIsWeb || !Platform.isAndroid) return;

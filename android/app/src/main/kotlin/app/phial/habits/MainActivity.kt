@@ -85,7 +85,21 @@ class MainActivity : FlutterActivity() {
                     val habitId = call.argument<String>("habitId") ?: ""
                     val habitTitle = call.argument<String>("habitTitle") ?: "Focus Session"
                     val durationMinutes = call.argument<Double>("durationMinutes") ?: 25.0
-                    FocusTimerService.startTimer(applicationContext, habitId, habitTitle, durationMinutes)
+                    val dndEnabled = call.argument<Boolean>("dndEnabled") ?: false
+                    FocusTimerService.startTimer(applicationContext, habitId, habitTitle, durationMinutes, dndEnabled)
+                    result.success(true)
+                }
+                "setDndMode" -> {
+                    val enabled = call.argument<Boolean>("enabled") ?: false
+                    FocusTimerService.setDndMode(applicationContext, enabled)
+                    if (!enabled) {
+                        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && notificationManager.isNotificationPolicyAccessGranted) {
+                            try {
+                                notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
+                            } catch (_: Exception) {}
+                        }
+                    }
                     result.success(true)
                 }
                 "pauseTimer" -> {

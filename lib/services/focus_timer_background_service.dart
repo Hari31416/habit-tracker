@@ -71,6 +71,7 @@ class FocusTimerBackgroundService {
     required String habitId,
     required String habitTitle,
     required double durationMinutes,
+    bool dndEnabled = false,
   }) {
     _countdownTimer?.cancel();
     final totalSec = (durationMinutes * 60).round().clamp(60, 86400);
@@ -88,6 +89,7 @@ class FocusTimerBackgroundService {
       'habitId': habitId,
       'habitTitle': habitTitle,
       'durationMinutes': durationMinutes,
+      'dndEnabled': dndEnabled,
     });
 
     _startTimerLoop();

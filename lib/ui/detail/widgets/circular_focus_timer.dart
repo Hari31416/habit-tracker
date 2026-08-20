@@ -344,6 +344,7 @@ class _CircularFocusTimerState extends ConsumerState<CircularFocusTimer> {
                           widget.habitId,
                           widget.habitTitle,
                           durationMins,
+                          dndEnabled: dndEnabled,
                         );
                         break;
                     }
@@ -590,7 +591,11 @@ class _CircularFocusTimerState extends ConsumerState<CircularFocusTimer> {
                       : theme.colorScheme.onSurfaceVariant,
                 ),
                 label: Text(
-                  dndEnabled ? 'DND On' : 'DND Off',
+                  !dndEnabled
+                      ? 'DND Off'
+                      : (status == TimerStatus.running
+                          ? 'DND Active'
+                          : 'DND On (Standby)'),
                   style: theme.textTheme.labelSmall?.copyWith(
                     fontWeight: FontWeight.w500,
                     color: dndEnabled
@@ -604,13 +609,40 @@ class _CircularFocusTimerState extends ConsumerState<CircularFocusTimer> {
                   if (!dndEnabled) {
                     final granted = await DndService.isDndAccessGranted();
                     if (!granted) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Please grant Do Not Disturb access in Settings to silence notifications during focus sessions.',
+                            ),
+                            duration: Duration(seconds: 4),
+                          ),
+                        );
+                      }
                       await DndService.openDndSettings();
                       return;
                     }
                   }
+                  final next = !dndEnabled;
                   await ref
                       .read(focusDndProvider.notifier)
-                      .setFocusDndEnabled(!dndEnabled);
+                      .setFocusDndEnabled(next);
+
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          next
+                              ? (status == TimerStatus.running
+                                  ? 'Do Not Disturb activated for this focus session.'
+                                  : 'DND will automatically activate when you start the timer.')
+                              : 'Do Not Disturb turned off.',
+                        ),
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  }
                 },
               ),
             ],

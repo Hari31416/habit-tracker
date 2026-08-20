@@ -141,7 +141,12 @@ class TimerStateHolderNotifier extends StateNotifier<TimerState> {
     } catch (_) {}
   }
 
-  void start(String habitId, String habitTitle, double durationMinutes) {
+  void start(
+    String habitId,
+    String habitTitle,
+    double durationMinutes, {
+    bool dndEnabled = false,
+  }) {
     _ticker?.cancel();
     final totalSec = (durationMinutes * 60).toInt().clamp(60, 24 * 3600);
     final endTime = DateTime.now().add(Duration(seconds: totalSec));
@@ -159,6 +164,7 @@ class TimerStateHolderNotifier extends StateNotifier<TimerState> {
       'habitId': habitId,
       'habitTitle': habitTitle,
       'durationMinutes': durationMinutes,
+      'dndEnabled': dndEnabled,
     });
 
     _startTicker();
@@ -377,7 +383,12 @@ class TimerStateHolder {
     }
   }
 
-  static void start(String habitId, String habitTitle, double durationMinutes) {
+  static void start(
+    String habitId,
+    String habitTitle,
+    double durationMinutes, {
+    bool dndEnabled = false,
+  }) {
     _ticker?.cancel();
     final totalSec = (durationMinutes * 60).toInt().clamp(60, 24 * 3600);
     final endTime = DateTime.now().add(Duration(seconds: totalSec));
@@ -395,6 +406,7 @@ class TimerStateHolder {
       'habitId': habitId,
       'habitTitle': habitTitle,
       'durationMinutes': durationMinutes,
+      'dndEnabled': dndEnabled,
     });
 
     _startTicker();

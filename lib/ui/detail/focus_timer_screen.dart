@@ -24,12 +24,15 @@ class FocusTimerScreen extends ConsumerStatefulWidget {
   ConsumerState<FocusTimerScreen> createState() => _FocusTimerScreenState();
 }
 
-class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen> {
+class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen>
+    with WidgetsBindingObserver {
   AmbientAudioNotifier? _audioNotifier;
+  bool _pendingDndEnable = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // Hide system status & navigation bars for distraction-free mode
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   }
@@ -41,7 +44,31 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _pendingDndEnable) {
+      _checkPendingDnd();
+    }
+  }
+
+  Future<void> _checkPendingDnd() async {
+    final granted = await DndService.isDndAccessGranted();
+    if (granted && mounted) {
+      _pendingDndEnable = false;
+      await ref.read(focusDndProvider.notifier).setFocusDndEnabled(true);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Do Not Disturb access granted. DND is now enabled.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     // Stop ambient audio playback on leaving focus mode
     _audioNotifier?.stopPlayback();
     // Restore standard edge-to-edge UI
@@ -92,6 +119,10 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen> {
       TimerStatus.completed => 'Completed!',
       TimerStatus.idle => 'Ready',
     };
+
+    final dndLabel = !dndEnabled
+        ? 'DND Off'
+        : (status == TimerStatus.running ? 'DND Active' : 'DND On (Standby)');
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -253,8 +284,11 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen> {
                                       : 25.0;
                                   timerNotifier.start(
                                     widget.habitId,
-                                    timerState.habitTitle,
+                                    timerState.habitTitle.isNotEmpty
+                                        ? timerState.habitTitle
+                                        : 'Focus Session',
                                     durationMins,
+                                    dndEnabled: dndEnabled,
                                   );
                                   break;
                               }
@@ -286,7 +320,7 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen> {
                                 : theme.colorScheme.onSurfaceVariant,
                           ),
                           label: Text(
-                            dndEnabled ? 'DND On' : 'DND Off',
+                            dndLabel,
                             style: theme.textTheme.labelSmall?.copyWith(
                               fontWeight: FontWeight.w500,
                               color: dndEnabled
@@ -301,13 +335,41 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen> {
                               final granted =
                                   await DndService.isDndAccessGranted();
                               if (!granted) {
+                                _pendingDndEnable = true;
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Please grant Do Not Disturb access in Settings to silence notifications during focus sessions.',
+                                      ),
+                                      duration: Duration(seconds: 4),
+                                    ),
+                                  );
+                                }
                                 await DndService.openDndSettings();
                                 return;
                               }
                             }
+                            final next = !dndEnabled;
                             await ref
                                 .read(focusDndProvider.notifier)
-                                .setFocusDndEnabled(!dndEnabled);
+                                .setFocusDndEnabled(next);
+
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    next
+                                        ? (status == TimerStatus.running
+                                            ? 'Do Not Disturb activated for this focus session.'
+                                            : 'DND will automatically activate when you start the timer.')
+                                        : 'Do Not Disturb turned off.',
+                                  ),
+                                  duration: const Duration(seconds: 3),
+                                ),
+                              );
+                            }
                           },
                         ),
 

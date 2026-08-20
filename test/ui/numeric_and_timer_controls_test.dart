@@ -246,7 +246,7 @@ void main() {
       await tester.tap(find.text('DND Off'));
       await tester.pumpAndSettle();
 
-      expect(find.text('DND On'), findsOneWidget);
+      expect(find.text('DND On (Standby)'), findsOneWidget);
       expect(find.byIcon(Icons.notifications_off), findsOneWidget);
     });
 
@@ -273,10 +273,10 @@ void main() {
         ),
       );
 
-      expect(find.text('DND On'), findsOneWidget);
+      expect(find.text('DND On (Standby)'), findsOneWidget);
       expect(find.byIcon(Icons.notifications_off), findsOneWidget);
 
-      await tester.tap(find.text('DND On'));
+      await tester.tap(find.text('DND On (Standby)'));
       await tester.pumpAndSettle();
 
       expect(find.text('DND Off'), findsOneWidget);

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/dnd_service.dart';
 import 'theme_mode.dart';
 
 class ThemePreferences {
@@ -92,12 +93,12 @@ class FocusDndNotifier extends StateNotifier<bool> {
   Future<void> setFocusDndEnabled(bool enabled) async {
     state = enabled;
     await _prefs.setFocusDndEnabled(enabled);
+    await DndService.setDndMode(enabled);
   }
 
   Future<void> toggle() async {
     final next = !state;
-    state = next;
-    await _prefs.setFocusDndEnabled(next);
+    await setFocusDndEnabled(next);
   }
 }
 
