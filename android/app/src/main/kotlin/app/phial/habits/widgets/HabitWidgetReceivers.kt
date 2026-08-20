@@ -171,7 +171,6 @@ class TodaysHabitsWidgetReceiver : BaseHabitWidgetProvider() {
         var totalScheduled = 0
         var topStreak = 0
         var todayXp = 0
-        var habitsArray: JSONArray? = null
 
         if (jsonStr != null) {
             try {
@@ -180,12 +179,10 @@ class TodaysHabitsWidgetReceiver : BaseHabitWidgetProvider() {
                 totalScheduled = obj.optInt("totalScheduled", 0)
                 topStreak = obj.optInt("topStreak", 0)
                 todayXp = obj.optInt("todayXp", 0)
-                habitsArray = obj.optJSONArray("habits")
             } catch (_: Exception) {}
         }
 
         val ratePercent = if (totalScheduled > 0) ((completedCount.toFloat() / totalScheduled) * 100).toInt() else 0
-        val habitCount = habitsArray?.length() ?: 0
 
         for (appWidgetId in appWidgetIds) {
             val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
@@ -223,127 +220,63 @@ class TodaysHabitsWidgetReceiver : BaseHabitWidgetProvider() {
                         density = density
                     )
                     setImageViewBitmap(R.id.iv_status_dots_2x2, dotsBitmap)
-                } else if (isTallOrLarge) {
-                    setOnClickPendingIntent(R.id.ll_todays_habits_header, createActivityPendingIntent(context, appWidgetId))
-                    setOnClickPendingIntent(R.id.tv_bottom_add_pill, createDeepLinkPendingIntent(context, appWidgetId, "app://habits/add_habit"))
-
-                    setTextViewText(R.id.tv_completed_header_4x4, "$completedCount/$totalScheduled completed")
-                    setTextViewText(R.id.tv_bottom_streak, "${topStreak}d streak")
-                    setTextViewText(R.id.tv_bottom_xp, "+$todayXp XP")
-
-                    val ringBitmap = WidgetGraphicsHelper.drawCircularProgressRing(
-                        percentage = ratePercent,
-                        subtitle = "completed",
-                        sizeDp = 85,
-                        strokeWidthDp = 7f,
-                        density = density
-                    )
-                    setImageViewBitmap(R.id.iv_progress_ring_4x4, ringBitmap)
-
-                    removeAllViews(R.id.ll_habits_container)
-                    if (habitCount == 0) {
-                        setViewVisibility(R.id.tv_empty_habits, View.VISIBLE)
-                        setViewVisibility(R.id.ll_habits_container, View.GONE)
-                    } else {
-                        setViewVisibility(R.id.tv_empty_habits, View.GONE)
-                        setViewVisibility(R.id.ll_habits_container, View.VISIBLE)
-
-                        val maxDisplay = minOf(habitCount, 6)
-                        for (i in 0 until maxDisplay) {
-                            val h = habitsArray!!.getJSONObject(i)
-                            val id = h.optString("id")
-                            val title = h.optString("title")
-                            val isDone = h.optBoolean("isCompleted", false)
-                            val streak = h.optInt("currentStreak", 0)
-
-                            val rowView = RemoteViews(context.packageName, R.layout.widget_item_todays_habit).apply {
-                                setTextViewText(R.id.tv_habit_check, if (isDone) "✓" else "○")
-                                setTextColor(
-                                    R.id.tv_habit_check,
-                                    if (isDone) Color.parseColor("#10B981") else Color.parseColor("#9EADA9")
-                                )
-                                setTextViewText(R.id.tv_habit_title, title)
-                                setTextColor(
-                                    R.id.tv_habit_title,
-                                    if (isDone) Color.parseColor("#10B981") else Color.parseColor("#F1F5F4")
-                                )
-                                setTextViewText(R.id.tv_habit_streak, if (streak > 0) "${streak}d" else "")
-
-                                val toggleIntent = Intent(context, TodaysHabitsWidgetReceiver::class.java).apply {
-                                    action = ACTION_TOGGLE_HABIT
-                                    `package` = context.packageName
-                                    putExtra(EXTRA_HABIT_ID, id)
-                                    putExtra(EXTRA_AUTH_TOKEN, getOrCreateWidgetToken(context))
-                                }
-                                val togglePendingIntent = PendingIntent.getBroadcast(
-                                    context,
-                                    (appWidgetId * 100) + i,
-                                    toggleIntent,
-                                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                                )
-                                setOnClickPendingIntent(R.id.ll_habit_row, togglePendingIntent)
-                            }
-                            addView(R.id.ll_habits_container, rowView)
-                        }
-                    }
                 } else {
-                    // Standard 2x3 / 2x4
-                    setOnClickPendingIntent(R.id.ll_todays_habits_header, createActivityPendingIntent(context, appWidgetId))
-                    setOnClickPendingIntent(R.id.tv_bottom_add, createDeepLinkPendingIntent(context, appWidgetId, "app://habits/add_habit"))
+                    val serviceIntent = Intent(context, TodaysHabitsWidgetService::class.java).apply {
+                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+                        data = Uri.parse(toUri(Intent.URI_INTENT_SCHEME))
+                    }
+                    setRemoteAdapter(R.id.lv_habits, serviceIntent)
+                    setEmptyView(R.id.lv_habits, R.id.tv_empty_habits)
 
-                    setTextViewText(R.id.tv_habit_counts, "$completedCount/$totalScheduled")
-                    setTextViewText(R.id.tv_bottom_streak, "${topStreak}d streak")
-                    setTextViewText(R.id.tv_bottom_xp, "+$todayXp XP")
+                    val toggleIntent = Intent(context, TodaysHabitsWidgetReceiver::class.java).apply {
+                        action = ACTION_TOGGLE_HABIT
+                        `package` = context.packageName
+                        putExtra(EXTRA_AUTH_TOKEN, getOrCreateWidgetToken(context))
+                    }
+                    val togglePendingIntent = PendingIntent.getBroadcast(
+                        context,
+                        appWidgetId,
+                        toggleIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+                    )
+                    setPendingIntentTemplate(R.id.lv_habits, togglePendingIntent)
 
-                    removeAllViews(R.id.ll_habits_container)
-                    if (habitCount == 0) {
-                        setViewVisibility(R.id.tv_empty_habits, View.VISIBLE)
-                        setViewVisibility(R.id.ll_habits_container, View.GONE)
+                    if (isTallOrLarge) {
+                        setOnClickPendingIntent(R.id.ll_todays_habits_header, createActivityPendingIntent(context, appWidgetId))
+                        setOnClickPendingIntent(R.id.tv_bottom_add_pill, createDeepLinkPendingIntent(context, appWidgetId, "app://habits/add_habit"))
+
+                        setTextViewText(R.id.tv_completed_header_4x4, "$completedCount/$totalScheduled completed")
+                        setTextViewText(R.id.tv_bottom_streak, "${topStreak}d streak")
+                        setTextViewText(R.id.tv_bottom_xp, "+$todayXp XP")
+
+                        val ringBitmap = WidgetGraphicsHelper.drawCircularProgressRing(
+                            percentage = ratePercent,
+                            subtitle = "completed",
+                            sizeDp = 85,
+                            strokeWidthDp = 7f,
+                            density = density
+                        )
+                        setImageViewBitmap(R.id.iv_progress_ring_4x4, ringBitmap)
                     } else {
-                        setViewVisibility(R.id.tv_empty_habits, View.GONE)
-                        setViewVisibility(R.id.ll_habits_container, View.VISIBLE)
+                        // Standard 2x3 / 2x4
+                        setOnClickPendingIntent(R.id.ll_todays_habits_header, createActivityPendingIntent(context, appWidgetId))
+                        setOnClickPendingIntent(R.id.tv_bottom_add, createDeepLinkPendingIntent(context, appWidgetId, "app://habits/add_habit"))
 
-                        val maxDisplay = minOf(habitCount, 5)
-                        for (i in 0 until maxDisplay) {
-                            val h = habitsArray!!.getJSONObject(i)
-                            val id = h.optString("id")
-                            val title = h.optString("title")
-                            val isDone = h.optBoolean("isCompleted", false)
-                            val streak = h.optInt("currentStreak", 0)
-
-                            val rowView = RemoteViews(context.packageName, R.layout.widget_item_todays_habit).apply {
-                                setTextViewText(R.id.tv_habit_check, if (isDone) "✓" else "○")
-                                setTextColor(
-                                    R.id.tv_habit_check,
-                                    if (isDone) Color.parseColor("#10B981") else Color.parseColor("#9EADA9")
-                                )
-                                setTextViewText(R.id.tv_habit_title, title)
-                                setTextColor(
-                                    R.id.tv_habit_title,
-                                    if (isDone) Color.parseColor("#10B981") else Color.parseColor("#F1F5F4")
-                                )
-                                setTextViewText(R.id.tv_habit_streak, if (streak > 0) "${streak}d" else "")
-
-                                val toggleIntent = Intent(context, TodaysHabitsWidgetReceiver::class.java).apply {
-                                    action = ACTION_TOGGLE_HABIT
-                                    `package` = context.packageName
-                                    putExtra(EXTRA_HABIT_ID, id)
-                                    putExtra(EXTRA_AUTH_TOKEN, getOrCreateWidgetToken(context))
-                                }
-                                val togglePendingIntent = PendingIntent.getBroadcast(
-                                    context,
-                                    (appWidgetId * 100) + i,
-                                    toggleIntent,
-                                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                                )
-                                setOnClickPendingIntent(R.id.ll_habit_row, togglePendingIntent)
-                            }
-                            addView(R.id.ll_habits_container, rowView)
-                        }
+                        setTextViewText(R.id.tv_habit_counts, "$completedCount/$totalScheduled")
+                        setTextViewText(R.id.tv_bottom_streak, "${topStreak}d streak")
+                        setTextViewText(R.id.tv_bottom_xp, "+$todayXp XP")
                     }
                 }
             }
             appWidgetManager.updateAppWidget(appWidgetId, views)
+        }
+
+        val listWidgetIds = appWidgetIds.filter { id ->
+            val opts = appWidgetManager.getAppWidgetOptions(id)
+            !isSmallSize(opts)
+        }.toIntArray()
+        if (listWidgetIds.isNotEmpty()) {
+            appWidgetManager.notifyAppWidgetViewDataChanged(listWidgetIds, R.id.lv_habits)
         }
     }
 }

@@ -46,14 +46,13 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <!-- Habit List Column -->
-        <LinearLayout
+        <!-- Scrollable Habit List Column -->
+        <FrameLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_marginRight="8dp"
             android:layout_marginEnd="8dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:layout_weight="1">
 
             <!-- Empty State -->
             <TextView
@@ -66,13 +65,15 @@
                 android:textSize="12sp"
                 android:visibility="gone" />
 
-            <!-- Dynamic Container for Habit Rows -->
-            <LinearLayout
-                android:id="@+id/ll_habits_container"
+            <!-- Scrollable ListView -->
+            <ListView
+                android:id="@+id/lv_habits"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical" />
-        </LinearLayout>
+                android:divider="@android:color/transparent"
+                android:dividerHeight="4dp"
+                android:scrollbars="none" />
+        </FrameLayout>
 
         <!-- Right Side: Circular Progress Visualization -->
         <LinearLayout

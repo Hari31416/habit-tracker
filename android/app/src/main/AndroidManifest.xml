@@ -99,6 +99,11 @@
                 android:resource="@xml/todays_habits_widget_info" />
         </receiver>
 
+        <service
+            android:name=".widgets.TodaysHabitsWidgetService"
+            android:permission="android.permission.BIND_REMOTEVIEWS"
+            android:exported="false" />
+
         <!-- 2. Daily Focus Widget -->
         <receiver
             android:name=".widgets.DailyFocusWidgetReceiver"
