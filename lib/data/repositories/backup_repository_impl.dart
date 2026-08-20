@@ -246,7 +246,7 @@ class BackupRepositoryImpl implements BackupRepository {
   Future<SyncEnvelope> createSnapshot({String? deviceId}) async {
     final payload = await _extractLocalPayload();
     return SyncEnvelope(
-      appVersion: '0.9.0',
+      appVersion: '0.10.0',
       exportedAt: _now,
       deviceId: deviceId ?? 'phial_device',
       data: payload,

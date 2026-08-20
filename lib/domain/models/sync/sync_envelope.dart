@@ -37,7 +37,7 @@ class SyncEnvelope {
   factory SyncEnvelope.fromJson(Map<String, dynamic> json) {
     return SyncEnvelope(
       schemaVersion: json['schemaVersion'] as int? ?? 1,
-      appVersion: json['appVersion'] as String? ?? '0.9.0',
+      appVersion: json['appVersion'] as String? ?? '0.10.0',
       exportedAt: json['exportedAt'] != null
           ? DateTime.parse(json['exportedAt'] as String).toUtc()
           : DateTime.now().toUtc(),

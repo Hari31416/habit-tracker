@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-08-20
+
+### Added
+
+- Google Health Connect Android SDK integration (`androidx.health.connect`) supporting 7 physical health metrics: Daily Steps, Active Exercise, Move Minutes, Distance, Active Calories, Hydration, and Sleep Duration.
+- Zero-touch habit check-ins and automated background progress synchronization from Google Fit, smartwatches, and connected wearable sensors.
+- Discrete cadence analysis engine in Kotlin for Google Fit Move Minute parity (&ge;30 steps/min cadence threshold) and real-time elapsed daily calorie burn queries.
+- Multi-unit conversion engine (`HealthSyncEngine`) with automatic normalizations across kilometers/miles/meters, milliliters/liters/glasses, and hours/minutes.
+- Health Connect settings bottom sheet with granular runtime permission controls, live sync indicators, sync interval configurations, and manual 1-tap sync actions.
+- Habit creation form integration with Health Connect toggle, metric selector chips, recommended goal defaults, and custom target preservation.
+- Drift database schema version 6 migration adding `healthMetric` and `healthSyncEnabled` columns to `habits` table.
+- Periodic and multi-day reconciliation background worker powered by Android WorkManager (`HealthConnectSyncWorker`).
+- Habit cards and habit detail view real-time sync status badges, deep-linked settings, and manual sync action buttons.
+- Comprehensive user guide and landing page documentation for Health Connect setup, permissions, and metrics.
+
 ## [0.9.0] - 2026-08-20
 
 ### Added

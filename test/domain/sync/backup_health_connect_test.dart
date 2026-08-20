@@ -25,7 +25,7 @@ void main() {
       );
 
       final envelope = SyncEnvelope(
-        appVersion: '0.9.0',
+        appVersion: '0.10.0',
         exportedAt: now,
         deviceId: 'device_test_1',
         data: SyncDataPayload(
