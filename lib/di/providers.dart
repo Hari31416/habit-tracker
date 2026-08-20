@@ -10,9 +10,11 @@ import '../data/preferences/theme_preferences.dart';
 import '../data/repositories/backup_repository_impl.dart';
 import '../data/repositories/gamification_repository_impl.dart';
 import '../data/repositories/habit_repository_impl.dart';
+import '../data/repositories/health_connect_repository_impl.dart';
 import '../data/schedulers/flutter_habit_reminder_scheduler.dart';
 import '../data/schedulers/local_notifications_scheduler.dart';
 import '../data/schedulers/notification_action_handler.dart';
+import '../domain/engines/health_sync_engine.dart';
 import '../domain/engines/shield_banking_engine.dart';
 import '../domain/gamification/gamification_models.dart';
 import '../domain/models/habit.dart';
@@ -21,10 +23,12 @@ import '../domain/models/habit_shield.dart';
 import '../domain/repositories/backup_repository.dart';
 import '../domain/repositories/gamification_repository.dart';
 import '../domain/repositories/habit_repository.dart';
+import '../domain/repositories/health_connect_repository.dart';
 import '../domain/schedulers/habit_reminder_scheduler.dart';
 import '../services/app_shortcuts_service.dart';
 import '../services/backup/backup_service.dart';
 import '../services/focus_timer_background_service.dart';
+import '../services/health_connect_service.dart';
 import '../services/widget_sync_service.dart';
 
 final databaseProvider = Provider<AppDatabase>((ref) {
@@ -175,3 +179,23 @@ final backupServiceProvider = Provider<BackupService>((ref) {
   );
 });
 
+final healthConnectServiceProvider = Provider<HealthConnectService>((ref) {
+  return const HealthConnectService();
+});
+
+final healthSyncEngineProvider = Provider<HealthSyncEngine>((ref) {
+  return const HealthSyncEngine();
+});
+
+final healthConnectRepositoryProvider = Provider<HealthConnectRepository>((ref) {
+  final service = ref.watch(healthConnectServiceProvider);
+  final habitRepo = ref.watch(habitRepositoryProvider);
+  final widgetSync = ref.watch(widgetSyncServiceProvider);
+  final engine = ref.watch(healthSyncEngineProvider);
+  return HealthConnectRepositoryImpl(
+    service: service,
+    habitRepository: habitRepo,
+    widgetSyncService: widgetSync,
+    engine: engine,
+  );
+});

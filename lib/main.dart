@@ -66,6 +66,7 @@ void main() {
       await container.read(widgetSyncServiceProvider).consumePendingWidgetActions();
       await container.read(widgetSyncServiceProvider).syncAllWidgetsImmediate();
       await container.read(habitReminderSchedulerProvider).rescheduleAll();
+      await container.read(healthConnectRepositoryProvider).syncHabitsForDate();
     } catch (e, stack) {
       AppLogger.w('Background startup tasks encountered an error', error: e, stackTrace: stack);
     }
@@ -134,6 +135,7 @@ class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
       ref.read(widgetSyncServiceProvider).consumePendingWidgetActions();
       ref.read(timerStateHolderProvider.notifier).syncFromNative();
       ref.read(habitReminderSchedulerProvider).rescheduleAll();
+      ref.read(healthConnectRepositoryProvider).syncHabitsForDate();
       _handlePendingDeepLink();
     }
   }

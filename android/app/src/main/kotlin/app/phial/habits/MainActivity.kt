@@ -5,23 +5,45 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import androidx.activity.result.ActivityResultLauncher
+import androidx.lifecycle.lifecycleScope
 import app.phial.habits.widgets.*
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-class MainActivity : FlutterActivity() {
+class MainActivity : FlutterFragmentActivity() {
     private val WIDGETS_CHANNEL = "app.phial.habits/widgets"
     private val TIMER_CHANNEL = "app.phial.habits/focus_timer"
+    private val HEALTH_CONNECT_CHANNEL = "app.phial.habits/health_connect"
 
     private var initialDeepLink: String? = null
     private var widgetsChannel: MethodChannel? = null
+    private var healthChannel: MethodChannel? = null
+    private var pendingHealthPermissionResult: MethodChannel.Result? = null
+
+    private val healthConnectManager by lazy {
+        app.phial.habits.health.HealthConnectManager(applicationContext)
+    }
+
+    private lateinit var requestHealthPermissionsLauncher: ActivityResultLauncher<Set<String>>
 
     override fun onCreate(savedInstanceState: android.os.Bundle?) {
         super.onCreate(savedInstanceState)
         initialDeepLink = intent?.data?.toString()
+
+        requestHealthPermissionsLauncher = registerForActivityResult(
+            androidx.health.connect.client.PermissionController.createRequestPermissionResultContract()
+        ) { grantedPermissions: Set<String> ->
+            pendingHealthPermissionResult?.success(grantedPermissions.isNotEmpty())
+            pendingHealthPermissionResult = null
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -149,11 +171,95 @@ class MainActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+
+        // Health Connect Method Channel
+        healthChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, HEALTH_CONNECT_CHANNEL)
+        healthChannel?.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "checkAvailability" -> {
+                    result.success(healthConnectManager.checkAvailability())
+                }
+                "openHealthConnectInstall" -> {
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW).apply {
+                            data = Uri.parse("market://details?id=com.google.android.apps.healthdata")
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        startActivity(intent)
+                        result.success(true)
+                    } catch (_: Exception) {
+                        try {
+                            val intent = Intent(Intent.ACTION_VIEW).apply {
+                                data = Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.apps.healthdata")
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            startActivity(intent)
+                            result.success(true)
+                        } catch (_: Exception) {
+                            result.success(false)
+                        }
+                    }
+                }
+                "checkPermissions" -> {
+                    val metrics = call.argument<List<String>>("metrics") ?: emptyList()
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        val has = healthConnectManager.hasPermissions(metrics)
+                        withContext(Dispatchers.Main) {
+                            result.success(has)
+                        }
+                    }
+                }
+                "requestPermissions" -> {
+                    val metrics = call.argument<List<String>>("metrics") ?: emptyList()
+                    val permissions = healthConnectManager.getPermissionsForMetrics(metrics)
+                    android.util.Log.d("HealthConnect", "Requesting health permissions: $permissions")
+                    if (permissions.isEmpty()) {
+                        result.success(true)
+                    } else {
+                        pendingHealthPermissionResult = result
+                        requestHealthPermissionsLauncher.launch(permissions)
+                    }
+                }
+                "getDailyMetrics" -> {
+                    val dateStr = call.argument<String>("date") ?: ""
+                    val metrics = call.argument<List<String>>("metrics") ?: emptyList()
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        val data = healthConnectManager.getDailyMetrics(dateStr, metrics)
+                        withContext(Dispatchers.Main) {
+                            result.success(data)
+                        }
+                    }
+                }
+                "getMetricRange" -> {
+                    val startDateStr = call.argument<String>("startDate") ?: ""
+                    val endDateStr = call.argument<String>("endDate") ?: ""
+                    val metrics = call.argument<List<String>>("metrics") ?: emptyList()
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        val data = healthConnectManager.getMetricsRange(startDateStr, endDateStr, metrics)
+                        withContext(Dispatchers.Main) {
+                            result.success(data)
+                        }
+                    }
+                }
+                "schedulePeriodicSync" -> {
+                    val interval = (call.argument<Number>("intervalMinutes")?.toLong()) ?: 30L
+                    app.phial.habits.health.HealthConnectSyncWorker.schedule(applicationContext, interval)
+                    result.success(true)
+                }
+                "cancelPeriodicSync" -> {
+                    app.phial.habits.health.HealthConnectSyncWorker.cancel(applicationContext)
+                    result.success(true)
+                }
+                else -> result.notImplemented()
+            }
+        }
     }
 
     override fun onDestroy() {
         if (isFinishing) {
             timerChannel = null
+            widgetsChannel = null
+            healthChannel = null
         }
         super.onDestroy()
     }
