@@ -13,6 +13,7 @@ import '../navigation/habit_bottom_navigation.dart';
 import '../navigation/screen.dart';
 import '../reflection/reflection_bottom_sheet.dart';
 import '../settings/backup_settings_bottom_sheet.dart';
+import '../settings/health_connect_settings_bottom_sheet.dart';
 import 'controllers/daily_tracker_controller.dart';
 import 'widgets/habit_card.dart';
 import 'widgets/historical_banner.dart';
@@ -303,6 +304,35 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
                   onTap: () {
                     Navigator.of(sheetContext).pop();
                     ShieldBankBottomSheet.show(context);
+                  },
+                ),
+                const SizedBox(height: 4),
+
+                // Google Health Connect Option
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.tertiaryContainer,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.favorite_outline,
+                      color: theme.colorScheme.onTertiaryContainer,
+                      size: 20,
+                    ),
+                  ),
+                  title: const Text(
+                    'Google Health Connect',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle:
+                      const Text('Auto-sync steps, exercise, hydration & sleep'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    HealthConnectSettingsBottomSheet.show(context);
                   },
                 ),
                 const SizedBox(height: 4),

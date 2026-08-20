@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../di/providers.dart';
 import '../../../domain/models/habit_frequency_type.dart';
 import '../../../domain/models/habit_target_type.dart';
+import '../../../domain/models/health/health_metric_type.dart';
 import '../../../services/notification_service.dart';
 import '../common/color_utils.dart';
 import '../common/habit_icon_registry.dart';
@@ -840,6 +842,124 @@ class _HabitFormBottomSheetState extends ConsumerState<HabitFormBottomSheet> {
                 }).toList(),
               ),
             ],
+
+            const SizedBox(height: 20),
+
+            // Health Connect Auto-Sync Integration
+            Material(
+              color: theme.colorScheme.surfaceContainerHighest
+                  .withValues(alpha: 0.35),
+              clipBehavior: Clip.antiAlias,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: formState.healthSyncEnabled
+                      ? theme.colorScheme.primary.withValues(alpha: 0.3)
+                      : Colors.transparent,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SwitchListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    value: formState.healthSyncEnabled,
+                    onChanged: (val) {
+                      HapticsHelper.performLightHaptic();
+                      if (val) {
+                        final metric = formState.healthMetric ?? HealthMetricType.steps;
+                        controller.onHealthMetricChange(metric);
+                        _syncControllersWithState();
+                        ref.read(healthConnectRepositoryProvider).requestPermissions([metric]);
+                      } else {
+                        controller.onToggleHealthSync(false);
+                      }
+                    },
+                    secondary: Icon(
+                      Icons.favorite_outline,
+                      color: formState.healthSyncEnabled
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurfaceVariant,
+                    ),
+                    title: Text(
+                      'Google Health Connect Sync',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Auto-log physical activity & zero-touch check-ins',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  if (formState.healthSyncEnabled) ...[
+                    const Divider(height: 1, indent: 12, endIndent: 12),
+                    Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Linked Health Metric',
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: HealthMetricType.values.map((metric) {
+                              final isSelected = formState.healthMetric == metric;
+                              return ChoiceChip(
+                                label: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      HabitIconRegistry.getIcon(metric.iconKey),
+                                      size: 16,
+                                      color: isSelected
+                                          ? theme.colorScheme.onPrimary
+                                          : theme.colorScheme.onSurfaceVariant,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(metric.displayName),
+                                  ],
+                                ),
+                                selected: isSelected,
+                                onSelected: (sel) {
+                                  if (sel) {
+                                    HapticsHelper.performLightHaptic();
+                                    controller.onHealthMetricChange(metric);
+                                    _syncControllersWithState();
+                                    ref.read(healthConnectRepositoryProvider).requestPermissions([metric]);
+                                  }
+                                },
+                              );
+                            }).toList(),
+                          ),
+                          const SizedBox(height: 8),
+                          if (formState.healthMetric != null)
+                            Text(
+                              formState.healthMetric!.description,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
 
             const SizedBox(height: 20),
 

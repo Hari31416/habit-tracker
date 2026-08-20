@@ -133,6 +133,14 @@ class HabitCard extends StatelessWidget {
                                 color: theme.colorScheme.primary,
                               ),
                             ],
+                            if (habit.healthSyncEnabled) ...[
+                              const SizedBox(width: 4),
+                              Icon(
+                                Icons.favorite_outline,
+                                size: 13,
+                                color: theme.colorScheme.primary.withValues(alpha: 0.7),
+                              ),
+                            ],
                           ],
                         ),
                         const SizedBox(height: 2),

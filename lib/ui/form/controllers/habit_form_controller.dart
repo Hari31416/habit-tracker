@@ -5,6 +5,7 @@ import '../../../domain/models/habit.dart';
 import '../../../domain/models/habit_category.dart';
 import '../../../domain/models/habit_frequency_type.dart';
 import '../../../domain/models/habit_target_type.dart';
+import '../../../domain/models/health/health_metric_type.dart';
 import '../../../domain/models/time_window.dart';
 import '../../../domain/repositories/habit_repository.dart';
 
@@ -30,6 +31,8 @@ class HabitFormState {
   final List<String> reminderTimes;
   final bool pinned;
   final bool promptReflection;
+  final HealthMetricType? healthMetric;
+  final bool healthSyncEnabled;
   final String? titleError;
   final String? targetValueError;
   final bool isSaving;
@@ -56,6 +59,8 @@ class HabitFormState {
     this.reminderTimes = const [],
     this.pinned = false,
     this.promptReflection = false,
+    this.healthMetric,
+    this.healthSyncEnabled = false,
     this.titleError,
     this.targetValueError,
     this.isSaving = false,
@@ -84,6 +89,9 @@ class HabitFormState {
     List<String>? reminderTimes,
     bool? pinned,
     bool? promptReflection,
+    HealthMetricType? healthMetric,
+    bool clearHealthMetric = false,
+    bool? healthSyncEnabled,
     String? titleError,
     bool clearTitleError = false,
     String? targetValueError,
@@ -112,6 +120,8 @@ class HabitFormState {
       reminderTimes: reminderTimes ?? this.reminderTimes,
       pinned: pinned ?? this.pinned,
       promptReflection: promptReflection ?? this.promptReflection,
+      healthMetric: clearHealthMetric ? null : (healthMetric ?? this.healthMetric),
+      healthSyncEnabled: healthSyncEnabled ?? this.healthSyncEnabled,
       titleError: clearTitleError ? null : (titleError ?? this.titleError),
       targetValueError: clearTargetValueError
           ? null
@@ -159,6 +169,8 @@ class HabitFormController extends StateNotifier<HabitFormState> {
       reminderTimes: habit.reminderTimes,
       pinned: habit.pinned,
       promptReflection: habit.promptReflection,
+      healthMetric: habit.healthMetric,
+      healthSyncEnabled: habit.healthSyncEnabled,
     );
   }
 
@@ -282,6 +294,33 @@ class HabitFormController extends StateNotifier<HabitFormState> {
     state = state.copyWith(promptReflection: value);
   }
 
+  void onHealthMetricChange(HealthMetricType? metric) {
+    if (metric == null) {
+      state = state.copyWith(
+        clearHealthMetric: true,
+        healthSyncEnabled: false,
+      );
+    } else {
+      final defaultTarget = metric.defaultTargetValue % 1.0 == 0.0
+          ? metric.defaultTargetValue.toInt().toString()
+          : metric.defaultTargetValue.toString();
+
+      state = state.copyWith(
+        healthMetric: metric,
+        healthSyncEnabled: true,
+        targetType: metric.defaultTargetType,
+        targetValue: defaultTarget,
+        unit: metric.defaultUnit,
+        icon: metric.iconKey,
+        clearTargetValueError: true,
+      );
+    }
+  }
+
+  void onToggleHealthSync(bool enabled) {
+    state = state.copyWith(healthSyncEnabled: enabled);
+  }
+
   Future<bool> saveHabit() async {
     if (state.title.trim().isEmpty) {
       state = state.copyWith(titleError: 'Title is required');
@@ -352,6 +391,8 @@ class HabitFormController extends StateNotifier<HabitFormState> {
             : state.motivationNotes.trim(),
         archived: existingHabit?.archived ?? false,
         promptReflection: state.promptReflection,
+        healthMetric: state.healthMetric,
+        healthSyncEnabled: state.healthSyncEnabled && state.healthMetric != null,
         createdAt: existingHabit?.createdAt ?? now,
         updatedAt: now,
       );

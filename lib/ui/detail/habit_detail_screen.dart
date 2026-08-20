@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../di/providers.dart';
 import '../../domain/engines/streak_calculator.dart';
 import '../../domain/models/habit_frequency_type.dart';
 import '../../domain/models/habit_target_type.dart';
@@ -12,6 +13,7 @@ import '../daily/widgets/numeric_habit_controls.dart';
 import '../daily/widgets/slot_habit_controls.dart';
 import '../form/habit_form_bottom_sheet.dart';
 import '../gamification/dialogs/shield_bank_bottom_sheet.dart';
+import '../settings/health_connect_settings_bottom_sheet.dart';
 import '../analytics/widgets/wellbeing_correlation_card.dart';
 import '../reflection/reflection_bottom_sheet.dart';
 import 'controllers/habit_detail_controller.dart';
@@ -168,6 +170,31 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
           onPressed: widget.onBack,
         ),
         actions: [
+          if (habit.healthSyncEnabled)
+            IconButton(
+              icon: const Icon(Icons.sync),
+              tooltip: 'Sync with Health Connect',
+              onPressed: () async {
+                HapticsHelper.performLightHaptic();
+                final summary = await ref
+                    .read(healthConnectRepositoryProvider)
+                    .syncHabitsForDate(uiState.selectedDate);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        summary.isSuccess
+                            ? (summary.habitsUpdated > 0
+                                ? 'Health data synchronized successfully'
+                                : 'Health data is already up to date')
+                            : 'Sync failed: ${summary.errorMessage}',
+                      ),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.shield_outlined),
             tooltip: 'Habit Shields Bank',
@@ -182,6 +209,9 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
             onSelected: (value) {
               HapticsHelper.performLightHaptic();
               switch (value) {
+                case 'health_settings':
+                  HealthConnectSettingsBottomSheet.show(context);
+                  break;
                 case 'edit':
                   HabitFormBottomSheet.show(
                     context,
@@ -200,6 +230,17 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
               }
             },
             itemBuilder: (context) => [
+              if (habit.healthSyncEnabled)
+                const PopupMenuItem(
+                  value: 'health_settings',
+                  child: Row(
+                    children: [
+                      Icon(Icons.favorite_outline, size: 20),
+                      SizedBox(width: 12),
+                      Text('Health Connect Settings'),
+                    ],
+                  ),
+                ),
               const PopupMenuItem(
                 value: 'edit',
                 child: Row(
@@ -402,6 +443,54 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
                         onToggleSlot: (slotIdx) {
                           controller.toggleSlot(slotIdx);
                         },
+                      ),
+                    ],
+
+                    // Health Connect Auto-Sync Status Tag
+                    if (habit.healthSyncEnabled && habit.healthMetric != null) ...[
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primaryContainer.withValues(alpha: 0.25),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.favorite,
+                                  size: 14,
+                                  color: theme.colorScheme.primary,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Synced with Health Connect (${habit.healthMetric!.displayName})',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            InkWell(
+                              onTap: () => HealthConnectSettingsBottomSheet.show(context),
+                              child: Text(
+                                'Settings',
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: theme.colorScheme.primary,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ],
