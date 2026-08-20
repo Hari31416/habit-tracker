@@ -6,6 +6,8 @@ import '../data/local/daos/habit_category_dao.dart';
 import '../data/local/daos/habit_dao.dart';
 import '../data/local/daos/habit_log_dao.dart';
 import '../data/local/daos/habit_shield_dao.dart';
+import '../data/preferences/theme_preferences.dart';
+import '../data/repositories/backup_repository_impl.dart';
 import '../data/repositories/gamification_repository_impl.dart';
 import '../data/repositories/habit_repository_impl.dart';
 import '../data/schedulers/flutter_habit_reminder_scheduler.dart';
@@ -16,10 +18,12 @@ import '../domain/gamification/gamification_models.dart';
 import '../domain/models/habit.dart';
 import '../domain/models/habit_log.dart';
 import '../domain/models/habit_shield.dart';
+import '../domain/repositories/backup_repository.dart';
 import '../domain/repositories/gamification_repository.dart';
 import '../domain/repositories/habit_repository.dart';
 import '../domain/schedulers/habit_reminder_scheduler.dart';
 import '../services/app_shortcuts_service.dart';
+import '../services/backup/backup_service.dart';
 import '../services/focus_timer_background_service.dart';
 import '../services/widget_sync_service.dart';
 
@@ -151,3 +155,23 @@ final focusTimerBackgroundServiceProvider =
   ref.onDispose(() => service.dispose());
   return service;
 });
+
+final backupRepositoryProvider = Provider<BackupRepository>((ref) {
+  return BackupRepositoryImpl(
+    db: ref.watch(databaseProvider),
+    habitDao: ref.watch(habitDaoProvider),
+    habitLogDao: ref.watch(habitLogDaoProvider),
+    habitShieldDao: ref.watch(habitShieldDaoProvider),
+    habitCategoryDao: ref.watch(habitCategoryDaoProvider),
+    gamificationDao: ref.watch(gamificationDaoProvider),
+    reminderScheduler: ref.watch(habitReminderSchedulerProvider),
+    themePreferences: ref.watch(themePreferencesProvider),
+  );
+});
+
+final backupServiceProvider = Provider<BackupService>((ref) {
+  return BackupService(
+    backupRepository: ref.watch(backupRepositoryProvider),
+  );
+});
+
