@@ -2,6 +2,15 @@ name: Maestro Suite
 
 on:
   workflow_dispatch:
+    inputs:
+      suite:
+        description: 'Maestro test suite to run'
+        required: true
+        default: 'subset'
+        type: choice
+        options:
+          - subset
+          - full
   schedule:
     - cron: '0 6 * * *' # daily 06:00 UTC
 
@@ -56,8 +65,15 @@ jobs:
           disable-animations: true
           script: |
             adb install -r build/app/outputs/flutter-apk/app-debug.apk
+            SUITE="${{ github.event.inputs.suite || 'subset' }}"
+            echo "Running Maestro suite mode: $SUITE"
+            if [ "$SUITE" = "full" ]; then
+              FLOWS=$(ls .maestro/*.yaml | sort)
+            else
+              FLOWS=".maestro/smoke.yaml .maestro/create_and_check_in.yaml .maestro/archive_habit.yaml"
+            fi
             # One flow at a time so CI logs include per-step Maestro output.
-            for flow in .maestro/smoke.yaml .maestro/create_and_check_in.yaml .maestro/archive_habit.yaml; do
-              echo "=== $$flow ==="
-              maestro test "$$flow"
+            for flow in $FLOWS; do
+              echo "=== $flow ==="
+              maestro test "$flow"
             done
