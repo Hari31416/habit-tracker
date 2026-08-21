@@ -7,6 +7,7 @@ import 'package:habit_tracker/domain/models/habit_frequency_type.dart';
 import 'package:habit_tracker/domain/models/habit_log.dart';
 import 'package:habit_tracker/domain/models/habit_shield.dart';
 import 'package:habit_tracker/domain/models/habit_target_type.dart';
+import 'package:habit_tracker/domain/models/habit_tier.dart';
 import 'package:habit_tracker/domain/models/health/health_connect_models.dart';
 import 'package:habit_tracker/domain/models/health/health_metric_type.dart';
 import 'package:habit_tracker/domain/repositories/habit_repository.dart';
@@ -120,10 +121,14 @@ class FakeHabitRepository implements HabitRepository {
     double? value,
     int? durationSeconds,
     int? intervalIndex,
+    HabitTier? targetTier,
     String? note,
     int? energyLevel,
     String? mood,
   }) async {}
+  @override
+  Future<void> logTierCheckIn(
+      String habitId, DateTime date, HabitTier tier) async {}
   @override
   Future<void> updateReflection({
     required String habitId,

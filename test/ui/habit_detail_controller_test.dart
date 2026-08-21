@@ -7,6 +7,7 @@ import 'package:habit_tracker/domain/models/habit_frequency_type.dart';
 import 'package:habit_tracker/domain/models/habit_log.dart';
 import 'package:habit_tracker/domain/models/habit_shield.dart';
 import 'package:habit_tracker/domain/models/habit_target_type.dart';
+import 'package:habit_tracker/domain/models/habit_tier.dart';
 import 'package:habit_tracker/domain/repositories/habit_repository.dart';
 import 'package:habit_tracker/ui/detail/controllers/habit_detail_controller.dart';
 
@@ -268,6 +269,7 @@ class FakeHabitRepository implements HabitRepository {
     double? value,
     int? durationSeconds,
     int? intervalIndex,
+    HabitTier? targetTier,
     String? note,
     int? energyLevel,
     String? mood,
@@ -284,6 +286,7 @@ class FakeHabitRepository implements HabitRepository {
       value: value,
       durationSeconds: durationSeconds,
       intervalIndex: intervalIndex,
+      targetTier: targetTier,
       note: note,
       energyLevel: energyLevel,
       mood: mood,
@@ -291,6 +294,35 @@ class FakeHabitRepository implements HabitRepository {
       updatedAt: now,
     ));
     _logsController.add(List.unmodifiable(_logs));
+  }
+
+  @override
+  Future<void> logTierCheckIn(
+      String habitId, DateTime date, HabitTier tier) async {
+    final habit = await getHabitByIdOnce(habitId);
+    double? val;
+    int? duration;
+    if (habit != null) {
+      final baseVal = habit.targetValue ?? 1.0;
+      final miniVal = habit.miniTargetValue ?? (baseVal > 1 ? baseVal / 2 : 1.0);
+      final eliteVal = habit.eliteTargetValue ?? (baseVal * 1.5);
+      final target = tier == HabitTier.elite
+          ? eliteVal
+          : (tier == HabitTier.mini ? miniVal : baseVal);
+      if (habit.targetType == HabitTargetType.numeric) {
+        val = target;
+      } else if (habit.targetType == HabitTargetType.timer) {
+        duration = (target * 60).round();
+      }
+    }
+    await logCheckIn(
+      habitId: habitId,
+      date: date,
+      completed: true,
+      value: val,
+      durationSeconds: duration,
+      targetTier: tier,
+    );
   }
 
   @override

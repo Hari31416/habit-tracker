@@ -17,11 +17,11 @@ Strategic feature roadmap for the Habit Tracker application, ordered sequentiall
 - [x] **Auto and Manual Protection:** Option to auto-consume shields on missed days or manually apply them to past dates.
 - [x] **Visual Distinction:** Distinct shield markers in the calendar and matrix views so genuine completion history remains accurate.
 
-## 3. Elastic Goals and Bad-Day Mode
+## 3. Elastic Goals and Bad-Day Mode (Completed)
 
-- [ ] **Three-Tiered Targets:** Define Mini (minimum viable habit), Base (standard target), and Elite (high-energy goal) tiers for habits.
-- [ ] **Momentum Preservation:** Completing a Mini target (e.g. 1 page read instead of 20) preserves streak continuity on difficult days.
-- [ ] **Tiered XP Scaling:** Proportional XP rewards based on achieved tier (Mini: 5 XP, Base: 20 XP, Elite: 35 XP).
+- [x] **Three-Tiered Targets:** Define Mini (minimum viable habit), Base (standard target), and Elite (high-energy goal) tiers for habits.
+- [x] **Momentum Preservation:** Completing a Mini target (e.g. 1 page read instead of 20) preserves streak continuity on difficult days.
+- [x] **Tiered XP Scaling:** Proportional XP rewards based on achieved tier (Mini: 5 XP, Base: 20 XP, Elite: 35 XP).
 
 ## 4. Habit Stacking and Daily Routines
 
