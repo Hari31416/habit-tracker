@@ -11,6 +11,7 @@ import 'package:habit_tracker/domain/models/habit_frequency_type.dart';
 import 'package:habit_tracker/data/preferences/theme_mode.dart';
 import 'package:habit_tracker/data/preferences/theme_preferences.dart';
 import 'package:habit_tracker/domain/models/habit_target_type.dart';
+import 'package:habit_tracker/domain/models/habit_tier.dart';
 import 'package:habit_tracker/domain/repositories/backup_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -312,4 +313,57 @@ void main() {
     expect(themePrefs.loadThemeMode(), AppThemeMode.dark);
     expect(themePrefs.loadFocusDndEnabled(), true);
   });
+
+  test('export and import preserves elastic goals tiers (mini, elite, log tier)', () async {
+    final now = DateTime.utc(2026, 8, 20, 10, 0, 0);
+    await habitRepository.upsertHabit(
+      Habit(
+        id: 'h_elastic',
+        title: 'Elastic Habit',
+        color: '#3B82F6',
+        frequencyType: HabitFrequencyType.daily,
+        targetType: HabitTargetType.numeric,
+        targetValue: 20.0,
+        miniTargetValue: 5.0,
+        eliteTargetValue: 40.0,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+
+    await habitRepository.logTierCheckIn(
+      'h_elastic',
+      DateTime.utc(2026, 8, 20),
+      HabitTier.mini,
+    );
+
+    final exportedJson = await backupRepository.exportBackupJson();
+    final decoded = jsonDecode(exportedJson);
+    final habitJson = (decoded['data']['habits'] as List).firstWhere((h) => h['id'] == 'h_elastic');
+    expect(habitJson['miniTargetValue'], 5.0);
+    expect(habitJson['eliteTargetValue'], 40.0);
+
+    final logJson = (decoded['data']['logs'] as List).firstWhere((l) => l['habitId'] == 'h_elastic');
+    expect(logJson['targetTier'], 'mini');
+    expect(logJson['value'], 5.0);
+
+    // Test restore via overwrite into clean state
+    await (db.delete(db.habits)).go();
+    await (db.delete(db.habitLogs)).go();
+
+    await backupRepository.executeImport(exportedJson, mode: ImportMode.overwrite);
+
+    final restoredHabits = await habitRepository.getActiveHabits().first;
+    final restoredHabit = restoredHabits.firstWhere((h) => h.id == 'h_elastic');
+    expect(restoredHabit.hasElasticTiers, isTrue);
+    expect(restoredHabit.miniTargetValue, 5.0);
+    expect(restoredHabit.targetValue, 20.0);
+    expect(restoredHabit.eliteTargetValue, 40.0);
+
+    final restoredLogs = await habitRepository.getLogsForHabitOnce('h_elastic');
+    expect(restoredLogs, isNotEmpty);
+    expect(restoredLogs.first.targetTier, HabitTier.mini);
+    expect(restoredLogs.first.value, 5.0);
+  });
 }
+

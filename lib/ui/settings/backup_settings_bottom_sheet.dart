@@ -35,7 +35,9 @@ class _BackupSettingsBottomSheetState
 
   void _showError(String message) {
     HapticsHelper.performHeavyConfirmationHaptic();
-    ScaffoldMessenger.of(context).showSnackBar(
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
       SnackBar(
         content: Text(message),
         backgroundColor: Theme.of(context).colorScheme.error,
@@ -45,7 +47,9 @@ class _BackupSettingsBottomSheetState
   }
 
   void _showSuccess(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
       SnackBar(
         content: Text(message),
         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -824,12 +828,20 @@ class _BackupSettingsBottomSheetState
           _statusMessage = null;
         });
         HapticsHelper.performHeavyConfirmationHaptic();
-        _showSuccess(
-          mode == ImportMode.merge
-              ? 'Import merged successfully (${stats.logsMerged} logs synced)'
-              : 'Database restored successfully',
-        );
+        final messenger = ScaffoldMessenger.of(context);
+        final theme = Theme.of(context);
+        final successMessage = mode == ImportMode.merge
+            ? 'Import merged successfully (${stats.logsMerged} logs synced)'
+            : 'Database restored successfully';
         Navigator.of(context).pop();
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(successMessage),
+            backgroundColor: theme.colorScheme.primary,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
