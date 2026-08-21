@@ -12,6 +12,8 @@ import '../time_window.dart';
 /// Top-level envelope for local backups and cloud sync snapshots.
 class SyncEnvelope {
   static const int currentSchemaVersion = 1;
+  static const String defaultAppVersion =
+      String.fromEnvironment('APP_VERSION', defaultValue: '1.0.0');
 
   final int schemaVersion;
   final String appVersion;
@@ -21,7 +23,7 @@ class SyncEnvelope {
 
   const SyncEnvelope({
     this.schemaVersion = currentSchemaVersion,
-    required this.appVersion,
+    this.appVersion = defaultAppVersion,
     required this.exportedAt,
     required this.deviceId,
     required this.data,
@@ -38,7 +40,7 @@ class SyncEnvelope {
   factory SyncEnvelope.fromJson(Map<String, dynamic> json) {
     return SyncEnvelope(
       schemaVersion: json['schemaVersion'] as int? ?? 1,
-      appVersion: json['appVersion'] as String? ?? '0.10.0',
+      appVersion: json['appVersion'] as String? ?? defaultAppVersion,
       exportedAt: json['exportedAt'] != null
           ? DateTime.parse(json['exportedAt'] as String).toUtc()
           : DateTime.now().toUtc(),
