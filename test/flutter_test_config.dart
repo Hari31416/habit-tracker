@@ -9,19 +9,21 @@ import 'package:flutter_test/flutter_test.dart';
 
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   // Anchor goldens relative to test/ui/ so ../goldens/ui resolves to test/goldens/ui/.
-  final testUiFile = File('${Directory.current.path}/test/ui/ui_goldens_test.dart');
+  final testUiFile =
+      File('${Directory.current.path}/test/ui/ui_goldens_test.dart');
   goldenFileComparator = _TolerantGoldenComparator(
     testUiFile.uri,
-    pixelDiffFraction: 0.005,
+    maxDiffPercent: 5.0,
   );
   await testMain();
 }
 
 class _TolerantGoldenComparator extends LocalFileComparator {
-  _TolerantGoldenComparator(super.testFile, {required this.pixelDiffFraction});
+  _TolerantGoldenComparator(super.testFile, {required this.maxDiffPercent});
 
-  /// Allowed fraction of differing pixels (0.005 = 0.5%).
-  final double pixelDiffFraction;
+  /// Allowed percentage of differing pixels (e.g. 5.0 = 5%).
+  /// Flutter's ComparisonResult.diffPercent is on a 0..100 scale.
+  final double maxDiffPercent;
 
   @override
   Future<bool> compare(Uint8List imageBytes, Uri golden) async {
@@ -30,10 +32,12 @@ class _TolerantGoldenComparator extends LocalFileComparator {
       await getGoldenBytes(golden),
     );
     if (result.passed) return true;
-    // diffPercent is already a 0..1 fraction in Flutter's ComparisonResult.
-    if (result.diffPercent <= pixelDiffFraction) {
+    if (result.diffPercent <= maxDiffPercent) {
       return true;
     }
-    throw FlutterError(result.toString());
+    throw FlutterError(
+      'Golden test failed with diff of ${result.diffPercent.toStringAsFixed(2)}% '
+      '(allowed <= ${maxDiffPercent.toStringAsFixed(2)}%):\n$result',
+    );
   }
 }
