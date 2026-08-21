@@ -204,14 +204,19 @@ class _HabitFormBottomSheetState extends ConsumerState<HabitFormBottomSheet> {
             const SizedBox(height: 16),
 
             // 1. Basic Info Section
-            TextField(
-              controller: _titleController,
-              onChanged: controller.onTitleChange,
-              decoration: InputDecoration(
-                labelText: 'Habit Title *',
-                errorText: formState.titleError,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+            Semantics(
+              identifier: 'habit_form_title',
+              textField: true,
+              label: 'Habit Title',
+              child: TextField(
+                controller: _titleController,
+                onChanged: controller.onTitleChange,
+                decoration: InputDecoration(
+                  labelText: 'Habit Title *',
+                  errorText: formState.titleError,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
             ),
@@ -1137,37 +1142,42 @@ class _HabitFormBottomSheetState extends ConsumerState<HabitFormBottomSheet> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  child: Semantics(
+                    identifier: 'habit_form_save',
+                    label: formState.isEditMode ? 'Update Habit' : 'Create Habit',
+                    button: true,
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    onPressed: formState.isSaving
-                        ? null
-                        : () async {
-                            HapticsHelper.performLightHaptic();
-                            final success = await controller.saveHabit();
-                            if (success) {
-                              widget.onDismiss();
-                            }
-                          },
-                    child: formState.isSaving
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
+                      onPressed: formState.isSaving
+                          ? null
+                          : () async {
+                              HapticsHelper.performLightHaptic();
+                              final success = await controller.saveHabit();
+                              if (success) {
+                                widget.onDismiss();
+                              }
+                            },
+                      child: formState.isSaving
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text(
+                              formState.isEditMode
+                                  ? 'Update Habit'
+                                  : 'Create Habit',
+                              style: const TextStyle(fontWeight: FontWeight.bold),
                             ),
-                          )
-                        : Text(
-                            formState.isEditMode
-                                ? 'Update Habit'
-                                : 'Create Habit',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
+                    ),
                   ),
                 ),
               ],

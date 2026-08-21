@@ -395,48 +395,53 @@ class HabitCard extends StatelessWidget {
       width: 48,
       height: 48,
       child: Center(
-        child: InkWell(
-          customBorder: const CircleBorder(),
-          onTap: () {
-            if (!isCompleted) {
-              HapticsHelper.performHeavyConfirmationHaptic();
-            } else {
-              HapticsHelper.performLightHaptic();
-            }
-            onToggleCheckIn();
-          },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeOutBack,
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isCompleted
-                  ? habitColor
+        child: Semantics(
+          identifier: 'habit_check_${habit.id}',
+          label: 'Check in ${habit.title}',
+          button: true,
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: () {
+              if (!isCompleted) {
+                HapticsHelper.performHeavyConfirmationHaptic();
+              } else {
+                HapticsHelper.performLightHaptic();
+              }
+              onToggleCheckIn();
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutBack,
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isCompleted
+                    ? habitColor
+                    : isShielded
+                        ? theme.colorScheme.primaryContainer
+                        : Colors.transparent,
+                border: (isCompleted || isShielded)
+                    ? null
+                    : Border.all(
+                        color: theme.colorScheme.outlineVariant,
+                        width: 2,
+                      ),
+              ),
+              child: isCompleted
+                  ? const Icon(
+                      Icons.check,
+                      color: Colors.white,
+                      size: 20,
+                    )
                   : isShielded
-                      ? theme.colorScheme.primaryContainer
-                      : Colors.transparent,
-              border: (isCompleted || isShielded)
-                  ? null
-                  : Border.all(
-                      color: theme.colorScheme.outlineVariant,
-                      width: 2,
-                    ),
+                      ? Icon(
+                          Icons.shield,
+                          color: theme.colorScheme.primary,
+                          size: 18,
+                        )
+                      : null,
             ),
-            child: isCompleted
-                ? const Icon(
-                    Icons.check,
-                    color: Colors.white,
-                    size: 20,
-                  )
-                : isShielded
-                    ? Icon(
-                        Icons.shield,
-                        color: theme.colorScheme.primary,
-                        size: 18,
-                      )
-                    : null,
           ),
         ),
       ),

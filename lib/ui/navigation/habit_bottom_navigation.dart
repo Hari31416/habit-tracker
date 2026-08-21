@@ -3,21 +3,23 @@ import '../common/haptics_helper.dart';
 import 'screen.dart';
 
 enum BottomNavDestination {
-  today(Screen.daily, 'Today', Icons.check_circle, Icons.check_circle_outline),
-  week(Screen.matrix, 'Week', Icons.calendar_month, Icons.calendar_month_outlined),
-  analytics(Screen.analytics, 'Analytics', Icons.insert_chart, Icons.insert_chart_outlined),
-  mastery(Screen.badges, 'Mastery', Icons.emoji_events, Icons.emoji_events_outlined);
+  today(Screen.daily, 'Today', Icons.check_circle, Icons.check_circle_outline, 'nav_today'),
+  week(Screen.matrix, 'Week', Icons.calendar_month, Icons.calendar_month_outlined, 'nav_week'),
+  analytics(Screen.analytics, 'Analytics', Icons.insert_chart, Icons.insert_chart_outlined, 'nav_analytics'),
+  mastery(Screen.badges, 'Mastery', Icons.emoji_events, Icons.emoji_events_outlined, 'nav_mastery');
 
   final String route;
   final String label;
   final IconData selectedIcon;
   final IconData unselectedIcon;
+  final String semanticsId;
 
   const BottomNavDestination(
     this.route,
     this.label,
     this.selectedIcon,
     this.unselectedIcon,
+    this.semanticsId,
   );
 }
 
@@ -76,23 +78,28 @@ class HabitBottomNavigation extends StatelessWidget {
             Expanded(
               flex: 12,
               child: Center(
-                child: SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: Material(
-                    color: theme.colorScheme.primary,
-                    shape: const CircleBorder(),
-                    elevation: 2,
-                    child: InkWell(
-                      customBorder: const CircleBorder(),
-                      onTap: () {
-                        HapticsHelper.performLightHaptic();
-                        onAddHabitClick();
-                      },
-                      child: Icon(
-                        Icons.add,
-                        color: theme.colorScheme.onPrimary,
-                        size: 26,
+                child: Semantics(
+                  identifier: 'nav_add',
+                  label: 'Add habit',
+                  button: true,
+                  child: SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: Material(
+                      color: theme.colorScheme.primary,
+                      shape: const CircleBorder(),
+                      elevation: 2,
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: () {
+                          HapticsHelper.performLightHaptic();
+                          onAddHabitClick();
+                        },
+                        child: Icon(
+                          Icons.add,
+                          color: theme.colorScheme.onPrimary,
+                          size: 26,
+                        ),
                       ),
                     ),
                   ),
@@ -146,32 +153,38 @@ class _NavIconItem extends StatelessWidget {
 
     return Expanded(
       flex: 10,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onClick,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                isSelected
-                    ? destination.selectedIcon
-                    : destination.unselectedIcon,
-                size: 22,
-                color: isSelected ? primaryColor : unselectedColor,
-              ),
-              const SizedBox(height: 2),
-              Text(
-                destination.label,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  fontWeight:
-                      isSelected ? FontWeight.bold : FontWeight.normal,
+      child: Semantics(
+        identifier: destination.semanticsId,
+        label: destination.label,
+        button: true,
+        selected: isSelected,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: onClick,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  isSelected
+                      ? destination.selectedIcon
+                      : destination.unselectedIcon,
+                  size: 22,
                   color: isSelected ? primaryColor : unselectedColor,
                 ),
-              ),
-            ],
+                const SizedBox(height: 2),
+                Text(
+                  destination.label,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected ? primaryColor : unselectedColor,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
