@@ -15,6 +15,7 @@ import '../../domain/models/habit_log.dart';
 import '../../domain/models/habit_shield.dart';
 import '../../domain/repositories/gamification_repository.dart';
 import '../local/app_database.dart';
+import '../local/converters/entity_mappers.dart';
 import '../local/daos/gamification_dao.dart';
 import '../local/daos/habit_category_dao.dart';
 import '../local/daos/habit_dao.dart';
@@ -50,79 +51,11 @@ class GamificationRepositoryImpl implements GamificationRepository {
     required this.gamificationDao,
   });
 
-  Habit _habitRowToDomain(HabitRow row) => Habit(
-        id: row.id,
-        title: row.title,
-        description: row.description,
-        color: row.color,
-        icon: row.icon,
-        categoryId: row.categoryId,
-        frequencyType: row.frequencyType,
-        targetDaysOfWeek: row.targetDaysOfWeek,
-        targetCountPerWeek: row.targetCountPerWeek,
-        intervalHours: row.intervalHours,
-        timesPerDay: row.timesPerDay,
-        timeWindow: row.timeWindow,
-        targetType: row.targetType,
-        targetValue: row.targetValue,
-        miniTargetValue: row.miniTargetValue,
-        eliteTargetValue: row.eliteTargetValue,
-        unit: row.unit,
-        pinned: row.pinned,
-        reminderTimes: row.reminderTimes,
-        motivationNotes: row.motivationNotes,
-        archived: row.archived,
-        promptReflection: row.promptReflection,
-        healthMetric: row.healthMetric,
-        healthSyncEnabled: row.healthSyncEnabled,
-        isDeleted: row.isDeleted,
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt,
-      );
+  @visibleForTesting
+  Habit habitFromRow(HabitRow row) => row.toDomain();
 
   @visibleForTesting
-  Habit habitFromRow(HabitRow row) => _habitRowToDomain(row);
-
-  @visibleForTesting
-  HabitLog logFromRow(HabitLogRow row) => _logRowToDomain(row);
-
-  HabitLog _logRowToDomain(HabitLogRow row) => HabitLog(
-        id: row.id,
-        habitId: row.habitId,
-        date: row.date,
-        timestamp: row.timestamp,
-        intervalIndex: row.intervalIndex,
-        completed: row.completed,
-        value: row.value,
-        durationSeconds: row.durationSeconds,
-        targetTier: row.targetTier,
-        note: row.note,
-        energyLevel: row.energyLevel,
-        mood: row.mood,
-        isDeleted: row.isDeleted,
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt,
-      );
-
-  HabitShield _shieldRowToDomain(HabitShieldRow row) => HabitShield(
-        id: row.id,
-        habitId: row.habitId,
-        date: row.date,
-        autoApplied: row.autoApplied,
-        isDeleted: row.isDeleted,
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt,
-      );
-
-  HabitCategory _categoryRowToDomain(HabitCategoryRow row) => HabitCategory(
-        id: row.id,
-        name: row.name,
-        color: row.color,
-        icon: row.icon,
-        isDeleted: row.isDeleted,
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt,
-      );
+  HabitLog logFromRow(HabitLogRow row) => row.toDomain();
 
   StreamController<_CombinedGamificationData>? _broadcastController;
   _CombinedGamificationData? _lastCombinedData;
@@ -158,10 +91,10 @@ class GamificationRepositoryImpl implements GamificationRepository {
           return;
         }
 
-        final habits = latestHabits!.map(_habitRowToDomain).toList();
-        final logs = latestLogs!.map(_logRowToDomain).toList();
-        final shields = latestShields!.map(_shieldRowToDomain).toList();
-        final categories = latestCategories!.map(_categoryRowToDomain).toList();
+        final habits = latestHabits!.map((r) => r.toDomain()).toList();
+        final logs = latestLogs!.map((r) => r.toDomain()).toList();
+        final shields = latestShields!.map((r) => r.toDomain()).toList();
+        final categories = latestCategories!.map((r) => r.toDomain()).toList();
         
         final logsByHabit = <String, List<HabitLog>>{};
         final logsByDate = <String, List<HabitLog>>{};

@@ -15,12 +15,13 @@ import '../../domain/models/habit_tier.dart';
 import '../../domain/repositories/habit_repository.dart';
 import '../../domain/schedulers/habit_reminder_scheduler.dart';
 import '../local/app_database.dart';
-import '../local/database_seeder.dart';
+import '../local/converters/entity_mappers.dart';
 import '../local/daos/gamification_dao.dart';
 import '../local/daos/habit_category_dao.dart';
 import '../local/daos/habit_dao.dart';
 import '../local/daos/habit_log_dao.dart';
 import '../local/daos/habit_shield_dao.dart';
+import '../local/database_seeder.dart';
 
 class HabitRepositoryImpl implements HabitRepository {
   final HabitDao habitDao;
@@ -41,153 +42,41 @@ class HabitRepositoryImpl implements HabitRepository {
     required this.reminderScheduler,
   });
 
-  // Domain Mappings
-  Habit _habitRowToDomain(HabitRow row) => Habit(
-        id: row.id,
-        title: row.title,
-        description: row.description,
-        color: row.color,
-        icon: row.icon,
-        categoryId: row.categoryId,
-        frequencyType: row.frequencyType,
-        targetDaysOfWeek: row.targetDaysOfWeek,
-        targetCountPerWeek: row.targetCountPerWeek,
-        intervalHours: row.intervalHours,
-        timesPerDay: row.timesPerDay,
-        timeWindow: row.timeWindow,
-        targetType: row.targetType,
-        targetValue: row.targetValue,
-        miniTargetValue: row.miniTargetValue,
-        eliteTargetValue: row.eliteTargetValue,
-        unit: row.unit,
-        pinned: row.pinned,
-        reminderTimes: row.reminderTimes,
-        motivationNotes: row.motivationNotes,
-        archived: row.archived,
-        promptReflection: row.promptReflection,
-        healthMetric: row.healthMetric,
-        healthSyncEnabled: row.healthSyncEnabled,
-        isDeleted: row.isDeleted,
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt,
-      );
-
-  HabitsCompanion _habitDomainToCompanion(Habit habit) => HabitsCompanion(
-        id: Value(habit.id),
-        title: Value(habit.title),
-        description: Value(habit.description),
-        color: Value(habit.color),
-        icon: Value(habit.icon),
-        categoryId: Value(habit.categoryId),
-        frequencyType: Value(habit.frequencyType),
-        targetDaysOfWeek: Value(habit.targetDaysOfWeek),
-        targetCountPerWeek: Value(habit.targetCountPerWeek),
-        intervalHours: Value(habit.intervalHours),
-        timesPerDay: Value(habit.timesPerDay),
-        timeWindow: Value(habit.timeWindow),
-        targetType: Value(habit.targetType),
-        targetValue: Value(habit.targetValue),
-        miniTargetValue: Value(habit.miniTargetValue),
-        eliteTargetValue: Value(habit.eliteTargetValue),
-        unit: Value(habit.unit),
-        pinned: Value(habit.pinned),
-        reminderTimes: Value(habit.reminderTimes),
-        motivationNotes: Value(habit.motivationNotes),
-        archived: Value(habit.archived),
-        promptReflection: Value(habit.promptReflection),
-        healthMetric: Value(habit.healthMetric),
-        healthSyncEnabled: Value(habit.healthSyncEnabled),
-        isDeleted: Value(habit.isDeleted),
-        createdAt: Value(habit.createdAt),
-        updatedAt: Value(habit.updatedAt),
-      );
-
-  HabitLog _logRowToDomain(HabitLogRow row) => HabitLog(
-        id: row.id,
-        habitId: row.habitId,
-        date: row.date,
-        timestamp: row.timestamp,
-        intervalIndex: row.intervalIndex,
-        completed: row.completed,
-        value: row.value,
-        durationSeconds: row.durationSeconds,
-        targetTier: row.targetTier,
-        note: row.note,
-        energyLevel: row.energyLevel,
-        mood: row.mood,
-        isDeleted: row.isDeleted,
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt,
-      );
-
-  HabitShield _shieldRowToDomain(HabitShieldRow row) => HabitShield(
-        id: row.id,
-        habitId: row.habitId,
-        date: row.date,
-        autoApplied: row.autoApplied,
-        isDeleted: row.isDeleted,
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt,
-      );
-
-  HabitCategory _categoryRowToDomain(HabitCategoryRow row) => HabitCategory(
-        id: row.id,
-        name: row.name,
-        color: row.color,
-        icon: row.icon,
-        isDeleted: row.isDeleted,
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt,
-      );
-
-  HabitCategoriesCompanion _categoryDomainToCompanion(HabitCategory category) {
-    final now = DateTime.now().toUtc();
-    return HabitCategoriesCompanion(
-      id: Value(category.id),
-      name: Value(category.name),
-      color: Value(category.color),
-      icon: Value(category.icon),
-      isDeleted: Value(category.isDeleted),
-      createdAt: Value(category.createdAt ?? now),
-      updatedAt: Value(category.updatedAt ?? now),
-    );
-  }
-
   // Habits
   @override
   Stream<List<Habit>> getAllHabits() =>
-      habitDao.watchAllHabits().map((rows) => rows.map(_habitRowToDomain).toList());
+      habitDao.watchAllHabits().map((rows) => rows.map((r) => r.toDomain()).toList());
 
   @override
   Stream<List<Habit>> getActiveHabits() =>
-      habitDao.watchActiveHabits().map((rows) => rows.map(_habitRowToDomain).toList());
+      habitDao.watchActiveHabits().map((rows) => rows.map((r) => r.toDomain()).toList());
 
   @override
   Stream<List<Habit>> getArchivedHabits() =>
-      habitDao.watchArchivedHabits().map((rows) => rows.map(_habitRowToDomain).toList());
+      habitDao.watchArchivedHabits().map((rows) => rows.map((r) => r.toDomain()).toList());
 
   @override
   Stream<List<Habit>> getPinnedHabits() =>
-      habitDao.watchPinnedHabits().map((rows) => rows.map(_habitRowToDomain).toList());
+      habitDao.watchPinnedHabits().map((rows) => rows.map((r) => r.toDomain()).toList());
 
   @override
   Stream<Habit?> getHabitById(String id) =>
-      habitDao.watchHabitById(id).map((row) => row != null ? _habitRowToDomain(row) : null);
+      habitDao.watchHabitById(id).map((row) => row?.toDomain());
 
   @override
   Future<Habit?> getHabitByIdOnce(String id) async {
     final row = await habitDao.getHabitByIdOnce(id);
-    return row != null ? _habitRowToDomain(row) : null;
+    return row?.toDomain();
   }
 
   @override
   Stream<List<Habit>> getHabitsByCategory(String categoryId) => habitDao
       .watchHabitsByCategory(categoryId)
-      .map((rows) => rows.map(_habitRowToDomain).toList());
+      .map((rows) => rows.map((r) => r.toDomain()).toList());
 
   @override
   Future<void> upsertHabit(Habit habit) async {
-    await habitDao.upsertHabit(_habitDomainToCompanion(habit));
+    await habitDao.upsertHabit(habit.toCompanion());
     await reminderScheduler.schedule(habit, catchUpIfDue: true);
   }
 
@@ -225,34 +114,34 @@ class HabitRepositoryImpl implements HabitRepository {
   @override
   Stream<List<HabitLog>> getLogsForHabit(String habitId) => habitLogDao
       .watchLogsForHabit(habitId)
-      .map((rows) => rows.map(_logRowToDomain).toList());
+      .map((rows) => rows.map((r) => r.toDomain()).toList());
 
   @override
   Future<List<HabitLog>> getLogsForHabitOnce(String habitId) async {
     final rows = await habitLogDao.getLogsForHabitOnce(habitId);
-    return rows.map(_logRowToDomain).toList();
+    return rows.map((r) => r.toDomain()).toList();
   }
 
   @override
   Stream<List<HabitLog>> getLogsForDate(DateTime date) => habitLogDao
       .watchLogsForDate(_dateFormatter.format(date))
-      .map((rows) => rows.map(_logRowToDomain).toList());
+      .map((rows) => rows.map((r) => r.toDomain()).toList());
 
   @override
   Future<List<HabitLog>> getLogsForDateOnce(DateTime date) async {
     final rows = await habitLogDao.getLogsForDateOnce(_dateFormatter.format(date));
-    return rows.map(_logRowToDomain).toList();
+    return rows.map((r) => r.toDomain()).toList();
   }
 
   @override
   Stream<List<HabitLog>> getLogsForHabitAndDate(String habitId, DateTime date) => habitLogDao
       .watchLogsForHabitAndDate(habitId, _dateFormatter.format(date))
-      .map((rows) => rows.map(_logRowToDomain).toList());
+      .map((rows) => rows.map((r) => r.toDomain()).toList());
 
   @override
   Stream<List<HabitLog>> getLogsForDateRange(DateTime startDate, DateTime endDate) => habitLogDao
       .watchLogsForDateRange(_dateFormatter.format(startDate), _dateFormatter.format(endDate))
-      .map((rows) => rows.map(_logRowToDomain).toList());
+      .map((rows) => rows.map((r) => r.toDomain()).toList());
 
   @override
   Future<List<HabitLog>> getLogsForDateRangeOnce(DateTime startDate, DateTime endDate) async {
@@ -260,17 +149,17 @@ class HabitRepositoryImpl implements HabitRepository {
       _dateFormatter.format(startDate),
       _dateFormatter.format(endDate),
     );
-    return rows.map(_logRowToDomain).toList();
+    return rows.map((r) => r.toDomain()).toList();
   }
 
   @override
   Stream<List<HabitLog>> getAllLogs() =>
-      habitLogDao.watchAllLogs().map((rows) => rows.map(_logRowToDomain).toList());
+      habitLogDao.watchAllLogs().map((rows) => rows.map((r) => r.toDomain()).toList());
 
   @override
   Future<List<HabitLog>> getAllLogsOnce() async {
     final rows = await habitLogDao.getAllLogsOnce();
-    return rows.map(_logRowToDomain).toList();
+    return rows.map((r) => r.toDomain()).toList();
   }
 
   Future<void> _rescheduleHabitRemindersIfActive(String habitId) async {
@@ -410,7 +299,7 @@ class HabitRepositoryImpl implements HabitRepository {
       final dateStr = _dateFormatter.format(date);
       final habit = await getHabitByIdOnce(habitId);
       final existingRows = await habitLogDao.getLogsForHabitAndDateOnce(habitId, dateStr);
-      final existingLogs = existingRows.map(_logRowToDomain).toList();
+      final existingLogs = existingRows.map((r) => r.toDomain()).toList();
 
       final wasCompleted = habit != null
           ? StreakCalculator.isHabitCompletedOnDate(habit, existingLogs)
@@ -619,41 +508,41 @@ class HabitRepositoryImpl implements HabitRepository {
   // Shields & Grace Days
   @override
   Stream<List<HabitShield>> getAllShields() =>
-      habitShieldDao.watchAllShields().map((rows) => rows.map(_shieldRowToDomain).toList());
+      habitShieldDao.watchAllShields().map((rows) => rows.map((r) => r.toDomain()).toList());
 
   @override
   Future<List<HabitShield>> getAllShieldsOnce() async {
     final rows = await habitShieldDao.getAllShieldsOnce();
-    return rows.map(_shieldRowToDomain).toList();
+    return rows.map((r) => r.toDomain()).toList();
   }
 
   @override
   Stream<List<HabitShield>> getShieldsForHabit(String habitId) => habitShieldDao
       .watchShieldsForHabit(habitId)
-      .map((rows) => rows.map(_shieldRowToDomain).toList());
+      .map((rows) => rows.map((r) => r.toDomain()).toList());
 
   @override
   Future<List<HabitShield>> getShieldsForHabitOnce(String habitId) async {
     final rows = await habitShieldDao.getShieldsForHabitOnce(habitId);
-    return rows.map(_shieldRowToDomain).toList();
+    return rows.map((r) => r.toDomain()).toList();
   }
 
   @override
   Stream<List<HabitShield>> getShieldsForDate(DateTime date) => habitShieldDao
       .watchShieldsForDate(_dateFormatter.format(date))
-      .map((rows) => rows.map(_shieldRowToDomain).toList());
+      .map((rows) => rows.map((r) => r.toDomain()).toList());
 
   @override
   Future<List<HabitShield>> getShieldsForDateOnce(DateTime date) async {
     final rows = await habitShieldDao.getShieldsForDateOnce(_dateFormatter.format(date));
-    return rows.map(_shieldRowToDomain).toList();
+    return rows.map((r) => r.toDomain()).toList();
   }
 
   @override
   Stream<List<HabitShield>> getShieldsForDateRange(DateTime startDate, DateTime endDate) =>
       habitShieldDao
           .watchShieldsForDateRange(_dateFormatter.format(startDate), _dateFormatter.format(endDate))
-          .map((rows) => rows.map(_shieldRowToDomain).toList());
+          .map((rows) => rows.map((r) => r.toDomain()).toList());
 
   @override
   Future<List<HabitShield>> getShieldsForDateRangeOnce(DateTime startDate, DateTime endDate) async {
@@ -661,7 +550,7 @@ class HabitRepositoryImpl implements HabitRepository {
       _dateFormatter.format(startDate),
       _dateFormatter.format(endDate),
     );
-    return rows.map(_shieldRowToDomain).toList();
+    return rows.map((r) => r.toDomain()).toList();
   }
 
   @override
@@ -670,7 +559,7 @@ class HabitRepositoryImpl implements HabitRepository {
     required DateTime date,
     bool autoApplied = false,
   }) async {
-    final habits = (await habitDao.getActiveHabitsOnce()).map(_habitRowToDomain).toList();
+    final habits = (await habitDao.getActiveHabitsOnce()).map((r) => r.toDomain()).toList();
     final allLogs = await getAllLogsOnce();
     final allShields = await getAllShieldsOnce();
     final userGamification = await gamificationDao?.getUserGamificationOnce();
@@ -731,7 +620,7 @@ class HabitRepositoryImpl implements HabitRepository {
 
   @override
   Future<int> autoProtectMissedDays(DateTime date) async {
-    final habits = (await habitDao.getActiveHabitsOnce()).map(_habitRowToDomain).toList();
+    final habits = (await habitDao.getActiveHabitsOnce()).map((r) => r.toDomain()).toList();
     final allLogs = await getAllLogsOnce();
     final allShields = await getAllShieldsOnce();
 
@@ -831,22 +720,22 @@ class HabitRepositoryImpl implements HabitRepository {
   @override
   Stream<List<HabitCategory>> getAllCategories() => habitCategoryDao
       .watchAllCategories()
-      .map((rows) => rows.map(_categoryRowToDomain).toList());
+      .map((rows) => rows.map((r) => r.toDomain()).toList());
 
   @override
   Future<List<HabitCategory>> getAllCategoriesOnce() async {
     final rows = await habitCategoryDao.getAllCategoriesOnce();
-    return rows.map(_categoryRowToDomain).toList();
+    return rows.map((r) => r.toDomain()).toList();
   }
 
   @override
   Stream<HabitCategory?> getCategoryById(String id) => habitCategoryDao
       .watchCategoryById(id)
-      .map((row) => row != null ? _categoryRowToDomain(row) : null);
+      .map((row) => row?.toDomain());
 
   @override
   Future<void> upsertCategory(HabitCategory category) =>
-      habitCategoryDao.upsertCategory(_categoryDomainToCompanion(category));
+      habitCategoryDao.upsertCategory(category.toCompanion());
 
   @override
   Future<void> deleteCategory(HabitCategory category) =>
