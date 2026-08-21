@@ -213,7 +213,7 @@ class SyncMergeEngine {
     }
 
     final streakByHabit = <String, StreakResult>{};
-    var longestStreak = 0;
+    var longestActiveStreak = 0;
 
     for (final habit in activeHabits) {
       final habitLogs = logsByHabit[habit.id] ?? const [];
@@ -225,7 +225,7 @@ class SyncMergeEngine {
         habitShields,
       );
       streakByHabit[habit.id] = streak;
-      longestStreak = max(longestStreak, max(streak.currentStreak, streak.bestStreak));
+      longestActiveStreak = max(longestActiveStreak, streak.currentStreak);
     }
 
     // Calculate Base Habit Check-in XP
@@ -290,7 +290,7 @@ class SyncMergeEngine {
     final initialTotalXp = habitCheckInXp + perfectDaysBonusXp;
     final estimatedProgression = GamificationEngine.calculateProgression(
       totalXp: initialTotalXp,
-      longestActiveStreak: longestStreak,
+      longestActiveStreak: longestActiveStreak,
     );
 
     final evalContext = EvaluationContext(
@@ -314,7 +314,7 @@ class SyncMergeEngine {
 
     final finalProgression = GamificationEngine.calculateProgression(
       totalXp: finalTotalXp,
-      longestActiveStreak: longestStreak,
+      longestActiveStreak: longestActiveStreak,
       unlockedBadgesCount: unlockedCount,
       totalBadgesCount: totalCount,
     );

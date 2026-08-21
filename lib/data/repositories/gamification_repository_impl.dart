@@ -169,9 +169,8 @@ class GamificationRepositoryImpl implements GamificationRepository {
         }
 
         final today = DateTime.now();
+        var longestActiveStreak = 0;
         final streakByHabit = <String, StreakResult>{};
-        var longestStreak = 0;
-
         for (final habit in habits) {
           final habitLogs = logsByHabit[habit.id] ?? const [];
           final habitShields = shieldsByHabit[habit.id] ?? const [];
@@ -182,7 +181,7 @@ class GamificationRepositoryImpl implements GamificationRepository {
             habitShields,
           );
           streakByHabit[habit.id] = streak;
-          longestStreak = max(longestStreak, max(streak.currentStreak, streak.bestStreak));
+          longestActiveStreak = max(longestActiveStreak, streak.currentStreak);
         }
 
         // 2. Calculate Base Habit Check-in XP reusing streakByHabit
@@ -222,7 +221,7 @@ class GamificationRepositoryImpl implements GamificationRepository {
         final initialTotalXp = habitCheckInXp + perfectDaysBonusXp;
         final estimatedProgression = GamificationEngine.calculateProgression(
           totalXp: initialTotalXp,
-          longestActiveStreak: longestStreak,
+          longestActiveStreak: longestActiveStreak,
         );
 
         final evalContext = EvaluationContext(
@@ -247,7 +246,7 @@ class GamificationRepositoryImpl implements GamificationRepository {
 
         final finalProgression = GamificationEngine.calculateProgression(
           totalXp: finalTotalXp,
-          longestActiveStreak: longestStreak,
+          longestActiveStreak: longestActiveStreak,
           unlockedBadgesCount: unlockedCount,
           totalBadgesCount: totalCount,
         );
