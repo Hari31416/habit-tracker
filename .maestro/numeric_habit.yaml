@@ -19,15 +19,27 @@ tags:
 - assertVisible: "Maestro Water Habit"
 - runFlow:
     file: helpers/dismiss_stylus_prompt.yaml
+- hideKeyboard
+- scrollUntilVisible:
+    element: "Numeric"
+    direction: DOWN
 - tapOn: "Numeric"
 - runFlow:
     file: helpers/dismiss_stylus_prompt.yaml
+- scrollUntilVisible:
+    element:
+      id: "habit_form_target_value"
+    direction: DOWN
 - tapOn:
     id: "habit_form_target_value"
 - eraseText: 10
 - inputText: "1000"
 - runFlow:
     file: helpers/dismiss_stylus_prompt.yaml
+- scrollUntilVisible:
+    element:
+      id: "habit_form_unit"
+    direction: DOWN
 - tapOn:
     id: "habit_form_unit"
 - eraseText: 10
