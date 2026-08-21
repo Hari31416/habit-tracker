@@ -1,0 +1,15 @@
+appId: app.phial.habits
+---
+- runFlow:
+    file: dismiss_stylus_prompt.yaml
+- scrollUntilVisible:
+    element:
+      id: "habit_form_save"
+    direction: DOWN
+    timeout: 15000
+- tapOn:
+    id: "habit_form_save"
+- extendedWaitUntil:
+    notVisible:
+      id: "habit_form_save"
+    timeout: 10000

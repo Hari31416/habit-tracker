@@ -1,0 +1,58 @@
+# Create habit → open detail → edit title → verify updated state across screens.
+
+appId: app.phial.habits
+tags:
+  - journey
+  - full
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "nav_today"
+    timeout: 30000
+- runFlow:
+    file: helpers/open_add_habit.yaml
+- tapOn:
+    id: "habit_form_title"
+- inputText: "Maestro Original Habit"
+- assertVisible: "Maestro Original Habit"
+- runFlow:
+    file: helpers/save_habit_form.yaml
+- extendedWaitUntil:
+    visible: "Open Maestro Original Habit"
+    timeout: 10000
+- tapOn: "Open Maestro Original Habit"
+- extendedWaitUntil:
+    visible:
+      id: "habit_detail_menu"
+    timeout: 10000
+- tapOn:
+    id: "habit_detail_menu"
+- tapOn: "Edit Habit"
+- extendedWaitUntil:
+    visible:
+      id: "habit_form_title"
+    timeout: 10000
+- runFlow:
+    file: helpers/dismiss_stylus_prompt.yaml
+- tapOn:
+    id: "habit_form_title"
+- eraseText: 30
+- inputText: "Maestro Updated Habit"
+- runFlow:
+    file: helpers/save_habit_form.yaml
+- extendedWaitUntil:
+    visible: "Maestro Updated Habit"
+    timeout: 10000
+- runFlow:
+    when:
+      visible:
+        id: "habit_detail_menu"
+    commands:
+      - tapOn: "Back"
+- extendedWaitUntil:
+    visible:
+      id: "nav_today"
+    timeout: 10000
+- assertVisible: "Check in Maestro Updated Habit"

@@ -1,0 +1,15 @@
+appId: app.phial.habits
+---
+- runFlow:
+    when:
+      notVisible:
+        id: "habit_check_seed_habit_meditation"
+    commands:
+      - extendedWaitUntil:
+          visible: "Load Demo Habits"
+          timeout: 10000
+      - tapOn: "Load Demo Habits"
+      - extendedWaitUntil:
+          visible:
+            id: "habit_check_seed_habit_meditation"
+          timeout: 10000

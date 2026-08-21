@@ -1,0 +1,39 @@
+# Open profile & settings → toggle theme → open Data & Backup sheet → verify navigation.
+
+appId: app.phial.habits
+tags:
+  - journey
+  - full
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "nav_today"
+    timeout: 30000
+- tapOn:
+    id: "profile_settings_button"
+- extendedWaitUntil:
+    visible: "Appearance"
+    timeout: 10000
+- tapOn: "Dark"
+- extendedWaitUntil:
+    visible:
+      id: "nav_today"
+    timeout: 10000
+- tapOn:
+    id: "profile_settings_button"
+- extendedWaitUntil:
+    visible:
+      id: "settings_data_backup"
+    timeout: 10000
+- tapOn:
+    id: "settings_data_backup"
+- extendedWaitUntil:
+    visible: "Export Backup (JSON)"
+    timeout: 10000
+- back
+- extendedWaitUntil:
+    visible:
+      id: "nav_today"
+    timeout: 10000

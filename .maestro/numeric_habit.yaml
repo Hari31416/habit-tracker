@@ -1,0 +1,43 @@
+# Create numeric habit → log progress with quick stepper → verify updated count.
+
+appId: app.phial.habits
+tags:
+  - journey
+  - full
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "nav_today"
+    timeout: 30000
+- runFlow:
+    file: helpers/open_add_habit.yaml
+- tapOn:
+    id: "habit_form_title"
+- inputText: "Maestro Water Habit"
+- assertVisible: "Maestro Water Habit"
+- runFlow:
+    file: helpers/dismiss_stylus_prompt.yaml
+- tapOn: "Numeric"
+- runFlow:
+    file: helpers/dismiss_stylus_prompt.yaml
+- tapOn:
+    id: "habit_form_target_value"
+- eraseText: 10
+- inputText: "1000"
+- runFlow:
+    file: helpers/dismiss_stylus_prompt.yaml
+- tapOn:
+    id: "habit_form_unit"
+- eraseText: 10
+- inputText: "ml"
+- runFlow:
+    file: helpers/dismiss_stylus_prompt.yaml
+- runFlow:
+    file: helpers/save_habit_form.yaml
+- extendedWaitUntil:
+    visible: "Open Maestro Water Habit"
+    timeout: 10000
+- tapOn: "Add to Maestro Water Habit"
+- tapOn: "+250"

@@ -1,0 +1,46 @@
+# Complete habit → navigate to Analytics → verify metrics, consistency, and charts.
+
+appId: app.phial.habits
+tags:
+  - journey
+  - full
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "nav_today"
+    timeout: 30000
+- runFlow:
+    file: helpers/load_demo_habits.yaml
+- extendedWaitUntil:
+    visible:
+      id: "habit_check_seed_habit_meditation"
+    timeout: 10000
+- tapOn:
+    id: "habit_check_seed_habit_meditation"
+- tapOn:
+    id: "nav_analytics"
+- extendedWaitUntil:
+    visible:
+      id: "analytics_consistency_card"
+    timeout: 15000
+- assertVisible: "Top Habits (30 Days)"
+- scrollUntilVisible:
+    element: "Adherence Trend"
+    direction: DOWN
+    timeout: 10000
+- assertVisible: "Adherence Trend"
+- scrollUntilVisible:
+    element:
+      id: "analytics_wellbeing_card"
+    direction: DOWN
+    timeout: 10000
+- assertVisible:
+    id: "analytics_wellbeing_card"
+- tapOn:
+    id: "nav_today"
+- extendedWaitUntil:
+    visible:
+      id: "habit_check_seed_habit_meditation"
+    timeout: 10000

@@ -2,11 +2,11 @@
 # Form defaults: daily + boolean, promptReflection off.
 #
 # Avoid hideKeyboard: on Android it sends Back and dismisses the modal sheet.
-# API 36 emulators may show Gboard "Try out your stylus" over the form.
 
 appId: app.phial.habits
 tags:
   - journey
+  - ci
 ---
 - launchApp:
     clearState: true
@@ -14,43 +14,17 @@ tags:
     visible:
       id: "nav_today"
     timeout: 30000
-- tapOn:
-    id: "nav_add"
-- extendedWaitUntil:
-    visible:
-      id: "habit_form_title"
-    timeout: 15000
 - runFlow:
-    when:
-      visible: "Try out your stylus"
-    commands:
-      - tapOn: "Cancel"
+    file: helpers/open_add_habit.yaml
 - tapOn:
     id: "habit_form_title"
 - inputText: "Maestro Check Habit"
 - assertVisible: "Maestro Check Habit"
 - runFlow:
-    when:
-      visible: "Try out your stylus"
-    commands:
-      - tapOn: "Cancel"
+    file: helpers/dismiss_stylus_prompt.yaml
 - tapOn: "Description (optional)"
 - runFlow:
-    when:
-      visible: "Try out your stylus"
-    commands:
-      - tapOn: "Cancel"
-- scrollUntilVisible:
-    element:
-      id: "habit_form_save"
-    direction: DOWN
-    timeout: 15000
-- tapOn:
-    id: "habit_form_save"
-- extendedWaitUntil:
-    notVisible:
-      id: "habit_form_save"
-    timeout: 10000
+    file: helpers/save_habit_form.yaml
 - extendedWaitUntil:
     visible: "Check in Maestro Check Habit"
     timeout: 10000

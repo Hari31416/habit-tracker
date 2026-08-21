@@ -1,0 +1,42 @@
+# Create habit → open detail → delete habit → confirm dialog → verify removed from Today.
+
+appId: app.phial.habits
+tags:
+  - journey
+  - full
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "nav_today"
+    timeout: 30000
+- runFlow:
+    file: helpers/open_add_habit.yaml
+- tapOn:
+    id: "habit_form_title"
+- inputText: "Maestro Delete Habit"
+- assertVisible: "Maestro Delete Habit"
+- runFlow:
+    file: helpers/save_habit_form.yaml
+- extendedWaitUntil:
+    visible: "Open Maestro Delete Habit"
+    timeout: 10000
+- tapOn: "Open Maestro Delete Habit"
+- extendedWaitUntil:
+    visible:
+      id: "habit_detail_menu"
+    timeout: 10000
+- tapOn:
+    id: "habit_detail_menu"
+- tapOn: "Delete Habit"
+- extendedWaitUntil:
+    visible: "Delete Habit?"
+    timeout: 5000
+- tapOn: "Delete"
+- extendedWaitUntil:
+    visible:
+      id: "nav_today"
+    timeout: 10000
+- assertNotVisible: "Open Maestro Delete Habit"
+- assertNotVisible: "Check in Maestro Delete Habit"

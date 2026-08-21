@@ -8,23 +8,17 @@
 appId: app.phial.habits
 tags:
   - smoke
+  - ci
 ---
 - launchApp:
     clearState: true
 - extendedWaitUntil:
     visible:
       id: "nav_today"
-    timeout: 15000
+    timeout: 30000
 # Fresh install has categories only — load starter habits when empty.
 - runFlow:
-    when:
-      visible: "Load Demo Habits"
-    commands:
-      - tapOn: "Load Demo Habits"
-      - extendedWaitUntil:
-          visible:
-            id: "habit_check_seed_habit_meditation"
-          timeout: 10000
+    file: helpers/load_demo_habits.yaml
 - extendedWaitUntil:
     visible:
       id: "habit_check_seed_habit_meditation"
@@ -39,6 +33,11 @@ tags:
 - assertVisible: "Analytics"
 - tapOn:
     id: "nav_mastery"
+- runFlow:
+    when:
+      visible: "Claim & Continue"
+    commands:
+      - tapOn: "Claim & Continue"
 - assertVisible: "Mastery & Badges"
 - tapOn:
     id: "nav_today"

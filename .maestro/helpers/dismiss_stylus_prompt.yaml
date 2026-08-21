@@ -1,0 +1,7 @@
+appId: app.phial.habits
+---
+- runFlow:
+    when:
+      visible: "Try out your stylus"
+    commands:
+      - tapOn: "Cancel"

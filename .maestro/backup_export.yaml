@@ -1,0 +1,49 @@
+# Open Data & Backup → inspect JSON export options → generate encryption passkey.
+
+appId: app.phial.habits
+tags:
+  - journey
+  - full
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "nav_today"
+    timeout: 30000
+- tapOn:
+    id: "profile_settings_button"
+- extendedWaitUntil:
+    visible:
+      id: "settings_data_backup"
+    timeout: 10000
+- tapOn:
+    id: "settings_data_backup"
+- extendedWaitUntil:
+    visible:
+      id: "backup_export_json"
+    timeout: 10000
+- tapOn:
+    id: "backup_export_json"
+- extendedWaitUntil:
+    visible: "Export JSON Backup"
+    timeout: 5000
+- back
+- extendedWaitUntil:
+    visible:
+      id: "backup_export_encrypted"
+    timeout: 10000
+- tapOn:
+    id: "backup_export_encrypted"
+- extendedWaitUntil:
+    visible: "Encrypted Backup"
+    timeout: 5000
+- assertVisible: "Passkey / Password"
+- tapOn: "Generate Random Passkey"
+- assertVisible: "Passkey / Password"
+- tapOn: "Cancel"
+- back
+- extendedWaitUntil:
+    visible:
+      id: "nav_today"
+    timeout: 10000

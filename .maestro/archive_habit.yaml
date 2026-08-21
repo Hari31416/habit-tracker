@@ -1,11 +1,11 @@
 # Create habit → open detail → archive → gone from Today.
 #
 # Avoid hideKeyboard: on Android it sends Back and dismisses the modal sheet.
-# clearState wipes app data for this flow only (each suite flow starts fresh).
 
 appId: app.phial.habits
 tags:
   - journey
+  - ci
 ---
 - launchApp:
     clearState: true
@@ -13,43 +13,17 @@ tags:
     visible:
       id: "nav_today"
     timeout: 30000
-- tapOn:
-    id: "nav_add"
-- extendedWaitUntil:
-    visible:
-      id: "habit_form_title"
-    timeout: 15000
 - runFlow:
-    when:
-      visible: "Try out your stylus"
-    commands:
-      - tapOn: "Cancel"
+    file: helpers/open_add_habit.yaml
 - tapOn:
     id: "habit_form_title"
 - inputText: "Maestro Archive Habit"
 - assertVisible: "Maestro Archive Habit"
 - runFlow:
-    when:
-      visible: "Try out your stylus"
-    commands:
-      - tapOn: "Cancel"
+    file: helpers/dismiss_stylus_prompt.yaml
 - tapOn: "Description (optional)"
 - runFlow:
-    when:
-      visible: "Try out your stylus"
-    commands:
-      - tapOn: "Cancel"
-- scrollUntilVisible:
-    element:
-      id: "habit_form_save"
-    direction: DOWN
-    timeout: 15000
-- tapOn:
-    id: "habit_form_save"
-- extendedWaitUntil:
-    notVisible:
-      id: "habit_form_save"
-    timeout: 10000
+    file: helpers/save_habit_form.yaml
 - extendedWaitUntil:
     visible: "Open Maestro Archive Habit"
     timeout: 10000

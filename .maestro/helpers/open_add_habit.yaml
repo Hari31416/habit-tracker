@@ -1,0 +1,10 @@
+appId: app.phial.habits
+---
+- tapOn:
+    id: "nav_add"
+- extendedWaitUntil:
+    visible:
+      id: "habit_form_title"
+    timeout: 15000
+- runFlow:
+    file: dismiss_stylus_prompt.yaml

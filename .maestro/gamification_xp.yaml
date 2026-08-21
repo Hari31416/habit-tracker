@@ -1,0 +1,45 @@
+# Complete habit → verify XP award and level progression in Mastery screen.
+
+appId: app.phial.habits
+tags:
+  - journey
+  - full
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "nav_today"
+    timeout: 30000
+- runFlow:
+    file: helpers/load_demo_habits.yaml
+- extendedWaitUntil:
+    visible:
+      id: "habit_check_seed_habit_meditation"
+    timeout: 10000
+- tapOn:
+    id: "habit_check_seed_habit_meditation"
+- tapOn:
+    id: "nav_mastery"
+- runFlow:
+    when:
+      visible: "Claim & Continue"
+    commands:
+      - tapOn: "Claim & Continue"
+- extendedWaitUntil:
+    visible: "Mastery & Badges"
+    timeout: 15000
+- scrollUntilVisible:
+    element: "Streaks"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Streaks"
+- assertVisible: "Streaks Achievements"
+- tapOn: "All"
+- assertVisible: "All Achievements"
+- tapOn:
+    id: "nav_today"
+- extendedWaitUntil:
+    visible:
+      id: "habit_check_seed_habit_meditation"
+    timeout: 10000
