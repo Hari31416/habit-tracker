@@ -65,27 +65,31 @@ class NumericHabitControls extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                Text(
-                  numberFormatter.format(currentValue),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: isCompleted
-                        ? accentColor
-                        : theme.colorScheme.onSurface,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 4),
-                  child: Text(
-                    ' / ${numberFormatter.format(targetValue)} $unit'.trimRight(),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+            Semantics(
+              identifier: 'numeric_progress_${habit.id}',
+              label: '${numberFormatter.format(currentValue)} of ${numberFormatter.format(targetValue)} $unit'.trim(),
+              child: Row(
+                children: [
+                  Text(
+                    numberFormatter.format(currentValue),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: isCompleted
+                          ? accentColor
+                          : theme.colorScheme.onSurface,
                     ),
                   ),
-                ),
-              ],
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4),
+                    child: Text(
+                      ' / ${numberFormatter.format(targetValue)} $unit'.trimRight(),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             IconButton(
               iconSize: 16,
@@ -130,32 +134,37 @@ class NumericHabitControls extends StatelessWidget {
             Row(
               children: [
                 // Minus primary step
-                Material(
-                  color: theme.colorScheme.surfaceContainerHighest
-                      .withValues(alpha: 0.7),
-                  shape: CircleBorder(
-                    side: BorderSide(
-                      color: theme.colorScheme.outlineVariant,
+                Semantics(
+                  identifier: 'numeric_stepper_minus_${habit.id}',
+                  label: 'Subtract from ${habit.title}',
+                  button: true,
+                  child: Material(
+                    color: theme.colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.7),
+                    shape: CircleBorder(
+                      side: BorderSide(
+                        color: theme.colorScheme.outlineVariant,
+                      ),
                     ),
-                  ),
-                  child: InkWell(
-                    customBorder: const CircleBorder(),
-                    onTap: currentValue > 0
-                        ? () {
-                            HapticsHelper.performLightHaptic();
-                            onDeltaAdd(-stepConfig.primaryStep);
-                          }
-                        : null,
-                    child: SizedBox(
-                      width: 32,
-                      height: 32,
-                      child: Center(
-                        child: Icon(
-                          Icons.remove,
-                          size: 16,
-                          color: currentValue > 0
-                              ? theme.colorScheme.onSurface
-                              : theme.colorScheme.outline,
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: currentValue > 0
+                          ? () {
+                              HapticsHelper.performLightHaptic();
+                              onDeltaAdd(-stepConfig.primaryStep);
+                            }
+                          : null,
+                      child: SizedBox(
+                        width: 32,
+                        height: 32,
+                        child: Center(
+                          child: Icon(
+                            Icons.remove,
+                            size: 16,
+                            color: currentValue > 0
+                                ? theme.colorScheme.onSurface
+                                : theme.colorScheme.outline,
+                          ),
                         ),
                       ),
                     ),
@@ -164,33 +173,38 @@ class NumericHabitControls extends StatelessWidget {
                 const SizedBox(width: 6),
 
                 // Plus primary step
-                Material(
-                  color: accentColor.withValues(alpha: 0.15),
-                  shape: CircleBorder(
-                    side: BorderSide(
-                      color: accentColor.withValues(alpha: 0.3),
+                Semantics(
+                  identifier: 'numeric_stepper_add_${habit.id}',
+                  label: 'Add to ${habit.title}',
+                  button: true,
+                  child: Material(
+                    color: accentColor.withValues(alpha: 0.15),
+                    shape: CircleBorder(
+                      side: BorderSide(
+                        color: accentColor.withValues(alpha: 0.3),
+                      ),
                     ),
-                  ),
-                  child: InkWell(
-                    customBorder: const CircleBorder(),
-                    onTap: () {
-                      final newTotal = currentValue + stepConfig.primaryStep;
-                      final wasMet = currentValue >= targetValue;
-                      if (!wasMet && newTotal >= targetValue) {
-                        HapticsHelper.performHeavyConfirmationHaptic();
-                      } else {
-                        HapticsHelper.performLightHaptic();
-                      }
-                      onDeltaAdd(stepConfig.primaryStep);
-                    },
-                    child: SizedBox(
-                      width: 32,
-                      height: 32,
-                      child: Center(
-                        child: Icon(
-                          Icons.add,
-                          size: 18,
-                          color: accentColor,
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: () {
+                        final newTotal = currentValue + stepConfig.primaryStep;
+                        final wasMet = currentValue >= targetValue;
+                        if (!wasMet && newTotal >= targetValue) {
+                          HapticsHelper.performHeavyConfirmationHaptic();
+                        } else {
+                          HapticsHelper.performLightHaptic();
+                        }
+                        onDeltaAdd(stepConfig.primaryStep);
+                      },
+                      child: SizedBox(
+                        width: 32,
+                        height: 32,
+                        child: Center(
+                          child: Icon(
+                            Icons.add,
+                            size: 18,
+                            color: accentColor,
+                          ),
                         ),
                       ),
                     ),

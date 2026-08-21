@@ -26,17 +26,20 @@ class WellbeingCorrelationCard extends StatelessWidget {
     final hasData = summary.totalReflectionsLogged > 0 ||
         summary.avgEnergyOnCompletedDays > 0;
 
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+    return Semantics(
+      identifier: 'analytics_wellbeing_card',
+      label: 'Wellbeing & Energy Correlation',
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+          ),
         ),
-      ),
-      color: theme.colorScheme.surface,
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+        color: theme.colorScheme.surface,
+        elevation: 1,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -233,6 +236,7 @@ class WellbeingCorrelationCard extends StatelessWidget {
             ],
           ],
         ),
+      ),
       ),
     );
   }

@@ -964,56 +964,66 @@ class _BackupSettingsBottomSheetState
             ),
           ] else ...[
             // Export Full Backup
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.secondaryContainer,
-                  shape: BoxShape.circle,
+            Semantics(
+              identifier: 'backup_export_json',
+              label: 'Export Backup (JSON)',
+              button: true,
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.secondaryContainer,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.upload_file_outlined,
+                    color: theme.colorScheme.onSecondaryContainer,
+                    size: 20,
+                  ),
                 ),
-                child: Icon(
-                  Icons.upload_file_outlined,
-                  color: theme.colorScheme.onSecondaryContainer,
-                  size: 20,
+                title: const Text(
+                  'Export Backup (JSON)',
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
+                subtitle: const Text(
+                  'Standard unencrypted JSON for data inspection',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _showExportOptionsDialog(isEncrypted: false),
               ),
-              title: const Text(
-                'Export Backup (JSON)',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              subtitle: const Text(
-                'Standard unencrypted JSON for data inspection',
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _showExportOptionsDialog(isEncrypted: false),
             ),
             const SizedBox(height: 4),
 
             // Export Encrypted Backup
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer,
-                  shape: BoxShape.circle,
+            Semantics(
+              identifier: 'backup_export_encrypted',
+              label: 'Export Encrypted Backup',
+              button: true,
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.lock_outline,
+                    color: theme.colorScheme.onPrimaryContainer,
+                    size: 20,
+                  ),
                 ),
-                child: Icon(
-                  Icons.lock_outline,
-                  color: theme.colorScheme.onPrimaryContainer,
-                  size: 20,
+                title: const Text(
+                  'Export Encrypted Backup',
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
+                subtitle: const Text(
+                  'Password-protected (AES-256) for secure cloud/email',
+                ),
+                trailing: const Icon(Icons.share_outlined),
+                onTap: _showEncryptedExportDialog,
               ),
-              title: const Text(
-                'Export Encrypted Backup',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              subtitle: const Text(
-                'Password-protected (AES-256) for secure cloud/email',
-              ),
-              trailing: const Icon(Icons.share_outlined),
-              onTap: _showEncryptedExportDialog,
             ),
             const SizedBox(height: 4),
 

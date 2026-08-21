@@ -158,7 +158,7 @@ void main() {
             targetCountThisWeek: 7,
           ),
         ],
-        onToggleCell: (_, __) {},
+        onToggleCell: (_, _) {},
         onHabitClick: (_) {},
       ),
     );

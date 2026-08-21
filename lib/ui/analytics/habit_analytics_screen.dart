@@ -221,17 +221,20 @@ class _HeroConsistencyCard extends ConsumerWidget {
     final consistencyFraction =
         (consistency30Days / 100.0).clamp(0.0, 1.0);
 
-    return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-        side: BorderSide(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+    return Semantics(
+      identifier: 'analytics_consistency_card',
+      label: 'Your Consistency $consistency30Days%',
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+          ),
         ),
-      ),
-      color: theme.colorScheme.surface,
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(18),
+        color: theme.colorScheme.surface,
+        elevation: 1,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -294,6 +297,7 @@ class _HeroConsistencyCard extends ConsumerWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }

@@ -440,29 +440,37 @@ class _HabitFormBottomSheetState extends ConsumerState<HabitFormBottomSheet> {
               Row(
                 children: [
                   Expanded(
-                    child: TextField(
-                      controller: _targetValueController,
-                      onChanged: controller.onTargetValueChange,
-                      keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true),
-                      decoration: InputDecoration(
-                        labelText: 'Target Goal *',
-                        errorText: formState.targetValueError,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    child: Semantics(
+                      identifier: 'habit_form_target_value',
+                      textField: true,
+                      child: TextField(
+                        controller: _targetValueController,
+                        onChanged: controller.onTargetValueChange,
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        decoration: InputDecoration(
+                          labelText: 'Target Goal *',
+                          errorText: formState.targetValueError,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: TextField(
-                      controller: _unitController,
-                      onChanged: controller.onUnitChange,
-                      decoration: InputDecoration(
-                        labelText: 'Unit (e.g. ml, steps)',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    child: Semantics(
+                      identifier: 'habit_form_unit',
+                      textField: true,
+                      child: TextField(
+                        controller: _unitController,
+                        onChanged: controller.onUnitChange,
+                        decoration: InputDecoration(
+                          labelText: 'Unit (e.g. ml, steps)',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                       ),
                     ),

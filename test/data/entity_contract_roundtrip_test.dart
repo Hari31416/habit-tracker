@@ -14,7 +14,6 @@ import 'package:habit_tracker/domain/models/habit.dart';
 import 'package:habit_tracker/domain/models/habit_category.dart';
 import 'package:habit_tracker/domain/models/habit_log.dart';
 import 'package:habit_tracker/domain/models/habit_shield.dart';
-import 'package:habit_tracker/domain/models/sync/sync_envelope.dart';
 import 'package:habit_tracker/domain/repositories/backup_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

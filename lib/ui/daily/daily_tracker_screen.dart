@@ -339,31 +339,36 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
                 const SizedBox(height: 4),
 
                 // Data & Backup Option
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer,
-                      shape: BoxShape.circle,
+                Semantics(
+                  identifier: 'settings_data_backup',
+                  label: 'Data & Backup',
+                  button: true,
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.sync_outlined,
+                        color: theme.colorScheme.onPrimaryContainer,
+                        size: 20,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.sync_outlined,
-                      color: theme.colorScheme.onPrimaryContainer,
-                      size: 20,
+                    title: const Text(
+                      'Data & Backup',
+                      style: TextStyle(fontWeight: FontWeight.w600),
                     ),
+                    subtitle:
+                        const Text('Export, import, and spreadsheet sync'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.of(sheetContext).pop();
+                      BackupSettingsBottomSheet.show(context);
+                    },
                   ),
-                  title: const Text(
-                    'Data & Backup',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  subtitle:
-                      const Text('Export, import, and spreadsheet sync'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    BackupSettingsBottomSheet.show(context);
-                  },
                 ),
               ],
             ),
@@ -427,32 +432,37 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
                           message: currentUserName.isNotEmpty
                               ? '$currentUserName (Settings)'
                               : 'Profile & Settings',
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(20),
-                            onTap: () => _showProfileSheet(
-                                context, currentUserName, currentThemeMode),
-                            child: Padding(
-                              padding: const EdgeInsets.all(2),
-                              child: CircleAvatar(
-                                radius: 18,
-                                backgroundColor:
-                                    theme.colorScheme.primaryContainer,
-                                child: currentUserName.isNotEmpty
-                                    ? Text(
-                                        currentUserName[0].toUpperCase(),
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
+                          child: Semantics(
+                            identifier: 'profile_settings_button',
+                            label: 'Profile & Settings',
+                            button: true,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(20),
+                              onTap: () => _showProfileSheet(
+                                  context, currentUserName, currentThemeMode),
+                              child: Padding(
+                                padding: const EdgeInsets.all(2),
+                                child: CircleAvatar(
+                                  radius: 18,
+                                  backgroundColor:
+                                      theme.colorScheme.primaryContainer,
+                                  child: currentUserName.isNotEmpty
+                                      ? Text(
+                                          currentUserName[0].toUpperCase(),
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                            color: theme
+                                                .colorScheme.onPrimaryContainer,
+                                          ),
+                                        )
+                                      : Icon(
+                                          Icons.person_outline,
+                                          size: 18,
                                           color: theme
                                               .colorScheme.onPrimaryContainer,
                                         ),
-                                      )
-                                    : Icon(
-                                        Icons.person_outline,
-                                        size: 18,
-                                        color: theme
-                                            .colorScheme.onPrimaryContainer,
-                                      ),
+                                ),
                               ),
                             ),
                           ),
