@@ -33,6 +33,11 @@ class HabitFormState {
   final bool promptReflection;
   final HealthMetricType? healthMetric;
   final bool healthSyncEnabled;
+  final bool enableElasticGoals;
+  final String miniTargetValue;
+  final String eliteTargetValue;
+  final String? miniTargetValueError;
+  final String? eliteTargetValueError;
   final String? titleError;
   final String? targetValueError;
   final bool isSaving;
@@ -49,6 +54,9 @@ class HabitFormState {
     this.targetType = HabitTargetType.boolean,
     this.targetValue = '1',
     this.unit = '',
+    this.enableElasticGoals = false,
+    this.miniTargetValue = '1',
+    this.eliteTargetValue = '2',
     this.frequencyType = HabitFrequencyType.daily,
     this.targetDaysOfWeek = const {0, 1, 2, 3, 4, 5, 6},
     this.targetCountPerWeek = 3,
@@ -61,6 +69,8 @@ class HabitFormState {
     this.promptReflection = false,
     this.healthMetric,
     this.healthSyncEnabled = false,
+    this.miniTargetValueError,
+    this.eliteTargetValueError,
     this.titleError,
     this.targetValueError,
     this.isSaving = false,
@@ -79,6 +89,9 @@ class HabitFormState {
     HabitTargetType? targetType,
     String? targetValue,
     String? unit,
+    bool? enableElasticGoals,
+    String? miniTargetValue,
+    String? eliteTargetValue,
     HabitFrequencyType? frequencyType,
     Set<int>? targetDaysOfWeek,
     int? targetCountPerWeek,
@@ -92,6 +105,10 @@ class HabitFormState {
     HealthMetricType? healthMetric,
     bool clearHealthMetric = false,
     bool? healthSyncEnabled,
+    String? miniTargetValueError,
+    bool clearMiniTargetValueError = false,
+    String? eliteTargetValueError,
+    bool clearEliteTargetValueError = false,
     String? titleError,
     bool clearTitleError = false,
     String? targetValueError,
@@ -110,6 +127,9 @@ class HabitFormState {
       targetType: targetType ?? this.targetType,
       targetValue: targetValue ?? this.targetValue,
       unit: unit ?? this.unit,
+      enableElasticGoals: enableElasticGoals ?? this.enableElasticGoals,
+      miniTargetValue: miniTargetValue ?? this.miniTargetValue,
+      eliteTargetValue: eliteTargetValue ?? this.eliteTargetValue,
       frequencyType: frequencyType ?? this.frequencyType,
       targetDaysOfWeek: targetDaysOfWeek ?? this.targetDaysOfWeek,
       targetCountPerWeek: targetCountPerWeek ?? this.targetCountPerWeek,
@@ -122,6 +142,12 @@ class HabitFormState {
       promptReflection: promptReflection ?? this.promptReflection,
       healthMetric: clearHealthMetric ? null : (healthMetric ?? this.healthMetric),
       healthSyncEnabled: healthSyncEnabled ?? this.healthSyncEnabled,
+      miniTargetValueError: clearMiniTargetValueError
+          ? null
+          : (miniTargetValueError ?? this.miniTargetValueError),
+      eliteTargetValueError: clearEliteTargetValueError
+          ? null
+          : (eliteTargetValueError ?? this.eliteTargetValueError),
       titleError: clearTitleError ? null : (titleError ?? this.titleError),
       targetValueError: clearTargetValueError
           ? null
@@ -146,6 +172,22 @@ class HabitFormController extends StateNotifier<HabitFormState> {
             : habit.targetValue!.toString())
         : '1';
 
+    final miniValStr = habit.miniTargetValue != null
+        ? (habit.miniTargetValue! % 1.0 == 0.0
+            ? habit.miniTargetValue!.toInt().toString()
+            : habit.miniTargetValue!.toString())
+        : (habit.targetValue != null && habit.targetValue! > 1
+            ? (habit.targetValue! / 2).toInt().toString()
+            : '1');
+
+    final eliteValStr = habit.eliteTargetValue != null
+        ? (habit.eliteTargetValue! % 1.0 == 0.0
+            ? habit.eliteTargetValue!.toInt().toString()
+            : habit.eliteTargetValue!.toString())
+        : (habit.targetValue != null
+            ? (habit.targetValue! * 1.5).toInt().toString()
+            : '2');
+
     state = HabitFormState(
       habitId: habit.id,
       isEditMode: true,
@@ -158,6 +200,9 @@ class HabitFormController extends StateNotifier<HabitFormState> {
       targetType: habit.targetType,
       targetValue: targetValStr,
       unit: habit.unit ?? '',
+      enableElasticGoals: habit.hasElasticTiers,
+      miniTargetValue: miniValStr,
+      eliteTargetValue: eliteValStr,
       frequencyType: habit.frequencyType,
       targetDaysOfWeek:
           habit.targetDaysOfWeek?.toSet() ?? const {0, 1, 2, 3, 4, 5, 6},
@@ -209,19 +254,27 @@ class HabitFormController extends StateNotifier<HabitFormState> {
   void onTargetTypeChange(HabitTargetType type) {
     String defaultTarget;
     String defaultUnit;
+    String defaultMini;
+    String defaultElite;
 
     switch (type) {
       case HabitTargetType.boolean:
         defaultTarget = '1';
         defaultUnit = '';
+        defaultMini = '1';
+        defaultElite = '2';
         break;
       case HabitTargetType.numeric:
         defaultTarget = '8';
         defaultUnit = 'glasses';
+        defaultMini = '4';
+        defaultElite = '12';
         break;
       case HabitTargetType.timer:
         defaultTarget = '25';
         defaultUnit = 'mins';
+        defaultMini = '10';
+        defaultElite = '45';
         break;
     }
 
@@ -229,12 +282,43 @@ class HabitFormController extends StateNotifier<HabitFormState> {
       targetType: type,
       targetValue: defaultTarget,
       unit: defaultUnit,
+      miniTargetValue: defaultMini,
+      eliteTargetValue: defaultElite,
       clearTargetValueError: true,
+      clearMiniTargetValueError: true,
+      clearEliteTargetValueError: true,
     );
   }
 
   void onTargetValueChange(String value) {
-    state = state.copyWith(targetValue: value, clearTargetValueError: true);
+    state = state.copyWith(
+      targetValue: value,
+      clearTargetValueError: true,
+      clearMiniTargetValueError: true,
+      clearEliteTargetValueError: true,
+    );
+  }
+
+  void onToggleElasticGoals(bool enabled) {
+    state = state.copyWith(
+      enableElasticGoals: enabled,
+      clearMiniTargetValueError: true,
+      clearEliteTargetValueError: true,
+    );
+  }
+
+  void onMiniTargetValueChange(String value) {
+    state = state.copyWith(
+      miniTargetValue: value,
+      clearMiniTargetValueError: true,
+    );
+  }
+
+  void onEliteTargetValueChange(String value) {
+    state = state.copyWith(
+      eliteTargetValue: value,
+      clearEliteTargetValueError: true,
+    );
   }
 
   void onUnitChange(String unit) {
@@ -349,6 +433,32 @@ class HabitFormController extends StateNotifier<HabitFormState> {
       return false;
     }
 
+    double? miniValParsed;
+    double? eliteValParsed;
+
+    if (state.enableElasticGoals) {
+      miniValParsed = double.tryParse(state.miniTargetValue);
+      eliteValParsed = double.tryParse(state.eliteTargetValue);
+
+      if (miniValParsed == null || miniValParsed <= 0) {
+        state = state.copyWith(miniTargetValueError: 'Enter valid mini target');
+        return false;
+      }
+      if (eliteValParsed == null || eliteValParsed <= 0) {
+        state = state.copyWith(eliteTargetValueError: 'Enter valid elite target');
+        return false;
+      }
+      final baseVal = targetValParsed ?? (state.targetType == HabitTargetType.boolean ? 1.0 : 1.0);
+      if (miniValParsed >= baseVal) {
+        state = state.copyWith(miniTargetValueError: 'Mini must be less than Base ($baseVal)');
+        return false;
+      }
+      if (eliteValParsed <= baseVal) {
+        state = state.copyWith(eliteTargetValueError: 'Elite must be greater than Base ($baseVal)');
+        return false;
+      }
+    }
+
     state = state.copyWith(isSaving: true);
     try {
       final now = DateTime.now();
@@ -395,6 +505,8 @@ class HabitFormController extends StateNotifier<HabitFormState> {
         targetValue: state.targetType == HabitTargetType.boolean
             ? 1.0
             : (targetValParsed ?? 1.0),
+        miniTargetValue: state.enableElasticGoals ? miniValParsed : null,
+        eliteTargetValue: state.enableElasticGoals ? eliteValParsed : null,
         unit: state.targetType == HabitTargetType.boolean
             ? null
             : (state.unit.trim().isEmpty ? null : state.unit.trim()),

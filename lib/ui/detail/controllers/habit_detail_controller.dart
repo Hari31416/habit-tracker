@@ -9,6 +9,7 @@ import '../../../domain/models/habit_category.dart';
 import '../../../domain/models/habit_log.dart';
 import '../../../domain/models/habit_shield.dart';
 import '../../../domain/models/habit_target_type.dart';
+import '../../../domain/models/habit_tier.dart';
 import '../../../domain/repositories/gamification_repository.dart';
 import '../../../domain/repositories/habit_repository.dart';
 
@@ -26,6 +27,7 @@ class HabitDetailUiState {
   final bool isCompletedOnSelectedDate;
   final bool isShieldedOnSelectedDate;
   final double currentValueOnSelectedDate;
+  final HabitTier achievedTierOnSelectedDate;
   final ShieldBankState? shieldBank;
   final WellbeingSummary wellbeingSummary;
   final bool isLoading;
@@ -48,6 +50,7 @@ class HabitDetailUiState {
     this.isCompletedOnSelectedDate = false,
     this.isShieldedOnSelectedDate = false,
     this.currentValueOnSelectedDate = 0.0,
+    this.achievedTierOnSelectedDate = HabitTier.none,
     this.shieldBank,
     this.wellbeingSummary = WellbeingSummary.empty,
     this.isLoading = true,
@@ -68,6 +71,7 @@ class HabitDetailUiState {
     bool? isCompletedOnSelectedDate,
     bool? isShieldedOnSelectedDate,
     double? currentValueOnSelectedDate,
+    HabitTier? achievedTierOnSelectedDate,
     ShieldBankState? shieldBank,
     WellbeingSummary? wellbeingSummary,
     bool? isLoading,
@@ -89,6 +93,8 @@ class HabitDetailUiState {
           isShieldedOnSelectedDate ?? this.isShieldedOnSelectedDate,
       currentValueOnSelectedDate:
           currentValueOnSelectedDate ?? this.currentValueOnSelectedDate,
+      achievedTierOnSelectedDate:
+          achievedTierOnSelectedDate ?? this.achievedTierOnSelectedDate,
       shieldBank: shieldBank ?? this.shieldBank,
       wellbeingSummary: wellbeingSummary ?? this.wellbeingSummary,
       isLoading: isLoading ?? this.isLoading,
@@ -241,6 +247,8 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
       daysCount: 30,
     );
 
+    final achievedTier = StreakCalculator.resolveAchievedTier(habit, logsOnDate);
+
     state = HabitDetailUiState(
       habit: habit,
       category: category,
@@ -253,6 +261,7 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
       isCompletedOnSelectedDate: isCompleted,
       isShieldedOnSelectedDate: isShielded,
       currentValueOnSelectedDate: currentValue,
+      achievedTierOnSelectedDate: achievedTier,
       shieldBank: _currentShieldBank,
       wellbeingSummary: wellbeingSummary,
       isLoading: false,
@@ -359,6 +368,10 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
 
   Future<void> toggleCheckInForDate(DateTime date) async {
     await repository.toggleBooleanCheckIn(habitId, date);
+  }
+
+  Future<void> logTierForSelectedDate(HabitTier tier) async {
+    await repository.logTierCheckIn(habitId, state.selectedDate, tier);
   }
 
   Future<void> updateReflection({

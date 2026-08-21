@@ -19,6 +19,8 @@ abstract final class PreviewFixtures {
     String color = '#3B82F6',
     String icon = 'self_improvement',
     double? targetValue,
+    double? miniTargetValue,
+    double? eliteTargetValue,
     String? unit,
     int? timesPerDay,
     bool pinned = false,
@@ -33,11 +35,32 @@ abstract final class PreviewFixtures {
       frequencyType: frequencyType,
       targetType: targetType,
       targetValue: targetValue,
+      miniTargetValue: miniTargetValue,
+      eliteTargetValue: eliteTargetValue,
       unit: unit,
       timesPerDay: timesPerDay,
       pinned: pinned,
       createdAt: now.subtract(const Duration(days: 30)),
       updatedAt: now,
+    );
+  }
+
+  static Habit sampleHabitWithElasticTiers({
+    String id = 'elastic-habit-1',
+    String title = 'Read Book',
+    double miniTarget = 5.0,
+    double baseTarget = 25.0,
+    double eliteTarget = 50.0,
+    String unit = 'pages',
+  }) {
+    return sampleHabit(
+      id: id,
+      title: title,
+      targetType: HabitTargetType.numeric,
+      targetValue: baseTarget,
+      miniTargetValue: miniTarget,
+      eliteTargetValue: eliteTarget,
+      unit: unit,
     );
   }
 

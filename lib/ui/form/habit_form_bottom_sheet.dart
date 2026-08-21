@@ -47,6 +47,8 @@ class _HabitFormBottomSheetState extends ConsumerState<HabitFormBottomSheet> {
   late final TextEditingController _descriptionController;
   late final TextEditingController _motivationController;
   late final TextEditingController _targetValueController;
+  late final TextEditingController _miniTargetController;
+  late final TextEditingController _eliteTargetController;
   late final TextEditingController _unitController;
   late final TextEditingController _startTimeController;
   late final TextEditingController _endTimeController;
@@ -58,6 +60,8 @@ class _HabitFormBottomSheetState extends ConsumerState<HabitFormBottomSheet> {
     _descriptionController = TextEditingController();
     _motivationController = TextEditingController();
     _targetValueController = TextEditingController();
+    _miniTargetController = TextEditingController();
+    _eliteTargetController = TextEditingController();
     _unitController = TextEditingController();
     _startTimeController = TextEditingController();
     _endTimeController = TextEditingController();
@@ -81,6 +85,8 @@ class _HabitFormBottomSheetState extends ConsumerState<HabitFormBottomSheet> {
     _descriptionController.text = state.description;
     _motivationController.text = state.motivationNotes;
     _targetValueController.text = state.targetValue;
+    _miniTargetController.text = state.miniTargetValue;
+    _eliteTargetController.text = state.eliteTargetValue;
     _unitController.text = state.unit;
     _startTimeController.text = state.timeWindowStart;
     _endTimeController.text = state.timeWindowEnd;
@@ -92,6 +98,8 @@ class _HabitFormBottomSheetState extends ConsumerState<HabitFormBottomSheet> {
     _descriptionController.dispose();
     _motivationController.dispose();
     _targetValueController.dispose();
+    _miniTargetController.dispose();
+    _eliteTargetController.dispose();
     _unitController.dispose();
     _startTimeController.dispose();
     _endTimeController.dispose();
@@ -509,6 +517,116 @@ class _HabitFormBottomSheetState extends ConsumerState<HabitFormBottomSheet> {
                 ),
               ),
             ],
+
+            const SizedBox(height: 16),
+
+            // Elastic Goals & Bad-Day Mode Card
+            Card(
+              elevation: 0,
+              color: formState.enableElasticGoals
+                  ? theme.colorScheme.primaryContainer.withValues(alpha: 0.25)
+                  : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(
+                  color: formState.enableElasticGoals
+                      ? theme.colorScheme.primary.withValues(alpha: 0.4)
+                      : theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.tune,
+                          size: 20,
+                          color: formState.enableElasticGoals
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Elastic Goals (Bad-Day Mode)',
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                              Text(
+                                'Three-tiered targets: Mini (5 XP), Base (20 XP), Elite (35 XP)',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Switch(
+                          value: formState.enableElasticGoals,
+                          onChanged: (enabled) {
+                            HapticsHelper.performLightHaptic();
+                            controller.onToggleElasticGoals(enabled);
+                          },
+                        ),
+                      ],
+                    ),
+                    if (formState.enableElasticGoals) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        'Completing the Mini target preserves streak continuity on difficult days without breaking your momentum.',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _miniTargetController,
+                              onChanged: controller.onMiniTargetValueChange,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              decoration: InputDecoration(
+                                labelText: 'Mini Target (Bad Day)',
+                                helperText: '5 XP • Streak Safe',
+                                errorText: formState.miniTargetValueError,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextField(
+                              controller: _eliteTargetController,
+                              onChanged: controller.onEliteTargetValueChange,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              decoration: InputDecoration(
+                                labelText: 'Elite Target (High Energy)',
+                                helperText: '35 XP • Mastery',
+                                errorText: formState.eliteTargetValueError,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
 
             const SizedBox(height: 20),
 

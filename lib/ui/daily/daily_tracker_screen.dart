@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../data/preferences/theme_mode.dart';
 import '../../data/preferences/theme_preferences.dart';
+import '../../domain/gamification/gamification_engine.dart';
 import '../../domain/models/habit.dart';
 import '../common/haptics_helper.dart';
 import '../form/habit_form_bottom_sheet.dart';
@@ -879,9 +880,22 @@ class _DailyProgressCard extends ConsumerWidget {
       dailyTrackerControllerProvider
           .select((s) => s.totalCompletedForSelectedDate),
     );
+    final habits = ref.watch(
+      dailyTrackerControllerProvider.select((s) => s.habits),
+    );
 
     final percent = total > 0 ? ((completed / total) * 100).toInt() : 0;
-    final earnedXp = completed * 25;
+    final earnedXp = habits.fold<int>(0, (sum, item) {
+      final baseXp = GamificationEngine.calculateHabitDayBaseXp(
+        item.habit,
+        item.logsForDate,
+        item.isCompletedOnDate,
+      );
+      final multiplier = GamificationEngine.calculateStreakMultiplier(
+        item.streak.currentStreak,
+      );
+      return sum + GamificationEngine.applyMultiplier(baseXp, multiplier);
+    });
     final progressFraction = total > 0 ? (completed / total).clamp(0.0, 1.0) : 0.0;
 
     return Padding(
@@ -1164,6 +1178,9 @@ class _DailyHabitsList extends ConsumerWidget {
             if (!wasCompleted && habitWithProgress.habit.promptReflection) {
               onShowReflectionToast(habitWithProgress.habit);
             }
+          },
+          onSelectTier: (tier) {
+            controller.logTier(habitWithProgress.habit.id, tier);
           },
           onReflect: () {
             final log = habitWithProgress.logsForDate.firstOrNull;

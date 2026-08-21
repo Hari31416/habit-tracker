@@ -10,6 +10,7 @@ import '../../../domain/models/habit_frequency_type.dart';
 import '../../../domain/models/habit_log.dart';
 import '../../../domain/models/habit_shield.dart';
 import '../../../domain/models/habit_target_type.dart';
+import '../../../domain/models/habit_tier.dart';
 import '../../../domain/models/habit_with_progress.dart';
 import '../../../domain/repositories/habit_repository.dart';
 import '../../../services/widget_sync_service.dart';
@@ -269,6 +270,8 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
         habitShields,
       );
 
+      final achievedTier = StreakCalculator.resolveAchievedTier(habit, logsOnDate);
+
       return HabitWithProgress(
         habit: habit,
         category: habit.categoryId != null ? categoryMap[habit.categoryId] : null,
@@ -277,6 +280,7 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
         isShieldedOnDate: isShielded,
         currentValueOnDate: currentValue,
         currentDurationSecondsOnDate: currentDurationSeconds,
+        achievedTier: achievedTier,
         streak: streak,
       );
     }).toList();
@@ -412,6 +416,11 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
 
   Future<void> toggleCheckIn(Habit habit) async {
     await _repository.toggleBooleanCheckIn(habit.id, state.selectedDate);
+    _widgetSyncService?.syncAllWidgets(state.selectedDate);
+  }
+
+  Future<void> logTier(String habitId, HabitTier tier) async {
+    await _repository.logTierCheckIn(habitId, state.selectedDate, tier);
     _widgetSyncService?.syncAllWidgets(state.selectedDate);
   }
 

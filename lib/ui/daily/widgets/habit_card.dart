@@ -3,12 +3,14 @@ import 'package:flutter/widget_previews.dart';
 import '../../../domain/engines/streak_calculator.dart';
 import '../../../domain/models/habit_frequency_type.dart';
 import '../../../domain/models/habit_target_type.dart';
+import '../../../domain/models/habit_tier.dart';
 import '../../../domain/models/habit_with_progress.dart';
 import '../../common/color_utils.dart';
 import '../../common/habit_icon_registry.dart';
 import '../../common/haptics_helper.dart';
 import '../../common/previews/phial_previews.dart';
 import '../../common/previews/preview_fixtures.dart';
+import 'elastic_tier_progress_bar.dart';
 import 'numeric_habit_controls.dart';
 import 'slot_habit_controls.dart';
 
@@ -16,6 +18,7 @@ class HabitCard extends StatelessWidget {
   final HabitWithProgress habitWithProgress;
   final ValueChanged<String> onHabitClick;
   final VoidCallback onToggleCheckIn;
+  final ValueChanged<HabitTier>? onSelectTier;
   final VoidCallback? onToggleShield;
   final ValueChanged<double>? onValueChange;
   final ValueChanged<double>? onDeltaAdd;
@@ -29,6 +32,7 @@ class HabitCard extends StatelessWidget {
     required this.habitWithProgress,
     required this.onHabitClick,
     required this.onToggleCheckIn,
+    this.onSelectTier,
     this.onToggleShield,
     this.onValueChange,
     this.onDeltaAdd,
@@ -161,8 +165,23 @@ class HabitCard extends StatelessWidget {
                 ],
               ),
 
-              // Compact auxiliary controls for numeric / slot targets
-              if (habit.targetType == HabitTargetType.numeric && !isCompleted) ...[
+              // Elastic Goals ProgressBar / Auxiliary controls
+              if (habit.hasElasticTiers) ...[
+                const SizedBox(height: 8),
+                ElasticTierProgressBar(
+                  habit: habit,
+                  currentValue: habitWithProgress.currentValueOnDate,
+                  achievedTier: habitWithProgress.achievedTier,
+                  accentColor: habitColor,
+                  onSelectTier: (tier) {
+                    if (onSelectTier != null) {
+                      onSelectTier!(tier);
+                    } else {
+                      onToggleCheckIn();
+                    }
+                  },
+                ),
+              ] else if (habit.targetType == HabitTargetType.numeric && !isCompleted) ...[
                 const SizedBox(height: 8),
                 NumericHabitControls(
                   habit: habit,
@@ -232,6 +251,55 @@ class HabitCard extends StatelessWidget {
             style: theme.textTheme.labelSmall?.copyWith(
               fontWeight: FontWeight.bold,
               color: theme.colorScheme.primary,
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (habit.hasElasticTiers && habitWithProgress.achievedTier != HabitTier.none) {
+      final tier = habitWithProgress.achievedTier;
+      final Color tierColor;
+      final IconData tierIcon;
+      final String tierName;
+
+      switch (tier) {
+        case HabitTier.elite:
+          tierColor = const Color(0xFF8B5CF6);
+          tierIcon = Icons.workspace_premium;
+          tierName = 'Elite (35 XP)';
+          break;
+        case HabitTier.base:
+          tierColor = const Color(0xFF10B981);
+          tierIcon = Icons.check_circle;
+          tierName = 'Base (20 XP)';
+          break;
+        case HabitTier.mini:
+          tierColor = const Color(0xFFF59E0B);
+          tierIcon = Icons.local_fire_department;
+          tierName = 'Mini (Momentum Saved)';
+          break;
+        case HabitTier.none:
+          tierColor = theme.colorScheme.onSurfaceVariant;
+          tierIcon = Icons.circle_outlined;
+          tierName = 'None';
+          break;
+      }
+
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            tierIcon,
+            size: 13,
+            color: tierColor,
+          ),
+          const SizedBox(width: 3),
+          Text(
+            '$tierName • $streakLabel',
+            style: theme.textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: tierColor,
             ),
           ),
         ],

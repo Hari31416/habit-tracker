@@ -18,6 +18,7 @@ import '../analytics/widgets/wellbeing_correlation_card.dart';
 import '../reflection/reflection_bottom_sheet.dart';
 import 'controllers/habit_detail_controller.dart';
 import 'widgets/circular_focus_timer.dart';
+import 'widgets/elastic_goals_card.dart';
 import 'widgets/habit_monthly_calendar.dart';
 import 'widgets/motivation_card.dart';
 import 'widgets/reflection_history_timeline.dart';
@@ -497,6 +498,18 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
                 ),
               ),
             ),
+
+            if (habit.hasElasticTiers) ...[
+              const SizedBox(height: 14),
+              ElasticGoalsCard(
+                habit: habit,
+                achievedTier: uiState.achievedTierOnSelectedDate,
+                currentValue: uiState.currentValueOnSelectedDate,
+                onSelectTier: (tier) {
+                  controller.logTierForSelectedDate(tier);
+                },
+              ),
+            ],
 
             const SizedBox(height: 14),
 
