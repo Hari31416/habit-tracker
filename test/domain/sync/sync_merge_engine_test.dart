@@ -256,6 +256,41 @@ void main() {
       expect(result.mergedPayload.gamification.lastCelebratedLevel, 4);
     });
 
+    test('Sync Merging: merged payload exports only unlocked achievements', () {
+      final habit = Habit(
+        id: 'habit_merge_ach',
+        title: 'Merge Achievements',
+        color: '#10B981',
+        frequencyType: HabitFrequencyType.daily,
+        targetType: HabitTargetType.boolean,
+        createdAt: baseTime,
+        updatedAt: baseTime,
+      );
+      // A single completion unlocks vol_1 but not streak_7 / streak_14.
+      final log = HabitLog(
+        id: 'log_merge_ach',
+        habitId: habit.id,
+        date: '2026-08-20',
+        timestamp: baseTime,
+        completed: true,
+        createdAt: baseTime,
+        updatedAt: baseTime,
+      );
+
+      final result = SyncMergeEngine.merge(
+        local: SyncDataPayload(habits: [habit], logs: [log]),
+        remote: const SyncDataPayload(),
+        clock: () => baseTime,
+      );
+
+      final exportedIds =
+          result.mergedPayload.achievements.map((a) => a.id).toSet();
+      expect(exportedIds, contains('vol_1'));
+      expect(exportedIds, isNot(contains('streak_7')));
+      expect(exportedIds, isNot(contains('streak_14')));
+      expect(exportedIds, isNot(contains('streak_30')));
+    });
+
     test('merges categories and updates with LWW', () {
       final localCat = HabitCategory(
         id: 'cat_health',

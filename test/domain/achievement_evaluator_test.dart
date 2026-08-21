@@ -12,6 +12,62 @@ void main() {
   final formatter = DateFormat('yyyy-MM-dd');
   const uuid = Uuid();
 
+  test('Achievement Unlocks: isUnlocked only when progress >= targetValue', () {
+    final now = DateTime.now().toUtc();
+    final refDate = DateTime.parse('2026-08-17');
+    final habit = Habit(
+      id: 'habit-unlock-gate',
+      title: 'Unlock Gate',
+      color: '#0A7A64',
+      frequencyType: HabitFrequencyType.daily,
+      targetType: HabitTargetType.boolean,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    // Only 2 completions → streak_3 must stay locked; vol_1 unlocks at 1.
+    final logs = List.generate(2, (offset) {
+      final dateStr = formatter.format(refDate.subtract(Duration(days: offset)));
+      return HabitLog(
+        id: uuid.v4(),
+        habitId: habit.id,
+        date: dateStr,
+        timestamp: now,
+        completed: true,
+        createdAt: now,
+        updatedAt: now,
+      );
+    });
+
+    final results = AchievementEvaluator.evaluateAll(
+      EvaluationContext(
+        habits: [habit],
+        allLogs: logs,
+        categories: const [],
+        currentLevel: 1,
+        referenceDate: refDate,
+      ),
+    );
+
+    for (final status in results) {
+      final shouldUnlock = status.currentProgress >= status.definition.targetValue;
+      expect(
+        status.isUnlocked,
+        shouldUnlock,
+        reason: '${status.definition.id}: progress=${status.currentProgress} '
+            'target=${status.definition.targetValue}',
+      );
+    }
+
+    final streak3 = results.firstWhere((a) => a.definition.id == 'streak_3');
+    expect(streak3.isUnlocked, isFalse);
+    expect(streak3.currentProgress, lessThan(streak3.definition.targetValue));
+
+    final vol1 = results.firstWhere((a) => a.definition.id == 'vol_1');
+    expect(vol1.isUnlocked, isTrue);
+    expect(vol1.currentProgress, greaterThanOrEqualTo(vol1.definition.targetValue));
+  });
+
   test('evaluateAll_unlocksStreakAndVolumeAchievements', () {
     final now = DateTime.now().toUtc();
     final refDate = DateTime.parse('2026-08-17');

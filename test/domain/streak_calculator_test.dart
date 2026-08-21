@@ -78,7 +78,7 @@ void main() {
     expect(result.totalCompletions, 5);
   });
 
-  test('calculateStreak_dailyHabit_todayUnlogged_preservesStreakFromYesterday', () {
+  test('Daily Habits: unlogged current day preserves in-progress streak chain', () {
     final habit = createHabit();
     final today = DateTime(2026, 8, 17);
     final logs = [
@@ -112,7 +112,7 @@ void main() {
     expect(result.bestStreak, 3);
   });
 
-  test('calculateStreak_customDays_skipsUnscheduledDaysWithoutBreakingStreak', () {
+  test('Custom Days: non-scheduled days are skipped without breaking streak chains', () {
     // Mon (1), Wed (3), Fri (5)
     final habit = createHabit(
       frequencyType: HabitFrequencyType.customDays,
@@ -134,7 +134,7 @@ void main() {
     expect(result.bestStreak, 3);
   });
 
-  test('calculateWeeklyStreak_canonicalIsoWeeks_streakInWeeks', () {
+  test('Weekly Habits: ISO week target met when distinct days >= targetCountPerWeek; streak unit is weeks', () {
     // Target: 3 times per week
     final habit = createHabit(
       frequencyType: HabitFrequencyType.weekly,

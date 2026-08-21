@@ -55,7 +55,7 @@ void main() {
   });
 
   group('Momentum Preservation in StreakCalculator', () {
-    test('Completing Mini target preserves streak continuity on difficult days', () {
+    test('Elastic Goals: reaching miniTargetValue preserves streak momentum', () {
       final habit = Habit(
         id: 'reading-1',
         title: 'Reading',

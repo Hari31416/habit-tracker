@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:habit_tracker/domain/engines/streak_calculator.dart';
 import 'package:habit_tracker/domain/gamification/gamification_engine.dart';
 import 'package:habit_tracker/domain/gamification/player_title.dart';
 import 'package:habit_tracker/domain/models/habit.dart';
@@ -9,6 +10,69 @@ import 'package:uuid/uuid.dart';
 
 void main() {
   const uuid = Uuid();
+
+  test('Active Streak Multipliers: evaluate against currentStreak never bestStreak', () {
+    // Broken chain: long best streak, short current streak.
+    final habit = Habit(
+      id: 'h_multiplier',
+      title: 'Multiplier Habit',
+      color: '#000000',
+      frequencyType: HabitFrequencyType.daily,
+      targetType: HabitTargetType.boolean,
+      createdAt: DateTime.utc(2026, 1, 1),
+      updatedAt: DateTime.utc(2026, 8, 17),
+    );
+    final today = DateTime(2026, 8, 17);
+    final logs = [
+      // Current chain: today + yesterday only
+      HabitLog(
+        id: uuid.v4(),
+        habitId: habit.id,
+        date: '2026-08-17',
+        timestamp: today,
+        completed: true,
+        createdAt: today,
+        updatedAt: today,
+      ),
+      HabitLog(
+        id: uuid.v4(),
+        habitId: habit.id,
+        date: '2026-08-16',
+        timestamp: today,
+        completed: true,
+        createdAt: today,
+        updatedAt: today,
+      ),
+      // Historic best: 30 consecutive days ending before the gap
+      ...List.generate(30, (i) {
+        final d = DateTime(2026, 8, 14).subtract(Duration(days: i));
+        final dateStr =
+            '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+        return HabitLog(
+          id: uuid.v4(),
+          habitId: habit.id,
+          date: dateStr,
+          timestamp: d,
+          completed: true,
+          createdAt: d,
+          updatedAt: d,
+        );
+      }),
+    ];
+
+    final streak = StreakCalculator.calculateStreak(habit, logs, today);
+    expect(streak.currentStreak, 2);
+    expect(streak.bestStreak, greaterThanOrEqualTo(30));
+
+    // Multiplier must use currentStreak (1.0x), not bestStreak (2.0x).
+    expect(GamificationEngine.calculateStreakMultiplier(streak.currentStreak), 1.0);
+    expect(GamificationEngine.calculateStreakMultiplier(streak.bestStreak), 2.0);
+    final progression = GamificationEngine.calculateProgression(
+      totalXp: 100,
+      longestActiveStreak: streak.currentStreak,
+    );
+    expect(progression.activeStreakMultiplier, 1.0);
+  });
 
   test('calculateStreakMultiplier_returnsCorrectMultiplierForStreakLengths', () {
     expect(GamificationEngine.calculateStreakMultiplier(0), 1.0);
