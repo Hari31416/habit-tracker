@@ -2,6 +2,7 @@ import '../models/habit.dart';
 import '../models/habit_category.dart';
 import '../models/habit_log.dart';
 import '../models/habit_shield.dart';
+import '../models/habit_tier.dart';
 
 abstract class HabitRepository {
   // Habits
@@ -35,6 +36,7 @@ abstract class HabitRepository {
     double? value,
     int? durationSeconds,
     int? intervalIndex,
+    HabitTier? targetTier,
     String? note,
     int? energyLevel,
     String? mood,
@@ -47,6 +49,7 @@ abstract class HabitRepository {
     String? note,
   });
   Future<void> toggleBooleanCheckIn(String habitId, DateTime date);
+  Future<void> logTierCheckIn(String habitId, DateTime date, HabitTier tier);
   Future<void> updateNumericValue(String habitId, DateTime date, double value);
   Future<void> addNumericDelta(String habitId, DateTime date, double delta);
   Future<void> toggleSlotCheckIn(String habitId, DateTime date, int slotIndex);

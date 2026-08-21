@@ -5,6 +5,7 @@ import '../habit_frequency_type.dart';
 import '../habit_log.dart';
 import '../habit_shield.dart';
 import '../habit_target_type.dart';
+import '../habit_tier.dart';
 import '../health/health_metric_type.dart';
 import '../time_window.dart';
 
@@ -153,6 +154,8 @@ class SyncDataPayload {
             : null,
         'targetType': h.targetType.name,
         'targetValue': h.targetValue,
+        'miniTargetValue': h.miniTargetValue,
+        'eliteTargetValue': h.eliteTargetValue,
         'unit': h.unit,
         'pinned': h.pinned,
         'reminderTimes': h.reminderTimes,
@@ -195,6 +198,8 @@ class SyncDataPayload {
         orElse: () => HabitTargetType.boolean,
       ),
       targetValue: (j['targetValue'] as num?)?.toDouble(),
+      miniTargetValue: (j['miniTargetValue'] as num?)?.toDouble(),
+      eliteTargetValue: (j['eliteTargetValue'] as num?)?.toDouble(),
       unit: j['unit'] as String?,
       pinned: j['pinned'] as bool? ?? false,
       reminderTimes: (j['reminderTimes'] as List<dynamic>?)?.cast<String>() ?? const [],
@@ -222,6 +227,7 @@ class SyncDataPayload {
         'completed': l.completed,
         'value': l.value,
         'durationSeconds': l.durationSeconds,
+        'targetTier': l.targetTier?.name,
         'note': l.note,
         'energyLevel': l.energyLevel,
         'mood': l.mood,
@@ -242,6 +248,9 @@ class SyncDataPayload {
       completed: j['completed'] as bool? ?? false,
       value: (j['value'] as num?)?.toDouble(),
       durationSeconds: j['durationSeconds'] as int?,
+      targetTier: j['targetTier'] != null
+          ? HabitTier.fromName(j['targetTier'] as String)
+          : null,
       note: j['note'] as String?,
       energyLevel: j['energyLevel'] as int?,
       mood: j['mood'] as String?,

@@ -1,8 +1,10 @@
 import 'dart:math';
+import '../engines/streak_calculator.dart';
 import '../models/habit.dart';
 import '../models/habit_frequency_type.dart';
 import '../models/habit_log.dart';
 import '../models/habit_target_type.dart';
+import '../models/habit_tier.dart';
 import 'gamification_models.dart';
 import 'player_title.dart';
 
@@ -13,6 +15,25 @@ class GamificationEngine {
   static const int baseTimerCompletionBonusXp = 10;
   static const int baseSlotCheckInXp = 10;
   static const int baseAllSlotsBonusXp = 15;
+
+  // Elastic Goal Tier XP Constants
+  static const int miniTierXp = 5;
+  static const int baseTierXp = 20;
+  static const int eliteTierXp = 35;
+
+  /// Returns the base XP reward for a given elastic goal tier.
+  static int tierBaseXp(HabitTier tier) {
+    switch (tier) {
+      case HabitTier.none:
+        return 0;
+      case HabitTier.mini:
+        return miniTierXp;
+      case HabitTier.base:
+        return baseTierXp;
+      case HabitTier.elite:
+        return eliteTierXp;
+    }
+  }
 
   /// Calculates the streak multiplier based on active streak length:
   /// - < 7 days: 1.0x
@@ -91,6 +112,29 @@ class GamificationEngine {
     bool isCompleted,
   ) {
     if (logsOnDate.isEmpty && !isCompleted) return 0;
+
+    final tier = StreakCalculator.resolveAchievedTier(habit, logsOnDate);
+
+    // Elastic goals prioritize tiered XP scaling
+    if (habit.hasElasticTiers) {
+      switch (tier) {
+        case HabitTier.elite:
+          return eliteTierXp;
+        case HabitTier.base:
+          return baseTierXp;
+        case HabitTier.mini:
+          return miniTierXp;
+        case HabitTier.none:
+          return 0;
+      }
+    }
+
+    // Check if an explicit tier was logged for a non-elastic habit
+    if (tier == HabitTier.elite) {
+      return eliteTierXp;
+    } else if (tier == HabitTier.mini) {
+      return miniTierXp;
+    }
 
     switch (habit.targetType) {
       case HabitTargetType.boolean:

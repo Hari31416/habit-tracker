@@ -5,6 +5,7 @@ import '../models/habit_frequency_type.dart';
 import '../models/habit_log.dart';
 import '../models/habit_shield.dart';
 import '../models/habit_target_type.dart';
+import '../models/habit_tier.dart';
 
 class StreakResult {
   final int currentStreak;
@@ -79,8 +80,78 @@ class StreakCalculator {
     }
   }
 
+  static HabitTier resolveAchievedTier(Habit habit, List<HabitLog> logs) {
+    if (logs.isEmpty) return HabitTier.none;
+
+    // Check if any log explicitly specifies a tier
+    HabitTier explicitTier = HabitTier.none;
+    for (final log in logs) {
+      if (log.completed && log.targetTier != null) {
+        if (log.targetTier!.index > explicitTier.index) {
+          explicitTier = log.targetTier!;
+        }
+      }
+    }
+
+    switch (habit.targetType) {
+      case HabitTargetType.boolean:
+        switch (habit.frequencyType) {
+          case HabitFrequencyType.subdayInterval:
+          case HabitFrequencyType.timesPerDay:
+            final requiredSlots = habit.timesPerDay ?? habit.targetValue?.toInt() ?? 1;
+            final completedSlots = logs
+                .where((l) => l.completed)
+                .map((l) => l.intervalIndex)
+                .where((idx) => idx != null)
+                .toSet()
+                .length;
+            if (completedSlots >= requiredSlots) {
+              return explicitTier.index > HabitTier.base.index ? explicitTier : HabitTier.base;
+            } else if (completedSlots > 0 && habit.miniTargetValue != null && habit.miniTargetValue! <= 1.0) {
+              return explicitTier.index > HabitTier.mini.index ? explicitTier : HabitTier.mini;
+            }
+            return explicitTier != HabitTier.none ? explicitTier : HabitTier.none;
+          default:
+            final hasCompleted = logs.any((l) => l.completed);
+            if (hasCompleted) {
+              return explicitTier != HabitTier.none ? explicitTier : HabitTier.base;
+            }
+            return HabitTier.none;
+        }
+
+      case HabitTargetType.numeric:
+        final defaultTarget = habit.targetValue ?? 1.0;
+        final totalValue = logs.fold<double>(
+          0.0,
+          (sum, log) => sum + (log.value ?? (log.completed ? defaultTarget : 0.0)),
+        );
+        final evaluatedTier = habit.evaluateTierForValue(totalValue);
+        return explicitTier.index > evaluatedTier.index ? explicitTier : evaluatedTier;
+
+      case HabitTargetType.timer:
+        final defaultMinutes = habit.targetValue ?? 25.0;
+        final totalMinutes = logs.fold<double>(
+          0.0,
+          (sum, log) {
+            if (log.durationSeconds != null && log.durationSeconds! > 0) {
+              return sum + (log.durationSeconds! / 60.0);
+            } else {
+              return sum + (log.value ?? (log.completed ? defaultMinutes : 0.0));
+            }
+          },
+        );
+        final evaluatedTier = habit.evaluateTierForValue(totalMinutes);
+        return explicitTier.index > evaluatedTier.index ? explicitTier : evaluatedTier;
+    }
+  }
+
   static bool isHabitCompletedOnDate(Habit habit, List<HabitLog> logs) {
     if (logs.isEmpty) return false;
+
+    if (habit.hasElasticTiers) {
+      // Reaching at least the Mini target preserves streak continuity on difficult days
+      return resolveAchievedTier(habit, logs) != HabitTier.none;
+    }
 
     switch (habit.targetType) {
       case HabitTargetType.boolean:
@@ -121,6 +192,10 @@ class StreakCalculator {
         );
         return totalMinutes >= targetMinutes;
     }
+  }
+
+  static bool isBaseCompletedOnDate(Habit habit, List<HabitLog> logs) {
+    return resolveAchievedTier(habit, logs).isAtLeast(HabitTier.base);
   }
 
   static bool isWeeklyTargetMet(

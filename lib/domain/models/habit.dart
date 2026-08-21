@@ -1,5 +1,6 @@
 import 'habit_frequency_type.dart';
 import 'habit_target_type.dart';
+import 'habit_tier.dart';
 import 'health/health_metric_type.dart';
 import 'time_window.dart';
 
@@ -18,6 +19,8 @@ class Habit {
   final TimeWindow? timeWindow;
   final HabitTargetType targetType;
   final double? targetValue;
+  final double? miniTargetValue;
+  final double? eliteTargetValue;
   final String? unit;
   final bool pinned;
   final List<String> reminderTimes;
@@ -45,6 +48,8 @@ class Habit {
     this.timeWindow,
     required this.targetType,
     this.targetValue,
+    this.miniTargetValue,
+    this.eliteTargetValue,
     this.unit,
     this.pinned = false,
     this.reminderTimes = const [],
@@ -57,6 +62,31 @@ class Habit {
     required this.createdAt,
     required this.updatedAt,
   });
+
+  bool get hasElasticTiers =>
+      miniTargetValue != null || eliteTargetValue != null;
+
+  double get effectiveBaseTarget =>
+      targetValue ?? (targetType == HabitTargetType.boolean ? 1.0 : 0.0);
+
+  HabitTier evaluateTierForValue(double value) {
+    if (eliteTargetValue != null && value >= eliteTargetValue!) {
+      return HabitTier.elite;
+    }
+    if (targetValue != null && value >= targetValue!) {
+      return HabitTier.base;
+    }
+    if (miniTargetValue != null && value >= miniTargetValue!) {
+      return HabitTier.mini;
+    }
+    if (!hasElasticTiers && targetValue != null && value >= targetValue!) {
+      return HabitTier.base;
+    }
+    if (!hasElasticTiers && targetValue == null && value > 0) {
+      return HabitTier.base;
+    }
+    return HabitTier.none;
+  }
 
   Habit copyWith({
     String? id,
@@ -73,6 +103,10 @@ class Habit {
     TimeWindow? timeWindow,
     HabitTargetType? targetType,
     double? targetValue,
+    double? miniTargetValue,
+    bool clearMiniTarget = false,
+    double? eliteTargetValue,
+    bool clearEliteTarget = false,
     String? unit,
     bool? pinned,
     List<String>? reminderTimes,
@@ -100,6 +134,10 @@ class Habit {
       timeWindow: timeWindow ?? this.timeWindow,
       targetType: targetType ?? this.targetType,
       targetValue: targetValue ?? this.targetValue,
+      miniTargetValue:
+          clearMiniTarget ? null : (miniTargetValue ?? this.miniTargetValue),
+      eliteTargetValue:
+          clearEliteTarget ? null : (eliteTargetValue ?? this.eliteTargetValue),
       unit: unit ?? this.unit,
       pinned: pinned ?? this.pinned,
       reminderTimes: reminderTimes ?? this.reminderTimes,
