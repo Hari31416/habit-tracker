@@ -11,6 +11,7 @@ import '../../domain/models/habit_frequency_type.dart';
 import '../../domain/models/habit_log.dart';
 import '../../domain/models/habit_shield.dart';
 import '../../domain/models/habit_target_type.dart';
+import '../../domain/models/habit_tier.dart';
 import '../../domain/repositories/habit_repository.dart';
 import '../../domain/schedulers/habit_reminder_scheduler.dart';
 import '../local/app_database.dart';
@@ -56,6 +57,8 @@ class HabitRepositoryImpl implements HabitRepository {
         timeWindow: row.timeWindow,
         targetType: row.targetType,
         targetValue: row.targetValue,
+        miniTargetValue: row.miniTargetValue,
+        eliteTargetValue: row.eliteTargetValue,
         unit: row.unit,
         pinned: row.pinned,
         reminderTimes: row.reminderTimes,
@@ -84,6 +87,8 @@ class HabitRepositoryImpl implements HabitRepository {
         timeWindow: Value(habit.timeWindow),
         targetType: Value(habit.targetType),
         targetValue: Value(habit.targetValue),
+        miniTargetValue: Value(habit.miniTargetValue),
+        eliteTargetValue: Value(habit.eliteTargetValue),
         unit: Value(habit.unit),
         pinned: Value(habit.pinned),
         reminderTimes: Value(habit.reminderTimes),
@@ -106,6 +111,7 @@ class HabitRepositoryImpl implements HabitRepository {
         completed: row.completed,
         value: row.value,
         durationSeconds: row.durationSeconds,
+        targetTier: row.targetTier,
         note: row.note,
         energyLevel: row.energyLevel,
         mood: row.mood,
@@ -284,6 +290,7 @@ class HabitRepositoryImpl implements HabitRepository {
     double? value,
     int? durationSeconds,
     int? intervalIndex,
+    HabitTier? targetTier,
     String? note,
     int? energyLevel,
     String? mood,
@@ -298,6 +305,7 @@ class HabitRepositoryImpl implements HabitRepository {
       completed: Value(completed),
       value: Value(value),
       durationSeconds: Value(durationSeconds),
+      targetTier: Value(targetTier),
       note: Value(note),
       energyLevel: Value(energyLevel),
       mood: Value(mood),
@@ -305,6 +313,63 @@ class HabitRepositoryImpl implements HabitRepository {
       updatedAt: Value(now),
     );
     await habitLogDao.upsertLog(log);
+    await _rescheduleHabitRemindersIfActive(habitId);
+  }
+
+  @override
+  Future<void> logTierCheckIn(String habitId, DateTime date, HabitTier tier) async {
+    final dateStr = _dateFormatter.format(date);
+    if (tier == HabitTier.none) {
+      await habitLogDao.deleteLogsForHabitAndDate(habitId, dateStr);
+      return;
+    }
+
+    final habit = await getHabitByIdOnce(habitId);
+    double targetVal;
+    int? durationSecs;
+
+    if (habit != null) {
+      switch (tier) {
+        case HabitTier.mini:
+          targetVal = habit.miniTargetValue ??
+              (habit.targetValue != null ? max(1.0, habit.targetValue! / 2) : 1.0);
+          break;
+        case HabitTier.base:
+          targetVal = habit.targetValue ?? 1.0;
+          break;
+        case HabitTier.elite:
+          targetVal = habit.eliteTargetValue ??
+              (habit.targetValue != null ? habit.targetValue! * 1.5 : 1.0);
+          break;
+        case HabitTier.none:
+          targetVal = 0.0;
+          break;
+      }
+
+      if (habit.targetType == HabitTargetType.timer) {
+        durationSecs = (targetVal * 60).round();
+      }
+    } else {
+      targetVal = 1.0;
+    }
+
+    await habitDao.attachedDatabase.transaction(() async {
+      await habitLogDao.deleteLogsForHabitAndDate(habitId, dateStr);
+      final now = DateTime.now().toUtc();
+      final log = HabitLogsCompanion(
+        id: Value(_uuid.v4()),
+        habitId: Value(habitId),
+        date: Value(dateStr),
+        timestamp: Value(now),
+        completed: const Value(true),
+        value: Value(targetVal),
+        durationSeconds: Value(durationSecs),
+        targetTier: Value(tier),
+        createdAt: Value(now),
+        updatedAt: Value(now),
+      );
+      await habitLogDao.upsertLog(log);
+    });
     await _rescheduleHabitRemindersIfActive(habitId);
   }
 

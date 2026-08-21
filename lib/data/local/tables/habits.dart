@@ -17,6 +17,8 @@ class Habits extends Table {
   TextColumn get timeWindow => text().map(const TimeWindowConverter()).nullable()();
   TextColumn get targetType => text().map(const HabitTargetTypeConverter())();
   RealColumn get targetValue => real().nullable()();
+  RealColumn get miniTargetValue => real().nullable()();
+  RealColumn get eliteTargetValue => real().nullable()();
   TextColumn get unit => text().nullable()();
   BoolColumn get pinned => boolean().withDefault(const Constant(false))();
   TextColumn get reminderTimes => text().map(const StringListConverter()).withDefault(const Constant('[]'))();

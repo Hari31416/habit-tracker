@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import '../converters/type_converters.dart';
 import 'habits.dart';
 
 @DataClassName('HabitLogRow')
@@ -15,6 +16,7 @@ class HabitLogs extends Table {
   BoolColumn get completed => boolean()();
   RealColumn get value => real().nullable()();
   IntColumn get durationSeconds => integer().nullable()();
+  TextColumn get targetTier => text().map(const HabitTierConverter()).nullable()();
   TextColumn get note => text().nullable()();
   IntColumn get energyLevel => integer().nullable()(); // 1 to 5 scale
   TextColumn get mood => text().nullable()(); // mood tag: energized, happy, calm, tired, stressed, focused

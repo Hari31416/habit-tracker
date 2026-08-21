@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../domain/models/habit_frequency_type.dart';
 import '../../domain/models/habit_target_type.dart';
+import '../../domain/models/habit_tier.dart';
 import '../../domain/models/health/health_metric_type.dart';
 import '../../domain/models/time_window.dart';
 import 'converters/type_converters.dart';
@@ -55,7 +56,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   Future<void> _safeAddColumn(Migrator m, TableInfo table, GeneratedColumn column) async {
     try {
@@ -104,6 +105,11 @@ class AppDatabase extends _$AppDatabase {
           await _safeAddColumn(m, habits, habits.healthMetric);
           await _safeAddColumn(m, habits, habits.healthSyncEnabled);
         }
+        if (from < 7) {
+          await _safeAddColumn(m, habits, habits.miniTargetValue);
+          await _safeAddColumn(m, habits, habits.eliteTargetValue);
+          await _safeAddColumn(m, habitLogs, habitLogs.targetTier);
+        }
       },
       beforeOpen: (details) async {
         await customStatement('PRAGMA journal_mode = WAL;');
@@ -124,6 +130,9 @@ class AppDatabase extends _$AppDatabase {
           'ALTER TABLE achievements ADD COLUMN updated_at INTEGER NOT NULL DEFAULT 1767225600;',
           'ALTER TABLE habits ADD COLUMN health_metric TEXT;',
           'ALTER TABLE habits ADD COLUMN health_sync_enabled INTEGER NOT NULL DEFAULT 0 CHECK (health_sync_enabled IN (0, 1));',
+          'ALTER TABLE habits ADD COLUMN mini_target_value REAL;',
+          'ALTER TABLE habits ADD COLUMN elite_target_value REAL;',
+          'ALTER TABLE habit_logs ADD COLUMN target_tier TEXT;',
         ];
 
         for (final stmt in columnFixes) {

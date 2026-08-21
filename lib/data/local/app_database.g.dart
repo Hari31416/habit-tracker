@@ -145,6 +145,28 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
     type: DriftSqlType.double,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _miniTargetValueMeta = const VerificationMeta(
+    'miniTargetValue',
+  );
+  @override
+  late final GeneratedColumn<double> miniTargetValue = GeneratedColumn<double>(
+    'mini_target_value',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _eliteTargetValueMeta = const VerificationMeta(
+    'eliteTargetValue',
+  );
+  @override
+  late final GeneratedColumn<double> eliteTargetValue = GeneratedColumn<double>(
+    'elite_target_value',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _unitMeta = const VerificationMeta('unit');
   @override
   late final GeneratedColumn<String> unit = GeneratedColumn<String>(
@@ -295,6 +317,8 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
     timeWindow,
     targetType,
     targetValue,
+    miniTargetValue,
+    eliteTargetValue,
     unit,
     pinned,
     reminderTimes,
@@ -394,6 +418,24 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
         targetValue.isAcceptableOrUnknown(
           data['target_value']!,
           _targetValueMeta,
+        ),
+      );
+    }
+    if (data.containsKey('mini_target_value')) {
+      context.handle(
+        _miniTargetValueMeta,
+        miniTargetValue.isAcceptableOrUnknown(
+          data['mini_target_value']!,
+          _miniTargetValueMeta,
+        ),
+      );
+    }
+    if (data.containsKey('elite_target_value')) {
+      context.handle(
+        _eliteTargetValueMeta,
+        eliteTargetValue.isAcceptableOrUnknown(
+          data['elite_target_value']!,
+          _eliteTargetValueMeta,
         ),
       );
     }
@@ -537,6 +579,14 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
         DriftSqlType.double,
         data['${effectivePrefix}target_value'],
       ),
+      miniTargetValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}mini_target_value'],
+      ),
+      eliteTargetValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}elite_target_value'],
+      ),
       unit: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}unit'],
@@ -626,6 +676,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
   final TimeWindow? timeWindow;
   final HabitTargetType targetType;
   final double? targetValue;
+  final double? miniTargetValue;
+  final double? eliteTargetValue;
   final String? unit;
   final bool pinned;
   final List<String> reminderTimes;
@@ -652,6 +704,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     this.timeWindow,
     required this.targetType,
     this.targetValue,
+    this.miniTargetValue,
+    this.eliteTargetValue,
     this.unit,
     required this.pinned,
     required this.reminderTimes,
@@ -711,6 +765,12 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     if (!nullToAbsent || targetValue != null) {
       map['target_value'] = Variable<double>(targetValue);
     }
+    if (!nullToAbsent || miniTargetValue != null) {
+      map['mini_target_value'] = Variable<double>(miniTargetValue);
+    }
+    if (!nullToAbsent || eliteTargetValue != null) {
+      map['elite_target_value'] = Variable<double>(eliteTargetValue);
+    }
     if (!nullToAbsent || unit != null) {
       map['unit'] = Variable<String>(unit);
     }
@@ -769,6 +829,12 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       targetValue: targetValue == null && nullToAbsent
           ? const Value.absent()
           : Value(targetValue),
+      miniTargetValue: miniTargetValue == null && nullToAbsent
+          ? const Value.absent()
+          : Value(miniTargetValue),
+      eliteTargetValue: eliteTargetValue == null && nullToAbsent
+          ? const Value.absent()
+          : Value(eliteTargetValue),
       unit: unit == null && nullToAbsent ? const Value.absent() : Value(unit),
       pinned: Value(pinned),
       reminderTimes: Value(reminderTimes),
@@ -811,6 +877,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       timeWindow: serializer.fromJson<TimeWindow?>(json['timeWindow']),
       targetType: serializer.fromJson<HabitTargetType>(json['targetType']),
       targetValue: serializer.fromJson<double?>(json['targetValue']),
+      miniTargetValue: serializer.fromJson<double?>(json['miniTargetValue']),
+      eliteTargetValue: serializer.fromJson<double?>(json['eliteTargetValue']),
       unit: serializer.fromJson<String?>(json['unit']),
       pinned: serializer.fromJson<bool>(json['pinned']),
       reminderTimes: serializer.fromJson<List<String>>(json['reminderTimes']),
@@ -844,6 +912,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       'timeWindow': serializer.toJson<TimeWindow?>(timeWindow),
       'targetType': serializer.toJson<HabitTargetType>(targetType),
       'targetValue': serializer.toJson<double?>(targetValue),
+      'miniTargetValue': serializer.toJson<double?>(miniTargetValue),
+      'eliteTargetValue': serializer.toJson<double?>(eliteTargetValue),
       'unit': serializer.toJson<String?>(unit),
       'pinned': serializer.toJson<bool>(pinned),
       'reminderTimes': serializer.toJson<List<String>>(reminderTimes),
@@ -873,6 +943,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     Value<TimeWindow?> timeWindow = const Value.absent(),
     HabitTargetType? targetType,
     Value<double?> targetValue = const Value.absent(),
+    Value<double?> miniTargetValue = const Value.absent(),
+    Value<double?> eliteTargetValue = const Value.absent(),
     Value<String?> unit = const Value.absent(),
     bool? pinned,
     List<String>? reminderTimes,
@@ -905,6 +977,12 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     timeWindow: timeWindow.present ? timeWindow.value : this.timeWindow,
     targetType: targetType ?? this.targetType,
     targetValue: targetValue.present ? targetValue.value : this.targetValue,
+    miniTargetValue: miniTargetValue.present
+        ? miniTargetValue.value
+        : this.miniTargetValue,
+    eliteTargetValue: eliteTargetValue.present
+        ? eliteTargetValue.value
+        : this.eliteTargetValue,
     unit: unit.present ? unit.value : this.unit,
     pinned: pinned ?? this.pinned,
     reminderTimes: reminderTimes ?? this.reminderTimes,
@@ -955,6 +1033,12 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       targetValue: data.targetValue.present
           ? data.targetValue.value
           : this.targetValue,
+      miniTargetValue: data.miniTargetValue.present
+          ? data.miniTargetValue.value
+          : this.miniTargetValue,
+      eliteTargetValue: data.eliteTargetValue.present
+          ? data.eliteTargetValue.value
+          : this.eliteTargetValue,
       unit: data.unit.present ? data.unit.value : this.unit,
       pinned: data.pinned.present ? data.pinned.value : this.pinned,
       reminderTimes: data.reminderTimes.present
@@ -996,6 +1080,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
           ..write('timeWindow: $timeWindow, ')
           ..write('targetType: $targetType, ')
           ..write('targetValue: $targetValue, ')
+          ..write('miniTargetValue: $miniTargetValue, ')
+          ..write('eliteTargetValue: $eliteTargetValue, ')
           ..write('unit: $unit, ')
           ..write('pinned: $pinned, ')
           ..write('reminderTimes: $reminderTimes, ')
@@ -1027,6 +1113,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     timeWindow,
     targetType,
     targetValue,
+    miniTargetValue,
+    eliteTargetValue,
     unit,
     pinned,
     reminderTimes,
@@ -1057,6 +1145,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
           other.timeWindow == this.timeWindow &&
           other.targetType == this.targetType &&
           other.targetValue == this.targetValue &&
+          other.miniTargetValue == this.miniTargetValue &&
+          other.eliteTargetValue == this.eliteTargetValue &&
           other.unit == this.unit &&
           other.pinned == this.pinned &&
           other.reminderTimes == this.reminderTimes &&
@@ -1085,6 +1175,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
   final Value<TimeWindow?> timeWindow;
   final Value<HabitTargetType> targetType;
   final Value<double?> targetValue;
+  final Value<double?> miniTargetValue;
+  final Value<double?> eliteTargetValue;
   final Value<String?> unit;
   final Value<bool> pinned;
   final Value<List<String>> reminderTimes;
@@ -1112,6 +1204,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     this.timeWindow = const Value.absent(),
     this.targetType = const Value.absent(),
     this.targetValue = const Value.absent(),
+    this.miniTargetValue = const Value.absent(),
+    this.eliteTargetValue = const Value.absent(),
     this.unit = const Value.absent(),
     this.pinned = const Value.absent(),
     this.reminderTimes = const Value.absent(),
@@ -1140,6 +1234,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     this.timeWindow = const Value.absent(),
     required HabitTargetType targetType,
     this.targetValue = const Value.absent(),
+    this.miniTargetValue = const Value.absent(),
+    this.eliteTargetValue = const Value.absent(),
     this.unit = const Value.absent(),
     this.pinned = const Value.absent(),
     this.reminderTimes = const Value.absent(),
@@ -1174,6 +1270,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     Expression<String>? timeWindow,
     Expression<String>? targetType,
     Expression<double>? targetValue,
+    Expression<double>? miniTargetValue,
+    Expression<double>? eliteTargetValue,
     Expression<String>? unit,
     Expression<bool>? pinned,
     Expression<String>? reminderTimes,
@@ -1203,6 +1301,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
       if (timeWindow != null) 'time_window': timeWindow,
       if (targetType != null) 'target_type': targetType,
       if (targetValue != null) 'target_value': targetValue,
+      if (miniTargetValue != null) 'mini_target_value': miniTargetValue,
+      if (eliteTargetValue != null) 'elite_target_value': eliteTargetValue,
       if (unit != null) 'unit': unit,
       if (pinned != null) 'pinned': pinned,
       if (reminderTimes != null) 'reminder_times': reminderTimes,
@@ -1233,6 +1333,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     Value<TimeWindow?>? timeWindow,
     Value<HabitTargetType>? targetType,
     Value<double?>? targetValue,
+    Value<double?>? miniTargetValue,
+    Value<double?>? eliteTargetValue,
     Value<String?>? unit,
     Value<bool>? pinned,
     Value<List<String>>? reminderTimes,
@@ -1261,6 +1363,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
       timeWindow: timeWindow ?? this.timeWindow,
       targetType: targetType ?? this.targetType,
       targetValue: targetValue ?? this.targetValue,
+      miniTargetValue: miniTargetValue ?? this.miniTargetValue,
+      eliteTargetValue: eliteTargetValue ?? this.eliteTargetValue,
       unit: unit ?? this.unit,
       pinned: pinned ?? this.pinned,
       reminderTimes: reminderTimes ?? this.reminderTimes,
@@ -1329,6 +1433,12 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     if (targetValue.present) {
       map['target_value'] = Variable<double>(targetValue.value);
     }
+    if (miniTargetValue.present) {
+      map['mini_target_value'] = Variable<double>(miniTargetValue.value);
+    }
+    if (eliteTargetValue.present) {
+      map['elite_target_value'] = Variable<double>(eliteTargetValue.value);
+    }
     if (unit.present) {
       map['unit'] = Variable<String>(unit.value);
     }
@@ -1389,6 +1499,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
           ..write('timeWindow: $timeWindow, ')
           ..write('targetType: $targetType, ')
           ..write('targetValue: $targetValue, ')
+          ..write('miniTargetValue: $miniTargetValue, ')
+          ..write('eliteTargetValue: $eliteTargetValue, ')
           ..write('unit: $unit, ')
           ..write('pinned: $pinned, ')
           ..write('reminderTimes: $reminderTimes, ')
@@ -1500,6 +1612,15 @@ class $HabitLogsTable extends HabitLogs
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  @override
+  late final GeneratedColumnWithTypeConverter<HabitTier?, String> targetTier =
+      GeneratedColumn<String>(
+        'target_tier',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<HabitTier?>($HabitLogsTable.$convertertargetTier);
   static const VerificationMeta _noteMeta = const VerificationMeta('note');
   @override
   late final GeneratedColumn<String> note = GeneratedColumn<String>(
@@ -1576,6 +1697,7 @@ class $HabitLogsTable extends HabitLogs
     completed,
     value,
     durationSeconds,
+    targetTier,
     note,
     energyLevel,
     mood,
@@ -1740,6 +1862,12 @@ class $HabitLogsTable extends HabitLogs
         DriftSqlType.int,
         data['${effectivePrefix}duration_seconds'],
       ),
+      targetTier: $HabitLogsTable.$convertertargetTier.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}target_tier'],
+        ),
+      ),
       note: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}note'],
@@ -1771,6 +1899,9 @@ class $HabitLogsTable extends HabitLogs
   $HabitLogsTable createAlias(String alias) {
     return $HabitLogsTable(attachedDatabase, alias);
   }
+
+  static TypeConverter<HabitTier?, String?> $convertertargetTier =
+      const HabitTierConverter();
 }
 
 class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
@@ -1782,6 +1913,7 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
   final bool completed;
   final double? value;
   final int? durationSeconds;
+  final HabitTier? targetTier;
   final String? note;
   final int? energyLevel;
   final String? mood;
@@ -1797,6 +1929,7 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
     required this.completed,
     this.value,
     this.durationSeconds,
+    this.targetTier,
     this.note,
     this.energyLevel,
     this.mood,
@@ -1820,6 +1953,11 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
     }
     if (!nullToAbsent || durationSeconds != null) {
       map['duration_seconds'] = Variable<int>(durationSeconds);
+    }
+    if (!nullToAbsent || targetTier != null) {
+      map['target_tier'] = Variable<String>(
+        $HabitLogsTable.$convertertargetTier.toSql(targetTier),
+      );
     }
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
@@ -1852,6 +1990,9 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
       durationSeconds: durationSeconds == null && nullToAbsent
           ? const Value.absent()
           : Value(durationSeconds),
+      targetTier: targetTier == null && nullToAbsent
+          ? const Value.absent()
+          : Value(targetTier),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       energyLevel: energyLevel == null && nullToAbsent
           ? const Value.absent()
@@ -1877,6 +2018,7 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
       completed: serializer.fromJson<bool>(json['completed']),
       value: serializer.fromJson<double?>(json['value']),
       durationSeconds: serializer.fromJson<int?>(json['durationSeconds']),
+      targetTier: serializer.fromJson<HabitTier?>(json['targetTier']),
       note: serializer.fromJson<String?>(json['note']),
       energyLevel: serializer.fromJson<int?>(json['energyLevel']),
       mood: serializer.fromJson<String?>(json['mood']),
@@ -1897,6 +2039,7 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
       'completed': serializer.toJson<bool>(completed),
       'value': serializer.toJson<double?>(value),
       'durationSeconds': serializer.toJson<int?>(durationSeconds),
+      'targetTier': serializer.toJson<HabitTier?>(targetTier),
       'note': serializer.toJson<String?>(note),
       'energyLevel': serializer.toJson<int?>(energyLevel),
       'mood': serializer.toJson<String?>(mood),
@@ -1915,6 +2058,7 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
     bool? completed,
     Value<double?> value = const Value.absent(),
     Value<int?> durationSeconds = const Value.absent(),
+    Value<HabitTier?> targetTier = const Value.absent(),
     Value<String?> note = const Value.absent(),
     Value<int?> energyLevel = const Value.absent(),
     Value<String?> mood = const Value.absent(),
@@ -1934,6 +2078,7 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
     durationSeconds: durationSeconds.present
         ? durationSeconds.value
         : this.durationSeconds,
+    targetTier: targetTier.present ? targetTier.value : this.targetTier,
     note: note.present ? note.value : this.note,
     energyLevel: energyLevel.present ? energyLevel.value : this.energyLevel,
     mood: mood.present ? mood.value : this.mood,
@@ -1955,6 +2100,9 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
       durationSeconds: data.durationSeconds.present
           ? data.durationSeconds.value
           : this.durationSeconds,
+      targetTier: data.targetTier.present
+          ? data.targetTier.value
+          : this.targetTier,
       note: data.note.present ? data.note.value : this.note,
       energyLevel: data.energyLevel.present
           ? data.energyLevel.value
@@ -1977,6 +2125,7 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
           ..write('completed: $completed, ')
           ..write('value: $value, ')
           ..write('durationSeconds: $durationSeconds, ')
+          ..write('targetTier: $targetTier, ')
           ..write('note: $note, ')
           ..write('energyLevel: $energyLevel, ')
           ..write('mood: $mood, ')
@@ -1997,6 +2146,7 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
     completed,
     value,
     durationSeconds,
+    targetTier,
     note,
     energyLevel,
     mood,
@@ -2016,6 +2166,7 @@ class HabitLogRow extends DataClass implements Insertable<HabitLogRow> {
           other.completed == this.completed &&
           other.value == this.value &&
           other.durationSeconds == this.durationSeconds &&
+          other.targetTier == this.targetTier &&
           other.note == this.note &&
           other.energyLevel == this.energyLevel &&
           other.mood == this.mood &&
@@ -2033,6 +2184,7 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
   final Value<bool> completed;
   final Value<double?> value;
   final Value<int?> durationSeconds;
+  final Value<HabitTier?> targetTier;
   final Value<String?> note;
   final Value<int?> energyLevel;
   final Value<String?> mood;
@@ -2049,6 +2201,7 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
     this.completed = const Value.absent(),
     this.value = const Value.absent(),
     this.durationSeconds = const Value.absent(),
+    this.targetTier = const Value.absent(),
     this.note = const Value.absent(),
     this.energyLevel = const Value.absent(),
     this.mood = const Value.absent(),
@@ -2066,6 +2219,7 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
     required bool completed,
     this.value = const Value.absent(),
     this.durationSeconds = const Value.absent(),
+    this.targetTier = const Value.absent(),
     this.note = const Value.absent(),
     this.energyLevel = const Value.absent(),
     this.mood = const Value.absent(),
@@ -2089,6 +2243,7 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
     Expression<bool>? completed,
     Expression<double>? value,
     Expression<int>? durationSeconds,
+    Expression<String>? targetTier,
     Expression<String>? note,
     Expression<int>? energyLevel,
     Expression<String>? mood,
@@ -2106,6 +2261,7 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
       if (completed != null) 'completed': completed,
       if (value != null) 'value': value,
       if (durationSeconds != null) 'duration_seconds': durationSeconds,
+      if (targetTier != null) 'target_tier': targetTier,
       if (note != null) 'note': note,
       if (energyLevel != null) 'energy_level': energyLevel,
       if (mood != null) 'mood': mood,
@@ -2125,6 +2281,7 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
     Value<bool>? completed,
     Value<double?>? value,
     Value<int?>? durationSeconds,
+    Value<HabitTier?>? targetTier,
     Value<String?>? note,
     Value<int?>? energyLevel,
     Value<String?>? mood,
@@ -2142,6 +2299,7 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
       completed: completed ?? this.completed,
       value: value ?? this.value,
       durationSeconds: durationSeconds ?? this.durationSeconds,
+      targetTier: targetTier ?? this.targetTier,
       note: note ?? this.note,
       energyLevel: energyLevel ?? this.energyLevel,
       mood: mood ?? this.mood,
@@ -2179,6 +2337,11 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
     if (durationSeconds.present) {
       map['duration_seconds'] = Variable<int>(durationSeconds.value);
     }
+    if (targetTier.present) {
+      map['target_tier'] = Variable<String>(
+        $HabitLogsTable.$convertertargetTier.toSql(targetTier.value),
+      );
+    }
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
@@ -2214,6 +2377,7 @@ class HabitLogsCompanion extends UpdateCompanion<HabitLogRow> {
           ..write('completed: $completed, ')
           ..write('value: $value, ')
           ..write('durationSeconds: $durationSeconds, ')
+          ..write('targetTier: $targetTier, ')
           ..write('note: $note, ')
           ..write('energyLevel: $energyLevel, ')
           ..write('mood: $mood, ')
@@ -4138,6 +4302,8 @@ typedef $$HabitsTableCreateCompanionBuilder = HabitsCompanion Function({
   Value<TimeWindow?> timeWindow,
   required HabitTargetType targetType,
   Value<double?> targetValue,
+  Value<double?> miniTargetValue,
+  Value<double?> eliteTargetValue,
   Value<String?> unit,
   Value<bool> pinned,
   Value<List<String>> reminderTimes,
@@ -4166,6 +4332,8 @@ typedef $$HabitsTableUpdateCompanionBuilder = HabitsCompanion Function({
   Value<TimeWindow?> timeWindow,
   Value<HabitTargetType> targetType,
   Value<double?> targetValue,
+  Value<double?> miniTargetValue,
+  Value<double?> eliteTargetValue,
   Value<String?> unit,
   Value<bool> pinned,
   Value<List<String>> reminderTimes,
@@ -4301,6 +4469,16 @@ class $$HabitsTableFilterComposer
 
   ColumnFilters<double> get targetValue => $composableBuilder(
     column: $table.targetValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get miniTargetValue => $composableBuilder(
+    column: $table.miniTargetValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get eliteTargetValue => $composableBuilder(
+    column: $table.eliteTargetValue,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4491,6 +4669,16 @@ class $$HabitsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get miniTargetValue => $composableBuilder(
+    column: $table.miniTargetValue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get eliteTargetValue => $composableBuilder(
+    column: $table.eliteTargetValue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get unit => $composableBuilder(
     column: $table.unit,
     builder: (column) => ColumnOrderings(column),
@@ -4619,6 +4807,16 @@ class $$HabitsTableAnnotationComposer
 
   GeneratedColumn<double> get targetValue => $composableBuilder(
     column: $table.targetValue,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get miniTargetValue => $composableBuilder(
+    column: $table.miniTargetValue,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get eliteTargetValue => $composableBuilder(
+    column: $table.eliteTargetValue,
     builder: (column) => column,
   );
 
@@ -4760,6 +4958,8 @@ class $$HabitsTableTableManager
                 Value<TimeWindow?> timeWindow = const Value.absent(),
                 Value<HabitTargetType> targetType = const Value.absent(),
                 Value<double?> targetValue = const Value.absent(),
+                Value<double?> miniTargetValue = const Value.absent(),
+                Value<double?> eliteTargetValue = const Value.absent(),
                 Value<String?> unit = const Value.absent(),
                 Value<bool> pinned = const Value.absent(),
                 Value<List<String>> reminderTimes = const Value.absent(),
@@ -4787,6 +4987,8 @@ class $$HabitsTableTableManager
                 timeWindow: timeWindow,
                 targetType: targetType,
                 targetValue: targetValue,
+                miniTargetValue: miniTargetValue,
+                eliteTargetValue: eliteTargetValue,
                 unit: unit,
                 pinned: pinned,
                 reminderTimes: reminderTimes,
@@ -4816,6 +5018,8 @@ class $$HabitsTableTableManager
                 Value<TimeWindow?> timeWindow = const Value.absent(),
                 required HabitTargetType targetType,
                 Value<double?> targetValue = const Value.absent(),
+                Value<double?> miniTargetValue = const Value.absent(),
+                Value<double?> eliteTargetValue = const Value.absent(),
                 Value<String?> unit = const Value.absent(),
                 Value<bool> pinned = const Value.absent(),
                 Value<List<String>> reminderTimes = const Value.absent(),
@@ -4843,6 +5047,8 @@ class $$HabitsTableTableManager
                 timeWindow: timeWindow,
                 targetType: targetType,
                 targetValue: targetValue,
+                miniTargetValue: miniTargetValue,
+                eliteTargetValue: eliteTargetValue,
                 unit: unit,
                 pinned: pinned,
                 reminderTimes: reminderTimes,
@@ -4946,6 +5152,7 @@ typedef $$HabitLogsTableCreateCompanionBuilder = HabitLogsCompanion Function({
   required bool completed,
   Value<double?> value,
   Value<int?> durationSeconds,
+  Value<HabitTier?> targetTier,
   Value<String?> note,
   Value<int?> energyLevel,
   Value<String?> mood,
@@ -4963,6 +5170,7 @@ typedef $$HabitLogsTableUpdateCompanionBuilder = HabitLogsCompanion Function({
   Value<bool> completed,
   Value<double?> value,
   Value<int?> durationSeconds,
+  Value<HabitTier?> targetTier,
   Value<String?> note,
   Value<int?> energyLevel,
   Value<String?> mood,
@@ -5036,6 +5244,12 @@ class $$HabitLogsTableFilterComposer
   ColumnFilters<int> get durationSeconds => $composableBuilder(
     column: $table.durationSeconds,
     builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<HabitTier?, HabitTier, String>
+  get targetTier => $composableBuilder(
+    column: $table.targetTier,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
   ColumnFilters<String> get note => $composableBuilder(
@@ -5136,6 +5350,11 @@ class $$HabitLogsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get targetTier => $composableBuilder(
+    column: $table.targetTier,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get note => $composableBuilder(
     column: $table.note,
     builder: (column) => ColumnOrderings(column),
@@ -5224,6 +5443,12 @@ class $$HabitLogsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumnWithTypeConverter<HabitTier?, String> get targetTier =>
+      $composableBuilder(
+        column: $table.targetTier,
+        builder: (column) => column,
+      );
+
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
 
@@ -5304,6 +5529,7 @@ class $$HabitLogsTableTableManager
                 Value<bool> completed = const Value.absent(),
                 Value<double?> value = const Value.absent(),
                 Value<int?> durationSeconds = const Value.absent(),
+                Value<HabitTier?> targetTier = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<int?> energyLevel = const Value.absent(),
                 Value<String?> mood = const Value.absent(),
@@ -5320,6 +5546,7 @@ class $$HabitLogsTableTableManager
                 completed: completed,
                 value: value,
                 durationSeconds: durationSeconds,
+                targetTier: targetTier,
                 note: note,
                 energyLevel: energyLevel,
                 mood: mood,
@@ -5338,6 +5565,7 @@ class $$HabitLogsTableTableManager
                 required bool completed,
                 Value<double?> value = const Value.absent(),
                 Value<int?> durationSeconds = const Value.absent(),
+                Value<HabitTier?> targetTier = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<int?> energyLevel = const Value.absent(),
                 Value<String?> mood = const Value.absent(),
@@ -5354,6 +5582,7 @@ class $$HabitLogsTableTableManager
                 completed: completed,
                 value: value,
                 durationSeconds: durationSeconds,
+                targetTier: targetTier,
                 note: note,
                 energyLevel: energyLevel,
                 mood: mood,
