@@ -92,6 +92,22 @@ class _HabitFormBottomSheetState extends ConsumerState<HabitFormBottomSheet> {
     _endTimeController.text = state.timeWindowEnd;
   }
 
+  void _syncControllersToForm(HabitFormController controller) {
+    // Accessibility automation (e.g. Maestro inputText) can set TextField
+    // values without firing onChanged; sync controllers before save/validate.
+    controller.onTitleChange(_titleController.text);
+    controller.onDescriptionChange(_descriptionController.text);
+    controller.onMotivationChange(_motivationController.text);
+    controller.onTargetValueChange(_targetValueController.text);
+    controller.onMiniTargetValueChange(_miniTargetController.text);
+    controller.onEliteTargetValueChange(_eliteTargetController.text);
+    controller.onUnitChange(_unitController.text);
+    controller.onTimeWindowChange(
+      _startTimeController.text,
+      _endTimeController.text,
+    );
+  }
+
   @override
   void dispose() {
     _titleController.dispose();
@@ -206,8 +222,6 @@ class _HabitFormBottomSheetState extends ConsumerState<HabitFormBottomSheet> {
             // 1. Basic Info Section
             Semantics(
               identifier: 'habit_form_title',
-              textField: true,
-              label: 'Habit Title',
               child: TextField(
                 controller: _titleController,
                 onChanged: controller.onTitleChange,
@@ -1157,6 +1171,7 @@ class _HabitFormBottomSheetState extends ConsumerState<HabitFormBottomSheet> {
                           ? null
                           : () async {
                               HapticsHelper.performLightHaptic();
+                              _syncControllersToForm(controller);
                               final success = await controller.saveHabit();
                               if (success) {
                                 widget.onDismiss();

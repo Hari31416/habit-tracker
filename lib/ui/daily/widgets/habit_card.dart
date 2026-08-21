@@ -71,7 +71,11 @@ class HabitCard extends StatelessWidget {
             ? theme.colorScheme.primary.withValues(alpha: 0.3)
             : outlineVariant.withValues(alpha: 0.35);
 
-    return Card(
+    return Semantics(
+      identifier: 'habit_card_${habit.id}',
+      label: 'Open ${habit.title}',
+      button: true,
+      child: Card(
       elevation: isCompleted ? 0.5 : 1.5,
       color: containerColor,
       shape: RoundedRectangleBorder(
@@ -205,6 +209,7 @@ class HabitCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }
@@ -397,7 +402,9 @@ class HabitCard extends StatelessWidget {
       child: Center(
         child: Semantics(
           identifier: 'habit_check_${habit.id}',
-          label: 'Check in ${habit.title}',
+          label: isCompleted
+              ? 'Undo check-in ${habit.title}'
+              : 'Check in ${habit.title}',
           button: true,
           child: InkWell(
             customBorder: const CircleBorder(),

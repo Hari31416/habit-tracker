@@ -204,7 +204,11 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
               ShieldBankBottomSheet.show(context);
             },
           ),
-          PopupMenuButton<String>(
+          Semantics(
+            identifier: 'habit_detail_menu',
+            label: 'More Options',
+            button: true,
+            child: PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
             tooltip: 'More Options',
             onSelected: (value) {
@@ -296,6 +300,7 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
                 ),
               ),
             ],
+          ),
           ),
         ],
       ),

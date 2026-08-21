@@ -1,12 +1,13 @@
 # Maestro device smoke (black-box, installed APK).
-# Requires: Maestro CLI (curl -Ls "https://get.maestro.mobile.dev" | bash)
-#           Running emulator/device with debug APK installed.
-# Run: make maestro
+# Suite: make maestro  → smoke + journeys under .maestro/
+# Single flow: make maestro-smoke
 #
 # Selectors use Semantics.identifier (id:) — not Flutter Keys.
-# Flutter merges Text widgets into one accessibility node; prefer id: or regex.
+# Flutter merges Text widgets into one accessibility node; prefer id: or labels.
 
 appId: app.phial.habits
+tags:
+  - smoke
 ---
 - launchApp:
     clearState: true
@@ -14,8 +15,6 @@ appId: app.phial.habits
     visible:
       id: "nav_today"
     timeout: 15000
-- assertVisible:
-    id: "nav_today"
 # Fresh install has categories only — load starter habits when empty.
 - runFlow:
     when:
@@ -26,8 +25,10 @@ appId: app.phial.habits
           visible:
             id: "habit_check_seed_habit_meditation"
           timeout: 10000
-- assertVisible:
-    id: "habit_check_seed_habit_meditation"
+- extendedWaitUntil:
+    visible:
+      id: "habit_check_seed_habit_meditation"
+    timeout: 10000
 - tapOn:
     id: "habit_check_seed_habit_meditation"
 - tapOn:

@@ -1,0 +1,64 @@
+# Create boolean habit → check-in → undo (asserts completion semantics).
+# Form defaults: daily + boolean, promptReflection off.
+#
+# Avoid hideKeyboard: on Android it sends Back and dismisses the modal sheet.
+# API 36 emulators may show Gboard "Try out your stylus" over the form.
+
+appId: app.phial.habits
+tags:
+  - journey
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "nav_today"
+    timeout: 30000
+- tapOn:
+    id: "nav_add"
+- extendedWaitUntil:
+    visible:
+      id: "habit_form_title"
+    timeout: 15000
+- runFlow:
+    when:
+      visible: "Try out your stylus"
+    commands:
+      - tapOn: "Cancel"
+- tapOn:
+    id: "habit_form_title"
+- inputText: "Maestro Check Habit"
+- assertVisible: "Maestro Check Habit"
+- runFlow:
+    when:
+      visible: "Try out your stylus"
+    commands:
+      - tapOn: "Cancel"
+- tapOn: "Description (optional)"
+- runFlow:
+    when:
+      visible: "Try out your stylus"
+    commands:
+      - tapOn: "Cancel"
+- scrollUntilVisible:
+    element:
+      id: "habit_form_save"
+    direction: DOWN
+    timeout: 15000
+- tapOn:
+    id: "habit_form_save"
+- extendedWaitUntil:
+    notVisible:
+      id: "habit_form_save"
+    timeout: 10000
+- extendedWaitUntil:
+    visible: "Check in Maestro Check Habit"
+    timeout: 10000
+- tapOn: "Check in Maestro Check Habit"
+- extendedWaitUntil:
+    visible: "Undo check-in Maestro Check Habit"
+    timeout: 10000
+- tapOn: "Undo check-in Maestro Check Habit"
+- extendedWaitUntil:
+    visible: "Check in Maestro Check Habit"
+    timeout: 10000

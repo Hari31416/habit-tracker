@@ -16,7 +16,7 @@ MAIN_ACTIVITY := $(PACKAGE_NAME).MainActivity
 DEFAULT_AVD := $(shell $(EMULATOR) -list-avds 2>/dev/null | head -n 1)
 AVD ?= $(DEFAULT_AVD)
 
-.PHONY: help build build-release build-release-universal build-appbundle test lint clean install uninstall emulator-list emulator-start emulator-stop emulator-wait start stop restart run debug profile logcat flutter-run flutter-run-profile flutter-run-android flutter-build-apk flutter-build-release flutter-build-appbundle flutter-test flutter-analyze flutter-codegen codegen schema-dump schema-generate adb-test maestro perf-test benchmark
+.PHONY: help build build-release build-release-universal build-appbundle test lint clean install uninstall emulator-list emulator-start emulator-stop emulator-wait start stop restart run debug profile logcat flutter-run flutter-run-profile flutter-run-android flutter-build-apk flutter-build-release flutter-build-appbundle flutter-test flutter-analyze flutter-codegen codegen schema-dump schema-generate adb-test maestro maestro-smoke perf-test benchmark
 
 help: ## Show this help message
 	@echo "Usage: make [target] [AVD=avd_name]"
@@ -33,7 +33,8 @@ help: ## Show this help message
 	@echo "  make codegen         - Run build_runner for Drift/Riverpod codegen"
 	@echo "  make schema-dump     - Dump current AppDatabase schema to drift_schemas/ (v7 filename)"
 	@echo "  make schema-generate - Regenerate SchemaVerifier helpers from drift_schemas/"
-	@echo "  make maestro         - Install debug APK (if needed) and run Maestro smoke (.maestro/smoke.yaml)"
+	@echo "  make maestro         - Install debug APK and run Maestro suite (smoke + journeys)"
+	@echo "  make maestro-smoke   - Install debug APK and run smoke flow only"
 	@echo "  make adb-test        - Optional ADB screenshots (prefer make maestro for automated UI)"
 	@echo "  make perf-test       - Run automated memory, CPU, and rendering footprint benchmark"
 	@echo "  make benchmark       - Run Python benchmark runner with plots and Markdown report via uv"
@@ -196,7 +197,27 @@ schema-generate: ## Generate SchemaVerifier helpers from drift_schemas/
 	mkdir -p test/generated_migrations
 	dart run drift_dev schema generate --data-classes --companions drift_schemas/ test/generated_migrations/
 
-maestro: ## Run Maestro smoke on a connected device/emulator (installs debug APK)
+maestro: ## Run full Maestro suite (smoke + journeys) on a connected device/emulator
+	@command -v maestro >/dev/null 2>&1 || { \
+		echo "Maestro CLI not found. Install with:"; \
+		echo '  curl -Ls "https://get.maestro.mobile.dev" | bash'; \
+		exit 1; \
+	}
+	@DEVICES=$$($(ADB) devices | grep -v "List" | grep "device" | wc -l | tr -d ' '); \
+	if [ "$$DEVICES" -eq "0" ]; then \
+		echo "No device/emulator. Start one with: make emulator-start && make emulator-wait"; \
+		exit 1; \
+	fi
+	$(MAKE) install
+	@# Maestro hides step output when given multiple flows at once; run one-by-one.
+	@# Tip: if Gboard shows "Try out your stylus", tap Cancel once (flows also auto-dismiss).
+	@for flow in .maestro/smoke.yaml .maestro/create_and_check_in.yaml .maestro/archive_habit.yaml; do \
+		echo ""; \
+		echo "=== $$flow ==="; \
+		maestro test "$$flow" || exit 1; \
+	done
+
+maestro-smoke: ## Run Maestro smoke flow only (installs debug APK)
 	@command -v maestro >/dev/null 2>&1 || { \
 		echo "Maestro CLI not found. Install with:"; \
 		echo '  curl -Ls "https://get.maestro.mobile.dev" | bash'; \
