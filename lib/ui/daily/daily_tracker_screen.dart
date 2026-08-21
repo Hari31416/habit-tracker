@@ -3,21 +3,19 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../data/preferences/theme_mode.dart';
 import '../../data/preferences/theme_preferences.dart';
 import '../../domain/gamification/gamification_engine.dart';
 import '../../domain/models/habit.dart';
 import '../common/haptics_helper.dart';
 import '../form/habit_form_bottom_sheet.dart';
-import '../gamification/dialogs/shield_bank_bottom_sheet.dart';
 import '../navigation/habit_bottom_navigation.dart';
 import '../navigation/screen.dart';
 import '../reflection/reflection_bottom_sheet.dart';
-import '../settings/backup_settings_bottom_sheet.dart';
-import '../settings/health_connect_settings_bottom_sheet.dart';
 import 'controllers/daily_tracker_controller.dart';
 import 'widgets/habit_card.dart';
 import 'widgets/historical_banner.dart';
+import 'widgets/profile_settings_bottom_sheet.dart';
+import 'widgets/progress_ring.dart';
 
 class DailyTrackerScreen extends ConsumerStatefulWidget {
   final ValueChanged<String>? onNavigateToDetail;
@@ -42,7 +40,6 @@ class DailyTrackerScreen extends ConsumerStatefulWidget {
 class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
     with SingleTickerProviderStateMixin {
   late final TextEditingController _searchController;
-  late final TextEditingController _nameInputController;
 
   late final AnimationController _toastAnimationController;
   late final Animation<double> _toastFadeAnimation;
@@ -54,7 +51,6 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
   void initState() {
     super.initState();
     _searchController = TextEditingController();
-    _nameInputController = TextEditingController();
 
     _toastAnimationController = AnimationController(
       vsync: this,
@@ -80,7 +76,6 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
     _toastTimer?.cancel();
     _toastAnimationController.dispose();
     _searchController.dispose();
-    _nameInputController.dispose();
     super.dispose();
   }
 
@@ -114,270 +109,6 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
     });
   }
 
-  String _getTimeGreeting() {
-    final hour = DateTime.now().hour;
-    if (hour >= 5 && hour < 12) {
-      return 'Good morning';
-    } else if (hour >= 12 && hour < 17) {
-      return 'Good afternoon';
-    } else if (hour >= 17 && hour < 22) {
-      return 'Good evening';
-    } else {
-      return 'Hello';
-    }
-  }
-
-  void _showNameDialog(String currentName) {
-    _nameInputController.text = currentName;
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text(
-            'What is your name?',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          content: TextField(
-            controller: _nameInputController,
-            autofocus: true,
-            decoration: InputDecoration(
-              hintText: 'Enter your name',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                ref
-                    .read(userNameProvider.notifier)
-                    .setUserName(_nameInputController.text);
-                Navigator.of(dialogContext).pop();
-              },
-              child: const Text(
-                'Save',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showProfileSheet(
-      BuildContext context, String currentUserName, AppThemeMode currentThemeMode) {
-    HapticsHelper.performLightHaptic();
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (sheetContext) {
-        final theme = Theme.of(sheetContext);
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 24,
-                      backgroundColor: theme.colorScheme.primaryContainer,
-                      child: Text(
-                        currentUserName.isNotEmpty
-                            ? currentUserName[0].toUpperCase()
-                            : '?',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onPrimaryContainer,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            currentUserName.isNotEmpty
-                                ? currentUserName
-                                : 'Set your name',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            _getTimeGreeting(),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton.filledTonal(
-                      icon: const Icon(Icons.edit_outlined, size: 18),
-                      tooltip: 'Edit Name',
-                      onPressed: () {
-                        Navigator.of(sheetContext).pop();
-                        _showNameDialog(currentUserName);
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                const Divider(),
-                const SizedBox(height: 12),
-
-                // Appearance section
-                Text(
-                  'Appearance',
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                SegmentedButton<AppThemeMode>(
-                  segments: const [
-                    ButtonSegment(
-                      value: AppThemeMode.system,
-                      icon: Icon(Icons.brightness_auto, size: 18),
-                      label: Text('System'),
-                    ),
-                    ButtonSegment(
-                      value: AppThemeMode.light,
-                      icon: Icon(Icons.light_mode, size: 18),
-                      label: Text('Light'),
-                    ),
-                    ButtonSegment(
-                      value: AppThemeMode.dark,
-                      icon: Icon(Icons.dark_mode, size: 18),
-                      label: Text('Dark'),
-                    ),
-                  ],
-                  selected: {currentThemeMode},
-                  onSelectionChanged: (Set<AppThemeMode> newSelection) {
-                    HapticsHelper.performLightHaptic();
-                    ref
-                        .read(themeModeProvider.notifier)
-                        .setThemeMode(newSelection.first);
-                    Navigator.of(sheetContext).pop();
-                  },
-                ),
-                const SizedBox(height: 14),
-
-                // Streak Shield Bank Option
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.secondaryContainer,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.shield_outlined,
-                      color: theme.colorScheme.onSecondaryContainer,
-                      size: 20,
-                    ),
-                  ),
-                  title: const Text(
-                    'Streak Shields Bank',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  subtitle:
-                      const Text('Manage streak freezes and protection'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    ShieldBankBottomSheet.show(context);
-                  },
-                ),
-                const SizedBox(height: 4),
-
-                // Google Health Connect Option
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.tertiaryContainer,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.favorite_outline,
-                      color: theme.colorScheme.onTertiaryContainer,
-                      size: 20,
-                    ),
-                  ),
-                  title: const Text(
-                    'Google Health Connect',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  subtitle:
-                      const Text('Auto-sync steps, exercise, hydration & sleep'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    HealthConnectSettingsBottomSheet.show(context);
-                  },
-                ),
-                const SizedBox(height: 4),
-
-                // Data & Backup Option
-                Semantics(
-                  identifier: 'settings_data_backup',
-                  label: 'Data & Backup',
-                  button: true,
-                  child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primaryContainer,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.sync_outlined,
-                        color: theme.colorScheme.onPrimaryContainer,
-                        size: 20,
-                      ),
-                    ),
-                    title: const Text(
-                      'Data & Backup',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle:
-                        const Text('Export, import, and spreadsheet sync'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      Navigator.of(sheetContext).pop();
-                      BackupSettingsBottomSheet.show(context);
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Future<void> _selectDatePicker(DateTime selectedDate) async {
     final picked = await showDatePicker(
       context: context,
@@ -395,7 +126,6 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
     final theme = Theme.of(context);
     final controller = ref.read(dailyTrackerControllerProvider.notifier);
     final currentUserName = ref.watch(userNameProvider);
-    final currentThemeMode = ref.watch(themeModeProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -438,8 +168,7 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
                             button: true,
                             child: InkWell(
                               borderRadius: BorderRadius.circular(20),
-                              onTap: () => _showProfileSheet(
-                                  context, currentUserName, currentThemeMode),
+                              onTap: () => ProfileSettingsBottomSheet.show(context),
                               child: Padding(
                                 padding: const EdgeInsets.all(2),
                                 child: CircleAvatar(
@@ -678,57 +407,7 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
   }
 }
 
-class _ProgressRingPainter extends CustomPainter {
-  final double progress;
-  final Color trackColor;
-  final Color progressColor;
-  final double strokeWidth;
 
-  _ProgressRingPainter({
-    required this.progress,
-    required this.trackColor,
-    required this.progressColor,
-    required this.strokeWidth,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (min(size.width, size.height) - strokeWidth) / 2;
-
-    // Track
-    final trackPaint = Paint()
-      ..color = trackColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth;
-    canvas.drawCircle(center, radius, trackPaint);
-
-    // Progress Arc
-    if (progress > 0) {
-      final progressPaint = Paint()
-        ..color = progressColor
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round
-        ..strokeWidth = strokeWidth;
-
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        -pi / 2,
-        progress * 2 * pi,
-        false,
-        progressPaint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _ProgressRingPainter oldDelegate) {
-    return oldDelegate.progress != progress ||
-        oldDelegate.trackColor != trackColor ||
-        oldDelegate.progressColor != progressColor ||
-        oldDelegate.strokeWidth != strokeWidth;
-  }
-}
 
 class _DailySortMenuButton extends ConsumerWidget {
   const _DailySortMenuButton();
@@ -932,7 +611,7 @@ class _DailyProgressCard extends ConsumerWidget {
                   children: [
                     CustomPaint(
                       size: const Size(86, 86),
-                      painter: _ProgressRingPainter(
+                      painter: ProgressRingPainter(
                         progress: progressFraction,
                         trackColor: theme.colorScheme.surfaceContainerHighest,
                         progressColor: theme.colorScheme.primary,
