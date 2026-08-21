@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2026-08-21
+
+### Added
+
+- Elastic Goals and Bad-Day Mode introducing three-tiered milestone tracking (Mini, Base, Elite) so users can preserve streak momentum on low-energy days.
+- Interactive milestone check-in controls with 1-tap selectors on daily habit cards and habit detail screens with custom tier progress indicators.
+- Proportional tiered XP rewards (Mini: 5 XP, Base: 20 XP, Elite: 35 XP) amplified by active streak multipliers.
+- Drift SQLite schema version 7 migration adding `miniTargetValue` and `eliteTargetValue` columns to `habits` table and `targetTier` column to `habit_logs` table.
+- Full backup export, JSON serialization, and encrypted restore support for elastic goal tiers and logged milestone check-in tiers.
+- Interactive web showcase tab and comprehensive user guide documentation with visual screenshots.
+
+### Fixed
+
+- Achievement evaluator convergence loop ensuring level-dependent mastery badges (e.g. Pathfinder Journey) correctly unlock when earned milestone badge XP pushes the player past the required level threshold.
+- Active streak multiplier evaluation strictly bound to active `currentStreak` rather than historic best streaks.
+- Achievement database persistence enforcing deterministic unlock status (`progress >= targetValue`) and pruning unearned rows.
+- SnackBar presentation during backup restore sheet dismissal avoiding Hero animation tag collisions.
+
 ## [0.10.0] - 2026-08-20
 
 ### Added
