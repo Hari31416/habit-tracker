@@ -64,9 +64,15 @@ graph TD
   - Daily Habits: Continuous tracking with in-progress day preservation for unlogged current days
   - Weekly Habits: ISO Monday–Sunday boundary evaluation with week-unit streaks
   - Custom Schedules: Day-of-week target scheduling skipping non-target days without streak penalties
+  - Elastic Goals (Bad-Day Mode): Three-tiered milestone tracking (Mini, Base, Elite) preserving streak momentum on difficult days
   - Stepper Habits: Dynamic magnitude-aware incrementation and quick-add chips
   - Subday Slot Habits: Multi-slot time-of-day tracking (Morning, Afternoon, Evening, Night)
   - Duration & Timers: Integrated focus countdowns and stopwatches with ambient audio
+- Elastic Goals & Tiered Gamification
+  - Bad-Day Mode (Mini Target): Reaching a minimum baseline (e.g. 5 pages vs 20 pages) preserves consecutive streak momentum on low-energy days
+  - Standard Target (Base): Complete daily benchmark target
+  - Elite Stretch Target: Unlock stretch performance rewards on high-energy days
+  - Tiered XP Scaling: Proportional XP distribution (Mini: 5 XP, Base: 20 XP, Elite: 35 XP) amplified by active streak multipliers
 - Google Health Connect Integration
   - 7 Physical Health Metrics: Daily Steps, Active Exercise, Move Minutes, Distance, Active Calories, Hydration, and Sleep Duration
   - Zero-Touch Check-Ins: Automatic progress synchronization from Google Fit and connected wearable sensors
