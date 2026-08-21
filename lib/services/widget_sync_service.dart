@@ -317,12 +317,21 @@ class WidgetSyncService {
     );
     try {
       const channel = MethodChannel('app.phial.habits/widgets');
-      await channel.invokeMethod('updateWidgetData', {
-        'widgetType': 'focus_timer',
-        'jsonData': jsonEncode(lastFocusTimer!.toJson()),
-      });
+      await _sendWidgetPayload(channel, 'focus_timer', lastFocusTimer!.toJson());
       await channel.invokeMethod('updateAllWidgets');
     } catch (_) {}
+  }
+
+  Future<void> _sendWidgetPayload(
+    MethodChannel channel,
+    String widgetType,
+    Map<String, dynamic>? data,
+  ) async {
+    if (data == null) return;
+    await channel.invokeMethod('updateWidgetData', {
+      'widgetType': widgetType,
+      'jsonData': jsonEncode(data),
+    });
   }
 
   Future<void> consumePendingWidgetActions() async {
@@ -702,36 +711,11 @@ class WidgetSyncService {
     // Platform sync via MethodChannel
     try {
       const channel = MethodChannel('app.phial.habits/widgets');
-      if (lastDailyFocus != null) {
-        await channel.invokeMethod('updateWidgetData', {
-          'widgetType': 'daily_focus',
-          'jsonData': jsonEncode(lastDailyFocus!.toJson()),
-        });
-      }
-      if (lastTodaysHabits != null) {
-        await channel.invokeMethod('updateWidgetData', {
-          'widgetType': 'todays_habits',
-          'jsonData': jsonEncode(lastTodaysHabits!.toJson()),
-        });
-      }
-      if (lastStreaks != null) {
-        await channel.invokeMethod('updateWidgetData', {
-          'widgetType': 'streaks',
-          'jsonData': jsonEncode(lastStreaks!.toJson()),
-        });
-      }
-      if (lastXpMastery != null) {
-        await channel.invokeMethod('updateWidgetData', {
-          'widgetType': 'xp_mastery',
-          'jsonData': jsonEncode(lastXpMastery!.toJson()),
-        });
-      }
-      if (lastFocusTimer != null) {
-        await channel.invokeMethod('updateWidgetData', {
-          'widgetType': 'focus_timer',
-          'jsonData': jsonEncode(lastFocusTimer!.toJson()),
-        });
-      }
+      await _sendWidgetPayload(channel, 'daily_focus', lastDailyFocus?.toJson());
+      await _sendWidgetPayload(channel, 'todays_habits', lastTodaysHabits?.toJson());
+      await _sendWidgetPayload(channel, 'streaks', lastStreaks?.toJson());
+      await _sendWidgetPayload(channel, 'xp_mastery', lastXpMastery?.toJson());
+      await _sendWidgetPayload(channel, 'focus_timer', lastFocusTimer?.toJson());
       await channel.invokeMethod('updateAllWidgets');
     } catch (_) {
       // Ignored in headless/test environments
