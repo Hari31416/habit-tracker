@@ -220,39 +220,55 @@ class GamificationRepositoryImpl implements GamificationRepository {
           }
         }
 
-        // 4. Achievement Evaluator reusing precomputed streaks
+        // 4. Achievement Evaluator with convergence loop for level-dependent mastery badges
         final initialTotalXp = habitCheckInXp + perfectDaysBonusXp;
-        final estimatedProgression = GamificationEngine.calculateProgression(
+        var currentProgression = GamificationEngine.calculateProgression(
           totalXp: initialTotalXp,
           longestActiveStreak: longestActiveStreak,
         );
+        List<AchievementStatus> evaluatedAchievements = const [];
+        var achievementsXp = 0;
+        var finalTotalXp = initialTotalXp;
 
-        final evalContext = EvaluationContext(
-          habits: habits,
-          allLogs: logs,
-          categories: categories,
-          currentLevel: estimatedProgression.level,
-          storedUnlocks: { for (var a in latestAchievements!) a.id: a.unlockedAt },
-          referenceDate: today,
-          precomputedStreaks: streakByHabit,
-        );
-        final evaluatedAchievements = AchievementEvaluator.evaluateAll(evalContext);
+        for (int iter = 0; iter < 5; iter++) {
+          final evalContext = EvaluationContext(
+            habits: habits,
+            allLogs: logs,
+            categories: categories,
+            currentLevel: currentProgression.level,
+            storedUnlocks: { for (var a in latestAchievements!) a.id: a.unlockedAt },
+            referenceDate: today,
+            precomputedStreaks: streakByHabit,
+          );
+          evaluatedAchievements = AchievementEvaluator.evaluateAll(evalContext);
 
-        // 5. Total Achievement XP & Unlocked Badges count
-        final achievementsXp = evaluatedAchievements
-          .where((a) => a.isUnlocked)
-          .fold<int>(0, (sum, a) => sum + a.definition.xpReward);
+          final newAchievementsXp = evaluatedAchievements
+              .where((a) => a.isUnlocked)
+              .fold<int>(0, (sum, a) => sum + a.definition.xpReward);
 
-        final finalTotalXp = habitCheckInXp + perfectDaysBonusXp + achievementsXp;
+          final newTotalXp = initialTotalXp + newAchievementsXp;
+          final newProgression = GamificationEngine.calculateProgression(
+            totalXp: newTotalXp,
+            longestActiveStreak: longestActiveStreak,
+            unlockedBadgesCount: evaluatedAchievements.where((a) => a.isUnlocked).length,
+            totalBadgesCount: evaluatedAchievements.length,
+          );
+
+          if (newAchievementsXp == achievementsXp && newProgression.level == currentProgression.level) {
+            achievementsXp = newAchievementsXp;
+            finalTotalXp = newTotalXp;
+            currentProgression = newProgression;
+            break;
+          }
+
+          achievementsXp = newAchievementsXp;
+          finalTotalXp = newTotalXp;
+          currentProgression = newProgression;
+        }
+
         final unlockedCount = evaluatedAchievements.where((a) => a.isUnlocked).length;
         final totalCount = evaluatedAchievements.length;
-
-        final finalProgression = GamificationEngine.calculateProgression(
-          totalXp: finalTotalXp,
-          longestActiveStreak: longestActiveStreak,
-          unlockedBadgesCount: unlockedCount,
-          totalBadgesCount: totalCount,
-        );
+        final finalProgression = currentProgression;
 
         // 6. Shield Bank
         final shieldBankState = ShieldBankingEngine.calculateBankState(

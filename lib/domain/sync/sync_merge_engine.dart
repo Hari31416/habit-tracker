@@ -2,6 +2,7 @@ import 'dart:math';
 import '../engines/streak_calculator.dart';
 import '../gamification/achievement_evaluator.dart';
 import '../gamification/gamification_engine.dart';
+import '../gamification/gamification_models.dart';
 import '../models/habit.dart';
 import '../models/habit_category.dart';
 import '../models/habit_log.dart';
@@ -288,36 +289,53 @@ class SyncMergeEngine {
     }
 
     final initialTotalXp = habitCheckInXp + perfectDaysBonusXp;
-    final estimatedProgression = GamificationEngine.calculateProgression(
+    var currentProgression = GamificationEngine.calculateProgression(
       totalXp: initialTotalXp,
       longestActiveStreak: longestActiveStreak,
     );
+    List<AchievementStatus> evaluatedAchievements = const [];
+    var achievementsXp = 0;
+    var finalTotalXp = initialTotalXp;
 
-    final evalContext = EvaluationContext(
-      habits: activeHabits,
-      allLogs: activeLogs,
-      categories: activeCategories,
-      currentLevel: estimatedProgression.level,
-      storedUnlocks: storedUnlocks,
-      referenceDate: now,
-      precomputedStreaks: streakByHabit,
-    );
-    final evaluatedAchievements = AchievementEvaluator.evaluateAll(evalContext);
+    for (int iter = 0; iter < 5; iter++) {
+      final evalContext = EvaluationContext(
+        habits: activeHabits,
+        allLogs: activeLogs,
+        categories: activeCategories,
+        currentLevel: currentProgression.level,
+        storedUnlocks: storedUnlocks,
+        referenceDate: now,
+        precomputedStreaks: streakByHabit,
+      );
+      evaluatedAchievements = AchievementEvaluator.evaluateAll(evalContext);
 
-    final achievementsXp = evaluatedAchievements
-        .where((a) => a.isUnlocked)
-        .fold<int>(0, (sum, a) => sum + a.definition.xpReward);
+      final newAchievementsXp = evaluatedAchievements
+          .where((a) => a.isUnlocked)
+          .fold<int>(0, (sum, a) => sum + a.definition.xpReward);
 
-    final finalTotalXp = habitCheckInXp + perfectDaysBonusXp + achievementsXp;
+      final newTotalXp = initialTotalXp + newAchievementsXp;
+      final newProgression = GamificationEngine.calculateProgression(
+        totalXp: newTotalXp,
+        longestActiveStreak: longestActiveStreak,
+        unlockedBadgesCount: evaluatedAchievements.where((a) => a.isUnlocked).length,
+        totalBadgesCount: evaluatedAchievements.length,
+      );
+
+      if (newAchievementsXp == achievementsXp && newProgression.level == currentProgression.level) {
+        achievementsXp = newAchievementsXp;
+        finalTotalXp = newTotalXp;
+        currentProgression = newProgression;
+        break;
+      }
+
+      achievementsXp = newAchievementsXp;
+      finalTotalXp = newTotalXp;
+      currentProgression = newProgression;
+    }
+
     final unlockedCount = evaluatedAchievements.where((a) => a.isUnlocked).length;
     final totalCount = evaluatedAchievements.length;
-
-    final finalProgression = GamificationEngine.calculateProgression(
-      totalXp: finalTotalXp,
-      longestActiveStreak: longestActiveStreak,
-      unlockedBadgesCount: unlockedCount,
-      totalBadgesCount: totalCount,
-    );
+    final finalProgression = currentProgression;
 
     // Merge UserGamification (preserve max celebration level)
     final lastCelebratedLevel = max(

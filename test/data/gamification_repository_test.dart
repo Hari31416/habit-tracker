@@ -8,6 +8,7 @@ import 'package:habit_tracker/domain/gamification/player_title.dart';
 import 'package:habit_tracker/domain/models/habit.dart';
 import 'package:habit_tracker/domain/models/habit_frequency_type.dart';
 import 'package:habit_tracker/domain/models/habit_target_type.dart';
+import 'package:habit_tracker/domain/models/habit_tier.dart';
 
 void main() {
   late AppDatabase db;
@@ -76,5 +77,43 @@ void main() {
     final updated = await gamificationRepository.getShieldBankState().first;
     expect(updated.maxCapacity, 5);
     expect(updated.autoConsumeEnabled, false);
+  });
+
+  test('gamificationRepository converges level-dependent mastery achievements', () async {
+    final now = DateTime.utc(2026, 8, 20, 10, 0, 0);
+    // Create habits and logs to generate enough XP for level >= 10
+    final habit = Habit(
+      id: 'h_mastery',
+      title: 'Mastery Habit',
+      color: '#3B82F6',
+      frequencyType: HabitFrequencyType.daily,
+      targetType: HabitTargetType.numeric,
+      targetValue: 100.0,
+      eliteTargetValue: 100.0,
+      createdAt: now,
+      updatedAt: now,
+    );
+    await habitRepository.upsertHabit(habit);
+
+    // Add 100 days of completions
+    for (int i = 0; i < 100; i++) {
+      final date = DateTime.utc(2026, 1, 1).add(Duration(days: i));
+      await habitRepository.logTierCheckIn(
+        habit.id,
+        date,
+        HabitTier.elite,
+      );
+    }
+
+    final progression = await gamificationRepository.getPlayerProgression().first;
+    expect(progression.level, greaterThanOrEqualTo(10));
+
+    final achievements = await gamificationRepository.getAchievements().first;
+    final lvl5 = achievements.firstWhere((a) => a.definition.id == 'mastery_lvl_5');
+    final lvl10 = achievements.firstWhere((a) => a.definition.id == 'mastery_lvl_10');
+
+    expect(lvl5.isUnlocked, isTrue);
+    expect(lvl10.isUnlocked, isTrue);
+    expect(lvl10.currentProgress, 10);
   });
 }
