@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -32,7 +33,11 @@ part 'app_database.g.dart';
 class AppDatabase extends _$AppDatabase {
   static AppDatabase? _sharedInstance;
 
-  AppDatabase._(super.e);
+  /// When true, skips defensive ALTER TABLE fixes in [beforeOpen] so
+  /// SchemaVerifier migration tests exercise [onUpgrade] alone.
+  final bool skipDefensiveSchemaFixes;
+
+  AppDatabase._(super.e, {this.skipDefensiveSchemaFixes = false});
 
   /// Default connection used by the running app. Reuses one instance per
   /// isolate so notification actions and Riverpod share the same database.
@@ -41,6 +46,13 @@ class AppDatabase extends _$AppDatabase {
       return AppDatabase._(executor);
     }
     return _sharedInstance ??= AppDatabase._(_openConnection());
+  }
+
+  /// Opens [executor] with production [onUpgrade], without defensive column
+  /// ALTERs. Used by `test/data/database_migration_test.dart`.
+  @visibleForTesting
+  factory AppDatabase.forSchemaVerification(QueryExecutor executor) {
+    return AppDatabase._(executor, skipDefensiveSchemaFixes: true);
   }
 
   /// Database for a background isolate. On the main isolate this returns the
@@ -117,6 +129,10 @@ class AppDatabase extends _$AppDatabase {
         await customStatement('PRAGMA foreign_keys = ON;');
         await customStatement('PRAGMA temp_store = MEMORY;');
         await customStatement('PRAGMA cache_size = -4000;');
+
+        if (skipDefensiveSchemaFixes) {
+          return;
+        }
 
         // Defensive column addition if database was left in an inconsistent migration state
         final columnFixes = [

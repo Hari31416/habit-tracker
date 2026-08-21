@@ -16,7 +16,7 @@ MAIN_ACTIVITY := $(PACKAGE_NAME).MainActivity
 DEFAULT_AVD := $(shell $(EMULATOR) -list-avds 2>/dev/null | head -n 1)
 AVD ?= $(DEFAULT_AVD)
 
-.PHONY: help build build-release build-release-universal build-appbundle test lint clean install uninstall emulator-list emulator-start emulator-stop emulator-wait start stop restart run debug profile logcat flutter-run flutter-run-profile flutter-run-android flutter-build-apk flutter-build-release flutter-build-appbundle flutter-test flutter-analyze flutter-codegen codegen adb-test perf-test benchmark
+.PHONY: help build build-release build-release-universal build-appbundle test lint clean install uninstall emulator-list emulator-start emulator-stop emulator-wait start stop restart run debug profile logcat flutter-run flutter-run-profile flutter-run-android flutter-build-apk flutter-build-release flutter-build-appbundle flutter-test flutter-analyze flutter-codegen codegen schema-dump schema-generate adb-test perf-test benchmark
 
 help: ## Show this help message
 	@echo "Usage: make [target] [AVD=avd_name]"
@@ -31,6 +31,8 @@ help: ## Show this help message
 	@echo "  make run             - Complete pipeline: ensure emulator, build, and launch Flutter app in debug mode"
 	@echo "  make profile         - Launch Flutter app in profile mode for benchmarking"
 	@echo "  make codegen         - Run build_runner for Drift/Riverpod codegen"
+	@echo "  make schema-dump     - Dump current AppDatabase schema to drift_schemas/ (v7 filename)"
+	@echo "  make schema-generate - Regenerate SchemaVerifier helpers from drift_schemas/"
 	@echo "  make perf-test       - Run automated memory, CPU, and rendering footprint benchmark"
 	@echo "  make benchmark       - Run Python benchmark runner with plots and Markdown report via uv"
 	@echo "  make adb-test        - Run automated ADB UI and regression test suite"
@@ -184,6 +186,14 @@ flutter-analyze: lint ## Run Flutter analyzer
 
 flutter-codegen: ## Run build_runner for code generation
 	dart run build_runner build --delete-conflicting-outputs
+
+schema-dump: ## Dump current AppDatabase schema (update filename when bumping schemaVersion)
+	mkdir -p drift_schemas
+	dart run drift_dev schema dump lib/data/local/app_database.dart drift_schemas/drift_schema_v7.json
+
+schema-generate: ## Generate SchemaVerifier helpers from drift_schemas/
+	mkdir -p test/generated_migrations
+	dart run drift_dev schema generate --data-classes --companions drift_schemas/ test/generated_migrations/
 
 adb-test: ## Run automated ADB UI and regression test suite
 	@chmod +x scripts/adb_automated_test.sh
