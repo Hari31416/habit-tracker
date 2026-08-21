@@ -70,3 +70,4 @@ secrets.xml
 .metadata
 devtools_options.yaml
 exports/
+coverage/
