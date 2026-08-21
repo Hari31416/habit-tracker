@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../domain/engines/shield_banking_engine.dart';
 import '../../domain/engines/streak_calculator.dart';
@@ -72,10 +73,18 @@ class GamificationRepositoryImpl implements GamificationRepository {
         motivationNotes: row.motivationNotes,
         archived: row.archived,
         promptReflection: row.promptReflection,
+        healthMetric: row.healthMetric,
+        healthSyncEnabled: row.healthSyncEnabled,
         isDeleted: row.isDeleted,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
       );
+
+  @visibleForTesting
+  Habit habitFromRow(HabitRow row) => _habitRowToDomain(row);
+
+  @visibleForTesting
+  HabitLog logFromRow(HabitLogRow row) => _logRowToDomain(row);
 
   HabitLog _logRowToDomain(HabitLogRow row) => HabitLog(
         id: row.id,

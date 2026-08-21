@@ -1,0 +1,177 @@
+{
+  "appVersion": "1.0.0",
+  "data": {
+    "achievements": [
+      {
+        "createdAt": "2026-04-11T09:15:30.000Z",
+        "id": "perf_1",
+        "notified": false,
+        "progress": 1,
+        "unlockedAt": "2026-04-11T09:15:30.000Z",
+        "updatedAt": "2026-04-11T09:15:30.000Z"
+      },
+      {
+        "createdAt": "2026-04-11T09:15:30.000Z",
+        "id": "vol_1",
+        "notified": true,
+        "progress": 1,
+        "unlockedAt": "2026-03-21T11:00:00.000Z",
+        "updatedAt": "2026-04-11T09:15:30.000Z"
+      }
+    ],
+    "categories": [
+      {
+        "color": "#C45C26",
+        "createdAt": "2026-03-15T14:30:00.000Z",
+        "icon": "heartbeat",
+        "id": "cat_contract_health",
+        "isDeleted": false,
+        "name": "Contract Health",
+        "updatedAt": "2026-03-16T08:05:00.000Z"
+      },
+      {
+        "color": "#10B981",
+        "createdAt": "2026-01-01T00:00:00.000Z",
+        "icon": "activity",
+        "id": "cat_health_fitness",
+        "isDeleted": false,
+        "name": "Health & Fitness",
+        "updatedAt": "2026-01-01T00:00:00.000Z"
+      },
+      {
+        "color": "#3B82F6",
+        "createdAt": "2026-01-01T00:00:00.000Z",
+        "icon": "book-open",
+        "id": "cat_learning",
+        "isDeleted": false,
+        "name": "Learning",
+        "updatedAt": "2026-01-01T00:00:00.000Z"
+      },
+      {
+        "color": "#8B5CF6",
+        "createdAt": "2026-01-01T00:00:00.000Z",
+        "icon": "brain",
+        "id": "cat_mindfulness",
+        "isDeleted": false,
+        "name": "Mindfulness",
+        "updatedAt": "2026-01-01T00:00:00.000Z"
+      },
+      {
+        "color": "#EC4899",
+        "createdAt": "2026-01-01T00:00:00.000Z",
+        "icon": "heart",
+        "id": "cat_personal",
+        "isDeleted": false,
+        "name": "Personal",
+        "updatedAt": "2026-01-01T00:00:00.000Z"
+      },
+      {
+        "color": "#F59E0B",
+        "createdAt": "2026-01-01T00:00:00.000Z",
+        "icon": "zap",
+        "id": "cat_productivity",
+        "isDeleted": false,
+        "name": "Productivity",
+        "updatedAt": "2026-01-01T00:00:00.000Z"
+      },
+      {
+        "color": "#6366F1",
+        "createdAt": "2026-01-01T00:00:00.000Z",
+        "icon": "clock",
+        "id": "cat_routine",
+        "isDeleted": false,
+        "name": "Routine",
+        "updatedAt": "2026-01-01T00:00:00.000Z"
+      }
+    ],
+    "gamification": {
+      "autoConsumeShields": false,
+      "currentLevel": 2,
+      "lastCelebratedLevel": 4,
+      "maxShieldsCapacity": 7,
+      "totalXp": 160,
+      "updatedAt": "2026-04-11T09:15:30.000Z"
+    },
+    "habits": [
+      {
+        "archived": false,
+        "categoryId": "cat_contract_health",
+        "color": "#1B4D89",
+        "createdAt": "2026-03-15T14:30:00.000Z",
+        "description": "Distinctive contract description",
+        "eliteTargetValue": 12000.25,
+        "frequencyType": "customDays",
+        "healthMetric": "steps",
+        "healthSyncEnabled": true,
+        "icon": "footprints",
+        "id": "habit_contract_full",
+        "intervalHours": 6,
+        "isDeleted": false,
+        "miniTargetValue": 2500.5,
+        "motivationNotes": "Keep the chain for the contract test",
+        "pinned": true,
+        "promptReflection": true,
+        "reminderTimes": [
+          "06:30",
+          "12:15"
+        ],
+        "targetCountPerWeek": 4,
+        "targetDaysOfWeek": [
+          1,
+          3,
+          5
+        ],
+        "targetType": "numeric",
+        "targetValue": 8000.0,
+        "timeWindow": {
+          "endTime": "21:45",
+          "startTime": "06:15"
+        },
+        "timesPerDay": 3,
+        "title": "Contract Walk",
+        "unit": "steps",
+        "updatedAt": "2026-03-16T08:05:00.000Z"
+      }
+    ],
+    "logs": [
+      {
+        "completed": true,
+        "createdAt": "2026-03-15T14:30:00.000Z",
+        "date": "2026-03-20",
+        "durationSeconds": 1840,
+        "energyLevel": 4,
+        "habitId": "habit_contract_full",
+        "id": "log_contract_full",
+        "intervalIndex": 2,
+        "isDeleted": false,
+        "mood": "focused",
+        "note": "Contract log note",
+        "targetTier": "elite",
+        "timestamp": "2026-03-20T07:45:12.000Z",
+        "updatedAt": "2026-03-16T08:05:00.000Z",
+        "value": 9100.75
+      }
+    ],
+    "preferences": {
+      "ambientSoundType": "rain",
+      "ambientSoundVolume": 0.42,
+      "focusDndEnabled": true,
+      "themeMode": "dark",
+      "userName": "ContractUser"
+    },
+    "shields": [
+      {
+        "autoApplied": true,
+        "createdAt": "2026-03-15T14:30:00.000Z",
+        "date": "2026-03-19",
+        "habitId": "habit_contract_full",
+        "id": "shield_contract_full",
+        "isDeleted": false,
+        "updatedAt": "2026-03-16T08:05:00.000Z"
+      }
+    ]
+  },
+  "deviceId": "contract_device_alpha",
+  "exportedAt": "2026-04-11T09:15:30.000Z",
+  "schemaVersion": 1
+}

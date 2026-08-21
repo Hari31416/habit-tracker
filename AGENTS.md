@@ -64,17 +64,9 @@ make emulator-stop
 
 ## Architecture and Domain Invariants
 
-### Entity Field and Schema Synchronization Checklist
+### Entity mapping contract
 
-When adding or modifying fields on domain entities or Drift tables, synchronize all 6 layers:
-
-- **Domain Entity:** Constructor, `copyWith`, equality, and helper methods.
-- **Drift Table Column & Converter:** Nullability, default values, and type converters.
-- **`HabitRepositoryImpl`:** `_habitRowToDomain`, `_habitDomainToCompanion`, `_logRowToDomain`, and `_logDomainToCompanion`.
-- **`BackupRepositoryImpl`:** `_habitRowToDomain`, `_habitToCompanion`, `_logRowToDomain`, and `_logToCompanion`.
-- **`GamificationRepositoryImpl`:** `_habitRowToDomain` and `_logRowToDomain`.
-- **`SyncEnvelope` JSON Serialization:** `_habitToJson`, `_habitFromJson`, `_logToJson`, and `_logFromJson`.
-- **Automated Verification:** Add an export/import roundtrip test in `test/data/backup_repository_test.dart` verifying full restoration without data loss.
+When adding or modifying fields on domain entities or Drift tables, keep `test/data/entity_contract_roundtrip_test.dart` green. Distinctive values live in `test/helpers/contract_fixtures.dart`. That roundtrip is the source of truth for row, companion, and `SyncEnvelope` JSON mapping.
 
 ### Streak Engine Invariants
 
