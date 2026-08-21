@@ -275,7 +275,7 @@ class GamificationRepositoryImpl implements GamificationRepository {
           );
         }
 
-        // 8. Persist new unlocks
+        // 8. Persist new unlocks and prune invalidly stored unlocks
         final newlyUnlocked = evaluatedAchievements
             .where((a) => a.isUnlocked && !knownUnlockedIds.contains(a.definition.id))
             .toList();
@@ -293,6 +293,21 @@ class GamificationRepositoryImpl implements GamificationRepository {
             ));
           }
           gamificationDao.upsertAchievements(companions);
+        }
+
+        // Clean up any stale achievement rows in DB that are not unlocked
+        final invalidIds = (latestAchievements ?? const <AchievementRow>[])
+            .where((a) {
+              final status = evaluatedAchievements
+                  .where((ea) => ea.definition.id == a.id)
+                  .firstOrNull;
+              return status == null || !status.isUnlocked;
+            })
+            .map((a) => a.id)
+            .toList();
+        if (invalidIds.isNotEmpty) {
+          knownUnlockedIds.removeAll(invalidIds);
+          gamificationDao.deleteAchievementsByIds(invalidIds);
         }
 
         final combined = _CombinedGamificationData(

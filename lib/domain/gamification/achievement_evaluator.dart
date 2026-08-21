@@ -212,7 +212,7 @@ class AchievementEvaluator {
       }
 
       final target = def.targetValue;
-      final isUnlocked = progress >= target || context.storedUnlocks.containsKey(def.id);
+      final isUnlocked = progress >= target;
       final currentProgress = min(progress, target);
       final fraction = target > 0 ? (currentProgress / target).clamp(0.0, 1.0) : 1.0;
 

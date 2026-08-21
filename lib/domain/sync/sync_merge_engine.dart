@@ -339,8 +339,10 @@ class SyncMergeEngine {
       updatedAt: now,
     );
 
-    // Merge Achievements List
-    final mergedAchievements = evaluatedAchievements.map((ea) {
+    // Merge Achievements List (only genuinely unlocked achievements)
+    final mergedAchievements = evaluatedAchievements
+        .where((ea) => ea.isUnlocked)
+        .map((ea) {
       final wasNotified = storedNotified[ea.definition.id] ?? false;
       return SyncAchievement(
         id: ea.definition.id,

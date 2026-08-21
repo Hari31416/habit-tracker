@@ -32,6 +32,11 @@ class GamificationDao extends DatabaseAccessor<AppDatabase> with _$GamificationD
     });
   }
 
+  Future<void> deleteAchievementsByIds(List<String> ids) async {
+    if (ids.isEmpty) return;
+    await (delete(achievements)..where((a) => a.id.isIn(ids))).go();
+  }
+
   Stream<UserGamificationRow?> watchUserGamification() {
     return (select(userGamification)..where((u) => u.id.equals('user_gamification')))
         .watchSingleOrNull();
