@@ -228,7 +228,6 @@ class GamificationRepositoryImpl implements GamificationRepository {
         );
         List<AchievementStatus> evaluatedAchievements = const [];
         var achievementsXp = 0;
-        var finalTotalXp = initialTotalXp;
 
         for (int iter = 0; iter < 5; iter++) {
           final evalContext = EvaluationContext(
@@ -256,18 +255,14 @@ class GamificationRepositoryImpl implements GamificationRepository {
 
           if (newAchievementsXp == achievementsXp && newProgression.level == currentProgression.level) {
             achievementsXp = newAchievementsXp;
-            finalTotalXp = newTotalXp;
             currentProgression = newProgression;
             break;
           }
 
           achievementsXp = newAchievementsXp;
-          finalTotalXp = newTotalXp;
           currentProgression = newProgression;
         }
 
-        final unlockedCount = evaluatedAchievements.where((a) => a.isUnlocked).length;
-        final totalCount = evaluatedAchievements.length;
         final finalProgression = currentProgression;
 
         // 6. Shield Bank

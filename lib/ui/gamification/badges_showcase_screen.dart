@@ -176,9 +176,9 @@ class _BadgesShowcaseScreenState extends ConsumerState<BadgesShowcaseScreen> {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    uiState.selectedCategory == null
+                                    uiState.selectedCategory == AchievementCategory.all
                                         ? 'All Achievements'
-                                        : '${uiState.selectedCategory!.displayName} Achievements',
+                                        : '${uiState.selectedCategory.displayName} Achievements',
                                     style: theme.textTheme.titleMedium
                                         ?.copyWith(fontWeight: FontWeight.bold),
                                   ),

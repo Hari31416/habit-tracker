@@ -333,8 +333,6 @@ class SyncMergeEngine {
       currentProgression = newProgression;
     }
 
-    final unlockedCount = evaluatedAchievements.where((a) => a.isUnlocked).length;
-    final totalCount = evaluatedAchievements.length;
     final finalProgression = currentProgression;
 
     // Merge UserGamification (preserve max celebration level)
