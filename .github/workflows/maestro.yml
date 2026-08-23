@@ -63,6 +63,4 @@ jobs:
           force-avd-creation: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: |
-            adb install -r build/app/outputs/flutter-apk/app-debug.apk
-            SUITE="${{ github.event_name == 'workflow_dispatch' && github.event.inputs.suite || 'subset' }}"; echo "Running Maestro suite mode: $SUITE"; if [ "$SUITE" = "full" ]; then FLOWS="$(ls .maestro/*.yaml | sort | tr '\n' ' ')"; else FLOWS=".maestro/smoke.yaml .maestro/create_and_check_in.yaml .maestro/archive_habit.yaml"; fi; for flow in $FLOWS; do echo "=== $flow ==="; maestro test "$flow"; done
+          script: adb install -r build/app/outputs/flutter-apk/app-debug.apk && SUITE="${{ github.event_name == 'workflow_dispatch' && github.event.inputs.suite || 'subset' }}" && echo "Running Maestro suite mode: $SUITE" && FLOWS="$([ "$SUITE" = "full" ] && ls .maestro/*.yaml | sort | tr '\n' ' ' || echo '.maestro/smoke.yaml .maestro/create_and_check_in.yaml .maestro/archive_habit.yaml')" && for flow in $FLOWS; do echo "=== $flow ==="; maestro test "$flow"; done
