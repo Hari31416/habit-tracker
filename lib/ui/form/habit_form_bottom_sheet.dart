@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../di/providers.dart';
 import '../../../services/notification_service.dart';
 import '../common/color_utils.dart';
 import '../common/haptics_helper.dart';

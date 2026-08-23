@@ -195,11 +195,9 @@ class FakeHabitRepository implements HabitRepository {
         .map((list) => list.where((h) => !h.archived && !h.isDeleted).toList());
   }
 
-  @override
   Future<List<Habit>> getAllActiveHabitsOnce() async =>
       _habits.where((h) => !h.archived && !h.isDeleted).toList();
 
-  @override
   Future<List<Habit>> getAllHabitsOnce() async => List.unmodifiable(_habits);
 
   @override

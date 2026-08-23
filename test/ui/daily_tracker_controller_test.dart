@@ -1,12 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:habit_tracker/domain/engines/streak_calculator.dart';
 import 'package:habit_tracker/domain/models/habit.dart';
 import 'package:habit_tracker/domain/models/habit_category.dart';
 import 'package:habit_tracker/domain/models/habit_frequency_type.dart';
-import 'package:habit_tracker/domain/models/habit_log.dart';
-import 'package:habit_tracker/domain/models/habit_shield.dart';
 import 'package:habit_tracker/domain/models/habit_target_type.dart';
-import 'package:habit_tracker/domain/models/habit_tier.dart';
 import 'package:habit_tracker/ui/daily/controllers/daily_tracker_controller.dart';
 import '../helpers/test_factories.dart';
 export '../helpers/test_factories.dart';
