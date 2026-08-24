@@ -145,6 +145,8 @@ void main() {
     expect(find.text('Load Demo Habits'), findsOneWidget);
 
     // Tap Load Demo Habits button
+    await tester.ensureVisible(find.text('Load Demo Habits'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Load Demo Habits'));
     await tester.pumpAndSettle();
 

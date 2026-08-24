@@ -15,6 +15,7 @@ import 'widgets/habit_card.dart';
 import 'widgets/historical_banner.dart';
 import 'widgets/profile_settings_bottom_sheet.dart';
 import 'widgets/progress_ring.dart';
+import 'widgets/routine_section.dart';
 
 class DailyTrackerScreen extends ConsumerStatefulWidget {
   final ValueChanged<String>? onNavigateToDetail;
@@ -755,10 +756,14 @@ class _DailyHabitsList extends ConsumerWidget {
     final searchQuery = ref.watch(
       dailyTrackerControllerProvider.select((s) => s.searchQuery),
     );
+    final selectedCategoryId = ref.watch(
+      dailyTrackerControllerProvider.select((s) => s.selectedCategoryId),
+    );
     final selectedDate = ref.watch(
       dailyTrackerControllerProvider.select((s) => s.selectedDate),
     );
     final controller = ref.read(dailyTrackerControllerProvider.notifier);
+    final showRoutines = searchQuery.isEmpty && selectedCategoryId == null;
 
     if (isLoading) {
       return Center(
@@ -769,91 +774,122 @@ class _DailyHabitsList extends ConsumerWidget {
     }
 
     if (habits.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  searchQuery.isNotEmpty ? Icons.search_off : Icons.track_changes_outlined,
-                  size: 40,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                searchQuery.isNotEmpty
-                    ? 'No matching habits found'
-                    : 'No habits scheduled for this day',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 6),
-              Text(
-                searchQuery.isNotEmpty
-                    ? 'Try searching for a different keyword or category'
-                    : 'Create your own habit or load starter habits to explore features.',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.outline,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              if (searchQuery.isEmpty) ...[
-                const SizedBox(height: 20),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 10,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    FilledButton.icon(
-                      icon: const Icon(Icons.add, size: 18),
-                      label: const Text('Create Habit'),
-                      onPressed: () {
-                        HapticsHelper.performLightHaptic();
-                        HabitFormBottomSheet.show(context);
-                      },
+      return ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        children: [
+          if (showRoutines) ...[
+            RoutineSection(
+              selectedDate: selectedDate,
+              onStartRoutinePlayer: (routine) {
+                Navigator.of(context).pushNamed(Screen.routinePlayerRoute(routine.id));
+              },
+            ),
+            const SizedBox(height: 12),
+          ],
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                      shape: BoxShape.circle,
                     ),
-                    OutlinedButton.icon(
-                      icon: const Icon(Icons.auto_awesome, size: 18),
-                      label: const Text('Load Demo Habits'),
-                      onPressed: () async {
-                        HapticsHelper.performLightHaptic();
-                        await controller.loadDemoHabits();
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Starter demo habits loaded!'),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                        }
-                      },
+                    child: Icon(
+                      searchQuery.isNotEmpty ? Icons.search_off : Icons.track_changes_outlined,
+                      size: 40,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    searchQuery.isNotEmpty
+                        ? 'No matching habits found'
+                        : 'No habits scheduled for this day',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    searchQuery.isNotEmpty
+                        ? 'Try searching for a different keyword or category'
+                        : 'Create your own habit or load starter habits to explore features.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.outline,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  if (searchQuery.isEmpty) ...[
+                    const SizedBox(height: 20),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 10,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        FilledButton.icon(
+                          icon: const Icon(Icons.add, size: 18),
+                          label: const Text('Create Habit'),
+                          onPressed: () {
+                            HapticsHelper.performLightHaptic();
+                            HabitFormBottomSheet.show(context);
+                          },
+                        ),
+                        OutlinedButton.icon(
+                          icon: const Icon(Icons.auto_awesome, size: 18),
+                          label: const Text('Load Demo Habits'),
+                          onPressed: () async {
+                            HapticsHelper.performLightHaptic();
+                            await controller.loadDemoHabits();
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Starter demo habits loaded!'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                      ],
                     ),
                   ],
-                ),
-              ],
-            ],
+                ],
+              ),
+            ),
           ),
-        ),
+        ],
       );
     }
 
+    final totalCount = showRoutines ? habits.length + 1 : habits.length;
+
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      itemCount: habits.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 8),
+      itemCount: totalCount,
+      separatorBuilder: (_, index) {
+        if (showRoutines && index == 0) {
+          return const SizedBox(height: 8);
+        }
+        return const SizedBox(height: 8);
+      },
       itemBuilder: (context, index) {
-        final habitWithProgress = habits[index];
+        if (showRoutines && index == 0) {
+          return RoutineSection(
+            selectedDate: selectedDate,
+            onStartRoutinePlayer: (routine) {
+              Navigator.of(context).pushNamed(Screen.routinePlayerRoute(routine.id));
+            },
+          );
+        }
+
+        final habitIndex = showRoutines ? index - 1 : index;
+        final habitWithProgress = habits[habitIndex];
         return HabitCard(
           key: ValueKey(habitWithProgress.habit.id),
           habitWithProgress: habitWithProgress,

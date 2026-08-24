@@ -8,11 +8,13 @@ abstract class Screen {
   static const String detail = 'detail';
   static const String badges = 'badges';
   static const String focusTimer = 'focus_timer';
+  static const String routinePlayer = 'routine_player';
   static const String addHabit = 'add_habit';
   static const String editHabit = 'edit_habit';
 
   static String detailRoute(String habitId) => 'detail/$habitId';
   static String focusTimerRoute(String habitId) => 'focus_timer/$habitId';
+  static String routinePlayerRoute(String routineId) => 'routine_player/$routineId';
   static String editHabitRoute(String habitId) => 'edit_habit/$habitId';
 
   /// Parses a deep-link URI or named route string into a valid route name.
@@ -71,6 +73,12 @@ abstract class Screen {
     if (first == focusTimer) {
       if (segments.length > 1 && segments[1].trim().isNotEmpty) {
         return focusTimerRoute(segments[1].trim());
+      }
+      return daily;
+    }
+    if (first == routinePlayer) {
+      if (segments.length > 1 && segments[1].trim().isNotEmpty) {
+        return routinePlayerRoute(segments[1].trim());
       }
       return daily;
     }

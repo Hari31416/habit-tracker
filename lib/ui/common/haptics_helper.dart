@@ -7,6 +7,14 @@ class HapticsHelper {
     } catch (_) {}
   }
 
+  static void selectionClick() => performLightHaptic();
+
+  static void mediumImpact() {
+    try {
+      HapticFeedback.mediumImpact();
+    } catch (_) {}
+  }
+
   static void performHeavyConfirmationHaptic() {
     try {
       HapticFeedback.heavyImpact();
@@ -16,4 +24,6 @@ class HapticsHelper {
       } catch (_) {}
     }
   }
+
+  static void celebrate() => performHeavyConfirmationHaptic();
 }

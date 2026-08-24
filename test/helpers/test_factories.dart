@@ -4,12 +4,15 @@ import 'package:habit_tracker/domain/models/habit.dart';
 import 'package:habit_tracker/domain/models/habit_category.dart';
 import 'package:habit_tracker/domain/models/habit_frequency_type.dart';
 import 'package:habit_tracker/domain/models/habit_log.dart';
+import 'package:habit_tracker/domain/models/habit_routine.dart';
 import 'package:habit_tracker/domain/models/habit_shield.dart';
 import 'package:habit_tracker/domain/models/habit_target_type.dart';
 import 'package:habit_tracker/domain/models/habit_tier.dart';
 import 'package:habit_tracker/domain/models/health/health_metric_type.dart';
+import 'package:habit_tracker/domain/models/routine_log.dart';
 import 'package:habit_tracker/domain/models/time_window.dart';
 import 'package:habit_tracker/domain/repositories/habit_repository.dart';
+import 'package:habit_tracker/domain/repositories/routine_repository.dart';
 
 Habit createTestHabit({
   String id = 'test-habit-1',
@@ -692,5 +695,166 @@ class FakeHabitRepository implements HabitRepository {
   Future<void> deleteCategory(HabitCategory category) async {
     _categories.removeWhere((c) => c.id == category.id);
     _notify();
+  }
+}
+
+HabitRoutine createTestRoutine({
+  String id = 'test-routine-1',
+  String title = 'Morning Momentum',
+  String? description,
+  String color = '#3B82F6',
+  String? icon = 'sun',
+  TimeWindow? targetTimeWindow,
+  List<String> habitIds = const ['test-habit-1', 'test-habit-2'],
+  int bonusXp = 30,
+  bool isDeleted = false,
+  DateTime? createdAt,
+  DateTime? updatedAt,
+}) {
+  final now = DateTime.now().toUtc();
+  return HabitRoutine(
+    id: id,
+    title: title,
+    description: description,
+    color: color,
+    icon: icon,
+    targetTimeWindow: targetTimeWindow,
+    habitIds: habitIds,
+    bonusXp: bonusXp,
+    isDeleted: isDeleted,
+    createdAt: createdAt ?? now,
+    updatedAt: updatedAt ?? now,
+  );
+}
+
+RoutineLog createTestRoutineLog({
+  String id = 'test-routine-log-1',
+  String routineId = 'test-routine-1',
+  String date = '2026-08-21',
+  DateTime? completedAt,
+  List<String> completedHabitIds = const ['test-habit-1', 'test-habit-2'],
+  int xpEarned = 30,
+  bool isDeleted = false,
+  DateTime? createdAt,
+  DateTime? updatedAt,
+}) {
+  final now = DateTime.now().toUtc();
+  return RoutineLog(
+    id: id,
+    routineId: routineId,
+    date: date,
+    completedAt: completedAt ?? now,
+    completedHabitIds: completedHabitIds,
+    xpEarned: xpEarned,
+    isDeleted: isDeleted,
+    createdAt: createdAt ?? now,
+    updatedAt: updatedAt ?? now,
+  );
+}
+
+class MockRoutineRepository implements RoutineRepository {
+  final List<HabitRoutine> _routines = [];
+  final List<RoutineLog> _routineLogs = [];
+  final StreamController<List<HabitRoutine>> _routinesController =
+      StreamController<List<HabitRoutine>>.broadcast();
+  final StreamController<List<RoutineLog>> _routineLogsController =
+      StreamController<List<RoutineLog>>.broadcast();
+
+  MockRoutineRepository({
+    List<HabitRoutine> initialRoutines = const [],
+    List<RoutineLog> initialRoutineLogs = const [],
+  }) {
+    _routines.addAll(initialRoutines);
+    _routineLogs.addAll(initialRoutineLogs);
+  }
+
+  void _notify() {
+    _routinesController.add(List.unmodifiable(_routines));
+    _routineLogsController.add(List.unmodifiable(_routineLogs));
+  }
+
+  @override
+  Stream<List<HabitRoutine>> watchActiveRoutines() {
+    Future.microtask(() => _routinesController.add(List.unmodifiable(_routines)));
+    return _routinesController.stream
+        .map((list) => list.where((r) => !r.isDeleted).toList());
+  }
+
+  @override
+  Future<List<HabitRoutine>> getActiveRoutinesOnce() async =>
+      _routines.where((r) => !r.isDeleted).toList();
+
+  @override
+  Future<List<HabitRoutine>> getAllRoutinesOnce() async =>
+      List.unmodifiable(_routines);
+
+  @override
+  Future<HabitRoutine?> getRoutineById(String id) async =>
+      _routines.where((r) => r.id == id && !r.isDeleted).firstOrNull;
+
+  @override
+  Future<void> upsertRoutine(HabitRoutine routine) async {
+    _routines.removeWhere((r) => r.id == routine.id);
+    _routines.add(routine);
+    _notify();
+  }
+
+  @override
+  Future<void> deleteRoutine(String id) async {
+    _routines.removeWhere((r) => r.id == id);
+    _notify();
+  }
+
+  @override
+  Future<void> reorderHabitsInRoutine(String routineId, List<String> habitIds) async {
+    final idx = _routines.indexWhere((r) => r.id == routineId);
+    if (idx != -1) {
+      _routines[idx] = _routines[idx].copyWith(habitIds: habitIds);
+      _notify();
+    }
+  }
+
+  @override
+  Stream<List<RoutineLog>> watchRoutineLogsForDate(String date) {
+    Future.microtask(() => _routineLogsController.add(List.unmodifiable(_routineLogs)));
+    return _routineLogsController.stream
+        .map((list) => list.where((l) => l.date == date && !l.isDeleted).toList());
+  }
+
+  @override
+  Future<List<RoutineLog>> getRoutineLogsForDateOnce(String date) async =>
+      _routineLogs.where((l) => l.date == date && !l.isDeleted).toList();
+
+  @override
+  Future<List<RoutineLog>> getAllRoutineLogsOnce() async =>
+      List.unmodifiable(_routineLogs);
+
+  @override
+  Future<RoutineLog?> getRoutineLog(String routineId, String date) async =>
+      _routineLogs.where((l) => l.routineId == routineId && l.date == date && !l.isDeleted).firstOrNull;
+
+  @override
+  Future<RoutineLog> completeRoutine({
+    required String routineId,
+    required String date,
+    required List<String> completedHabitIds,
+    int? customBonusXp,
+  }) async {
+    final routine = await getRoutineById(routineId);
+    final bonusXp = customBonusXp ?? routine?.bonusXp ?? 30;
+    final log = RoutineLog(
+      id: 'routine_log_${DateTime.now().millisecondsSinceEpoch}',
+      routineId: routineId,
+      date: date,
+      completedAt: DateTime.now().toUtc(),
+      completedHabitIds: completedHabitIds,
+      xpEarned: bonusXp,
+      isDeleted: false,
+      createdAt: DateTime.now().toUtc(),
+      updatedAt: DateTime.now().toUtc(),
+    );
+    _routineLogs.add(log);
+    _notify();
+    return log;
   }
 }

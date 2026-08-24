@@ -20,6 +20,7 @@ import 'ui/detail/habit_detail_screen.dart';
 import 'ui/form/habit_form_bottom_sheet.dart';
 import 'ui/navigation/main_navigation_shell.dart';
 import 'ui/navigation/screen.dart';
+import 'ui/routines/routine_player_screen.dart';
 import 'ui/theme/app_theme.dart';
 
 final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
@@ -227,6 +228,19 @@ class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
               settings: settings,
               builder: (ctx) => FocusTimerScreen(
                 habitId: habitId,
+                onBack: () => Navigator.of(ctx).pop(),
+              ),
+            );
+          }
+        }
+
+        if (route.startsWith('routine_player/')) {
+          final routineId = route.replaceFirst('routine_player/', '');
+          if (routineId.isNotEmpty) {
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (ctx) => RoutinePlayerScreen(
+                routineId: routineId,
                 onBack: () => Navigator.of(ctx).pop(),
               ),
             );

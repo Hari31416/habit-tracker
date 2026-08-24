@@ -26,4 +26,10 @@ class ColorUtils {
       return defaultColor;
     }
   }
+
+  static Color fromHex(
+    String? hexString, {
+    Color defaultColor = const Color(0xFF10B981),
+  }) =>
+      parseHexColor(hexString, defaultColor: defaultColor);
 }
