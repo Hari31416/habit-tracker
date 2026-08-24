@@ -1,0 +1,129 @@
+# Habit Stacking & Daily Routines journey:
+# 1. Load starter habits/routines
+# 2. Build and save a custom habit stack in RoutineBuilderSheet
+# 3. Launch Routine Player mode on a routine stack
+# 4. Guide through steps with transition cues and complete routine
+# 5. Verify celebratory bonus XP award and completed routine state
+
+appId: app.phial.habits
+tags:
+  - journey
+  - full
+  - routines
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "nav_today"
+    timeout: 30000
+
+# 1. Load starter demo habits and seeded routines
+- runFlow:
+    file: helpers/load_demo_habits.yaml
+- extendedWaitUntil:
+    visible: "Routines & Stacks"
+    timeout: 10000
+
+# 2. Assert seeded routines appear
+- assertVisible: "Morning Momentum"
+- assertVisible: "Evening Wind-Down"
+
+# 3. Create a custom habit stack
+- tapOn:
+    id: "btn_new_stack"
+- extendedWaitUntil:
+    visible: "Create Habit Stack"
+    timeout: 10000
+
+- tapOn:
+    id: "routine_title_field"
+- inputText: "Maestro Evening Routine"
+- runFlow:
+    file: helpers/dismiss_stylus_prompt.yaml
+
+- tapOn:
+    id: "btn_add_routine_step"
+- extendedWaitUntil:
+    visible: "Add Habit to Stack"
+    timeout: 5000
+
+# Pick habits for the stack
+- tapOn: "Morning Meditation"
+- extendedWaitUntil:
+    visible: "Morning Meditation"
+    timeout: 5000
+
+- tapOn:
+    id: "btn_add_routine_step"
+- extendedWaitUntil:
+    visible: "Add Habit to Stack"
+    timeout: 5000
+- tapOn: "Daily Pushups"
+
+- extendedWaitUntil:
+    visible: "Daily Pushups"
+    timeout: 5000
+
+# Save custom stack
+- tapOn:
+    id: "btn_save_routine"
+- extendedWaitUntil:
+    visible: "Maestro Evening Routine"
+    timeout: 10000
+
+# 4. Launch Routine Player for the newly created stack
+- tapOn:
+    id: "btn_start_routine_seed_routine_morning"
+- extendedWaitUntil:
+    visible: "Step 1 of 3"
+    timeout: 10000
+
+- assertVisible: "Done & Next"
+
+# Step 1 -> Complete
+- tapOn:
+    id: "btn_step_complete"
+- extendedWaitUntil:
+    visible: "Step Complete!"
+    timeout: 5000
+
+- tapOn:
+    id: "btn_step_continue"
+- extendedWaitUntil:
+    visible: "Step 2 of 3"
+    timeout: 5000
+
+# Step 2 -> Complete
+- tapOn:
+    id: "btn_step_complete"
+- extendedWaitUntil:
+    visible: "Step Complete!"
+    timeout: 5000
+
+- tapOn:
+    id: "btn_step_continue"
+- extendedWaitUntil:
+    visible: "Step 3 of 3"
+    timeout: 5000
+
+- assertVisible: "Complete Stack"
+
+# Final step -> Complete Stack
+- tapOn:
+    id: "btn_step_complete"
+- extendedWaitUntil:
+    visible: "Stack Completed!"
+    timeout: 10000
+
+- assertVisible: "Routine Completion Bonus"
+
+# Return to dashboard
+- tapOn:
+    id: "btn_routine_finish"
+- extendedWaitUntil:
+    visible:
+      id: "nav_today"
+    timeout: 10000
+
+- assertVisible: "Morning Momentum"

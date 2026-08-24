@@ -202,7 +202,7 @@ flutter-codegen: ## Run build_runner for code generation
 
 schema-dump: ## Dump current AppDatabase schema (update filename when bumping schemaVersion)
 	mkdir -p drift_schemas
-	dart run drift_dev schema dump lib/data/local/app_database.dart drift_schemas/drift_schema_v7.json
+	dart run drift_dev schema dump lib/data/local/app_database.dart drift_schemas/drift_schema_v8.json
 
 schema-generate: ## Generate SchemaVerifier helpers from drift_schemas/
 	mkdir -p test/generated_migrations
@@ -225,7 +225,7 @@ maestro: ## Run full Maestro suite (or single flow with FLOW=path) on connected 
 		echo "=== $(FLOW) ==="; \
 		maestro test "$(FLOW)" || exit 1; \
 	else \
-		for flow in .maestro/smoke.yaml .maestro/create_and_check_in.yaml .maestro/archive_habit.yaml .maestro/numeric_habit.yaml .maestro/edit_habit.yaml .maestro/delete_habit.yaml .maestro/settings_and_theme.yaml .maestro/gamification_xp.yaml .maestro/analytics_insights.yaml .maestro/backup_export.yaml; do \
+		for flow in .maestro/smoke.yaml .maestro/create_and_check_in.yaml .maestro/archive_habit.yaml .maestro/numeric_habit.yaml .maestro/edit_habit.yaml .maestro/delete_habit.yaml .maestro/routine_stacks.yaml .maestro/settings_and_theme.yaml .maestro/gamification_xp.yaml .maestro/analytics_insights.yaml .maestro/backup_export.yaml; do \
 			echo ""; \
 			echo "=== $$flow ==="; \
 			maestro test "$$flow" || exit 1; \
