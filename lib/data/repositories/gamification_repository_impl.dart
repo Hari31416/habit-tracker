@@ -10,7 +10,6 @@ import '../../domain/gamification/gamification_engine.dart';
 import '../../domain/gamification/gamification_models.dart';
 import '../../domain/gamification/player_title.dart';
 import '../../domain/models/habit.dart';
-import '../../domain/models/habit_category.dart';
 import '../../domain/models/habit_log.dart';
 import '../../domain/models/habit_shield.dart';
 import '../../domain/repositories/gamification_repository.dart';
