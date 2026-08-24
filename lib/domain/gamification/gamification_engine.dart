@@ -21,6 +21,9 @@ class GamificationEngine {
   static const int baseTierXp = 20;
   static const int eliteTierXp = 35;
 
+  // Routine Completion Bonus XP Constants
+  static const int baseRoutineCompletionBonusXp = 30;
+
   /// Returns the base XP reward for a given elastic goal tier.
   static int tierBaseXp(HabitTier tier) {
     switch (tier) {

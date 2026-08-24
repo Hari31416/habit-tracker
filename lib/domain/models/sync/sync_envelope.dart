@@ -3,10 +3,12 @@ import '../habit.dart';
 import '../habit_category.dart';
 import '../habit_frequency_type.dart';
 import '../habit_log.dart';
+import '../habit_routine.dart';
 import '../habit_shield.dart';
 import '../habit_target_type.dart';
 import '../habit_tier.dart';
 import '../health/health_metric_type.dart';
+import '../routine_log.dart';
 import '../time_window.dart';
 
 /// Top-level envelope for local backups and cloud sync snapshots.
@@ -60,6 +62,8 @@ class SyncDataPayload {
   final List<Habit> habits;
   final List<HabitLog> logs;
   final List<HabitShield> shields;
+  final List<HabitRoutine> routines;
+  final List<RoutineLog> routineLogs;
   final SyncUserGamification gamification;
   final List<SyncAchievement> achievements;
   final Map<String, dynamic> preferences;
@@ -69,6 +73,8 @@ class SyncDataPayload {
     this.habits = const [],
     this.logs = const [],
     this.shields = const [],
+    this.routines = const [],
+    this.routineLogs = const [],
     this.gamification = const SyncUserGamification(),
     this.achievements = const [],
     this.preferences = const {},
@@ -79,6 +85,8 @@ class SyncDataPayload {
         'habits': habits.map(_habitToJson).toList(),
         'logs': logs.map(_logToJson).toList(),
         'shields': shields.map(_shieldToJson).toList(),
+        if (routines.isNotEmpty) 'routines': routines.map(_routineToJson).toList(),
+        if (routineLogs.isNotEmpty) 'routineLogs': routineLogs.map(_routineLogToJson).toList(),
         'gamification': gamification.toJson(),
         'achievements': achievements.map((a) => a.toJson()).toList(),
         'preferences': preferences,
@@ -89,6 +97,8 @@ class SyncDataPayload {
     final rawHabits = (json['habits'] as List<dynamic>?) ?? [];
     final rawLogs = (json['logs'] as List<dynamic>?) ?? [];
     final rawShields = (json['shields'] as List<dynamic>?) ?? [];
+    final rawRoutines = (json['routines'] as List<dynamic>?) ?? [];
+    final rawRoutineLogs = (json['routineLogs'] as List<dynamic>?) ?? [];
     final rawAch = (json['achievements'] as List<dynamic>?) ?? [];
 
     return SyncDataPayload(
@@ -103,6 +113,12 @@ class SyncDataPayload {
           .toList(),
       shields: rawShields
           .map((s) => _shieldFromJson(s as Map<String, dynamic>))
+          .toList(),
+      routines: rawRoutines
+          .map((r) => _routineFromJson(r as Map<String, dynamic>))
+          .toList(),
+      routineLogs: rawRoutineLogs
+          .map((rl) => _routineLogFromJson(rl as Map<String, dynamic>))
           .toList(),
       gamification: json['gamification'] != null
           ? SyncUserGamification.fromJson(
@@ -282,6 +298,86 @@ class SyncDataPayload {
       habitId: j['habitId'] as String,
       date: j['date'] as String,
       autoApplied: j['autoApplied'] as bool? ?? false,
+      isDeleted: j['isDeleted'] as bool? ?? false,
+      createdAt: j['createdAt'] != null
+          ? DateTime.parse(j['createdAt'] as String).toUtc()
+          : DateTime.now().toUtc(),
+      updatedAt: j['updatedAt'] != null
+          ? DateTime.parse(j['updatedAt'] as String).toUtc()
+          : DateTime.now().toUtc(),
+    );
+  }
+
+  static Map<String, dynamic> _routineToJson(HabitRoutine r) => {
+        'id': r.id,
+        'title': r.title,
+        'description': r.description,
+        'color': r.color,
+        'icon': r.icon,
+        'targetTimeWindow': r.targetTimeWindow != null
+            ? {
+                'startTime': r.targetTimeWindow!.startTime,
+                'endTime': r.targetTimeWindow!.endTime,
+              }
+            : null,
+        'habitIds': r.habitIds,
+        'bonusXp': r.bonusXp,
+        'isDeleted': r.isDeleted,
+        'createdAt': r.createdAt.toUtc().toIso8601String(),
+        'updatedAt': r.updatedAt.toUtc().toIso8601String(),
+      };
+
+  static HabitRoutine _routineFromJson(Map<String, dynamic> j) {
+    TimeWindow? tw;
+    if (j['targetTimeWindow'] != null) {
+      final twMap = j['targetTimeWindow'] as Map<String, dynamic>;
+      tw = TimeWindow(
+        startTime: twMap['startTime'] as String,
+        endTime: twMap['endTime'] as String,
+      );
+    }
+    return HabitRoutine(
+      id: j['id'] as String,
+      title: j['title'] as String,
+      description: j['description'] as String?,
+      color: j['color'] as String,
+      icon: j['icon'] as String?,
+      targetTimeWindow: tw,
+      habitIds: (j['habitIds'] as List<dynamic>?)?.cast<String>() ?? const [],
+      bonusXp: j['bonusXp'] as int? ?? 30,
+      isDeleted: j['isDeleted'] as bool? ?? false,
+      createdAt: j['createdAt'] != null
+          ? DateTime.parse(j['createdAt'] as String).toUtc()
+          : DateTime.now().toUtc(),
+      updatedAt: j['updatedAt'] != null
+          ? DateTime.parse(j['updatedAt'] as String).toUtc()
+          : DateTime.now().toUtc(),
+    );
+  }
+
+  static Map<String, dynamic> _routineLogToJson(RoutineLog l) => {
+        'id': l.id,
+        'routineId': l.routineId,
+        'date': l.date,
+        'completedAt': l.completedAt.toUtc().toIso8601String(),
+        'completedHabitIds': l.completedHabitIds,
+        'xpEarned': l.xpEarned,
+        'isDeleted': l.isDeleted,
+        'createdAt': l.createdAt.toUtc().toIso8601String(),
+        'updatedAt': l.updatedAt.toUtc().toIso8601String(),
+      };
+
+  static RoutineLog _routineLogFromJson(Map<String, dynamic> j) {
+    return RoutineLog(
+      id: j['id'] as String,
+      routineId: j['routineId'] as String,
+      date: j['date'] as String,
+      completedAt: j['completedAt'] != null
+          ? DateTime.parse(j['completedAt'] as String).toUtc()
+          : DateTime.now().toUtc(),
+      completedHabitIds:
+          (j['completedHabitIds'] as List<dynamic>?)?.cast<String>() ?? const [],
+      xpEarned: j['xpEarned'] as int? ?? 0,
       isDeleted: j['isDeleted'] as bool? ?? false,
       createdAt: j['createdAt'] != null
           ? DateTime.parse(j['createdAt'] as String).toUtc()

@@ -7,6 +7,7 @@ enum AchievementCategory {
   diversity('Diversity'),
   perfectDays('Perfect Days'),
   focus('Focus'),
+  routines('Routines'),
   mastery('Mastery');
 
   final String displayName;

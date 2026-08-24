@@ -4,7 +4,9 @@ import '../engines/streak_calculator.dart';
 import '../models/habit.dart';
 import '../models/habit_category.dart';
 import '../models/habit_log.dart';
+import '../models/habit_routine.dart';
 import '../models/habit_target_type.dart';
+import '../models/routine_log.dart';
 import 'achievement_definitions.dart';
 import 'gamification_models.dart';
 
@@ -12,6 +14,8 @@ class EvaluationContext {
   final List<Habit> habits;
   final List<HabitLog> allLogs;
   final List<HabitCategory> categories;
+  final List<HabitRoutine> routines;
+  final List<RoutineLog> routineLogs;
   final int currentLevel;
   final Map<String, DateTime> storedUnlocks;
   final DateTime referenceDate;
@@ -21,6 +25,8 @@ class EvaluationContext {
     required this.habits,
     required this.allLogs,
     required this.categories,
+    this.routines = const [],
+    this.routineLogs = const [],
     this.currentLevel = 1,
     this.storedUnlocks = const {},
     DateTime? referenceDate,
@@ -143,7 +149,26 @@ class AchievementEvaluator {
       }
     }
 
-    // 4. Map each definition to AchievementStatus
+    // 4. Routine completions calculation
+    final routinesMap = {for (var r in context.routines) r.id: r};
+    var totalRoutineCompletions = 0;
+    var morningRoutineCompletions = 0;
+    for (final rLog in context.routineLogs) {
+      if (rLog.isDeleted) continue;
+      totalRoutineCompletions++;
+      final routine = routinesMap[rLog.routineId];
+      if (routine != null) {
+        final titleLower = routine.title.toLowerCase();
+        final isMorning = titleLower.contains('morning') ||
+            (routine.targetTimeWindow != null &&
+                routine.targetTimeWindow!.startTime.compareTo('12:00') < 0);
+        if (isMorning) {
+          morningRoutineCompletions++;
+        }
+      }
+    }
+
+    // 5. Map each definition to AchievementStatus
     return AchievementDefinitions.allAchievements.map((def) {
       int progress;
       switch (def.id) {
@@ -198,6 +223,17 @@ class AchievementEvaluator {
         case 'focus_300':
         case 'focus_1000':
           progress = totalFocusMinutes;
+          break;
+
+        // Routines
+        case 'routine_1':
+        case 'routine_5':
+        case 'routine_25':
+        case 'routine_100':
+          progress = totalRoutineCompletions;
+          break;
+        case 'routine_morning_7':
+          progress = morningRoutineCompletions;
           break;
 
         // Mastery

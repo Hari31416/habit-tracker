@@ -6,7 +6,9 @@ import '../gamification/gamification_models.dart';
 import '../models/habit.dart';
 import '../models/habit_category.dart';
 import '../models/habit_log.dart';
+import '../models/habit_routine.dart';
 import '../models/habit_shield.dart';
+import '../models/routine_log.dart';
 import '../models/sync/sync_envelope.dart';
 
 /// Merge statistics for preview dialogs and confirmation summaries.
@@ -288,7 +290,57 @@ class SyncMergeEngine {
       }
     }
 
-    final initialTotalXp = habitCheckInXp + perfectDaysBonusXp;
+    // Merge Routines by ID (LWW)
+    final mergedRoutinesMap = <String, HabitRoutine>{};
+    final localRoutines = {for (var r in local.routines) r.id: r};
+    final remoteRoutines = {for (var r in remote.routines) r.id: r};
+    final allRoutineIds = {...localRoutines.keys, ...remoteRoutines.keys};
+    for (final id in allRoutineIds) {
+      final loc = localRoutines[id];
+      final rem = remoteRoutines[id];
+      if (loc == null && rem != null) {
+        mergedRoutinesMap[id] = rem;
+      } else if (loc != null && rem == null) {
+        mergedRoutinesMap[id] = loc;
+      } else if (loc != null && rem != null) {
+        if (rem.updatedAt.isAfter(loc.updatedAt)) {
+          mergedRoutinesMap[id] = rem;
+        } else {
+          mergedRoutinesMap[id] = loc;
+        }
+      }
+    }
+    final mergedRoutines = mergedRoutinesMap.values.toList();
+
+    // Merge RoutineLogs by ID (LWW)
+    final mergedRoutineLogsMap = <String, RoutineLog>{};
+    final localRoutineLogs = {for (var l in local.routineLogs) l.id: l};
+    final remoteRoutineLogs = {for (var l in remote.routineLogs) l.id: l};
+    final allRoutineLogIds = {...localRoutineLogs.keys, ...remoteRoutineLogs.keys};
+    for (final id in allRoutineLogIds) {
+      final loc = localRoutineLogs[id];
+      final rem = remoteRoutineLogs[id];
+      if (loc == null && rem != null) {
+        mergedRoutineLogsMap[id] = rem;
+      } else if (loc != null && rem == null) {
+        mergedRoutineLogsMap[id] = loc;
+      } else if (loc != null && rem != null) {
+        if (rem.updatedAt.isAfter(loc.updatedAt)) {
+          mergedRoutineLogsMap[id] = rem;
+        } else {
+          mergedRoutineLogsMap[id] = loc;
+        }
+      }
+    }
+    final mergedRoutineLogs = mergedRoutineLogsMap.values.toList();
+
+    var routineBonusXp = 0;
+    for (final rLog in mergedRoutineLogs) {
+      if (rLog.isDeleted) continue;
+      routineBonusXp += rLog.xpEarned;
+    }
+
+    final initialTotalXp = habitCheckInXp + perfectDaysBonusXp + routineBonusXp;
     var currentProgression = GamificationEngine.calculateProgression(
       totalXp: initialTotalXp,
       longestActiveStreak: longestActiveStreak,
@@ -302,6 +354,8 @@ class SyncMergeEngine {
         habits: activeHabits,
         allLogs: activeLogs,
         categories: activeCategories,
+        routines: mergedRoutines,
+        routineLogs: mergedRoutineLogs,
         currentLevel: currentProgression.level,
         storedUnlocks: storedUnlocks,
         referenceDate: now,
@@ -381,6 +435,8 @@ class SyncMergeEngine {
       habits: mergedHabits,
       logs: mergedLogs,
       shields: mergedShields,
+      routines: mergedRoutines,
+      routineLogs: mergedRoutineLogs,
       gamification: mergedGamification,
       achievements: mergedAchievements,
       preferences: mergedPreferences,
