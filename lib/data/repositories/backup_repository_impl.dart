@@ -12,6 +12,7 @@ import '../local/daos/habit_category_dao.dart';
 import '../local/daos/habit_dao.dart';
 import '../local/daos/habit_log_dao.dart';
 import '../local/daos/habit_shield_dao.dart';
+import '../local/daos/routine_dao.dart';
 import '../preferences/theme_mode.dart';
 import '../preferences/theme_preferences.dart';
 
@@ -22,6 +23,7 @@ class BackupRepositoryImpl implements BackupRepository {
   final HabitShieldDao habitShieldDao;
   final HabitCategoryDao habitCategoryDao;
   final GamificationDao gamificationDao;
+  final RoutineDao routineDao;
   final HabitReminderScheduler reminderScheduler;
   final ThemePreferences? themePreferences;
   final DateTime Function()? clock;
@@ -33,10 +35,11 @@ class BackupRepositoryImpl implements BackupRepository {
     required this.habitShieldDao,
     required this.habitCategoryDao,
     required this.gamificationDao,
+    RoutineDao? routineDao,
     required this.reminderScheduler,
     this.themePreferences,
     this.clock,
-  });
+  }) : routineDao = routineDao ?? db.routineDao;
 
   DateTime get _now => (clock != null ? clock!() : DateTime.now()).toUtc();
 
@@ -45,6 +48,8 @@ class BackupRepositoryImpl implements BackupRepository {
     final habitRows = await habitDao.getAllHabitsIncludingDeleted();
     final logRows = await habitLogDao.getAllLogsIncludingDeleted();
     final shieldRows = await habitShieldDao.getAllShieldsIncludingDeleted();
+    final routineRows = await routineDao.getAllRoutinesIncludingDeleted();
+    final routineLogRows = await routineDao.getAllRoutineLogsIncludingDeleted();
     final userGam = await gamificationDao.getUserGamificationOnce();
     final achRows = await gamificationDao.getAllAchievementsOnce();
 
@@ -60,6 +65,8 @@ class BackupRepositoryImpl implements BackupRepository {
     final localHabits = habitRows.map((r) => r.toDomain()).toList();
     final localLogs = logRows.map((r) => r.toDomain()).toList();
     final localShields = shieldRows.map((r) => r.toDomain()).toList();
+    final localRoutines = routineRows.map((r) => r.toDomain()).toList();
+    final localRoutineLogs = routineLogRows.map((r) => r.toDomain()).toList();
     final localAchievements = achRows
         .map(
           (a) => SyncAchievement(
@@ -80,6 +87,8 @@ class BackupRepositoryImpl implements BackupRepository {
         habits: localHabits,
         logs: localLogs,
         shields: localShields,
+        routines: localRoutines,
+        routineLogs: localRoutineLogs,
         gamification: userGam != null
             ? SyncUserGamification(
                 totalXp: userGam.totalXp,
@@ -103,6 +112,8 @@ class BackupRepositoryImpl implements BackupRepository {
       habits: localHabits,
       logs: localLogs,
       shields: localShields,
+      routines: localRoutines,
+      routineLogs: localRoutineLogs,
       gamification: computedGam,
       achievements: selfMerge.mergedPayload.achievements,
       preferences: preferences,
@@ -168,6 +179,8 @@ class BackupRepositoryImpl implements BackupRepository {
     if (mode == ImportMode.overwrite) {
       final payload = envelope.data;
       await db.transaction(() async {
+        await db.routineLogs.deleteAll();
+        await db.habitRoutines.deleteAll();
         await db.habitLogs.deleteAll();
         await db.habitShields.deleteAll();
         await db.habits.deleteAll();
@@ -180,6 +193,8 @@ class BackupRepositoryImpl implements BackupRepository {
           b.insertAll(db.habits, payload.habits.map((h) => h.toCompanion()).toList());
           b.insertAll(db.habitLogs, payload.logs.map((l) => l.toCompanion()).toList());
           b.insertAll(db.habitShields, payload.shields.map((s) => s.toCompanion()).toList());
+          b.insertAll(db.habitRoutines, payload.routines.map((r) => r.toCompanion()).toList());
+          b.insertAll(db.routineLogs, payload.routineLogs.map((l) => l.toCompanion()).toList());
           b.insertAll(
             db.achievements,
             payload.achievements.map((a) => AchievementsCompanion(
@@ -241,6 +256,14 @@ class BackupRepositoryImpl implements BackupRepository {
           b.insertAllOnConflictUpdate(
             db.habitShields,
             payload.shields.map((s) => s.toCompanion()).toList(),
+          );
+          b.insertAllOnConflictUpdate(
+            db.habitRoutines,
+            payload.routines.map((r) => r.toCompanion()).toList(),
+          );
+          b.insertAllOnConflictUpdate(
+            db.routineLogs,
+            payload.routineLogs.map((l) => l.toCompanion()).toList(),
           );
           b.insertAllOnConflictUpdate(
             db.achievements,

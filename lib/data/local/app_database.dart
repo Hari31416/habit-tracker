@@ -16,19 +16,38 @@ import 'daos/habit_category_dao.dart';
 import 'daos/habit_dao.dart';
 import 'daos/habit_log_dao.dart';
 import 'daos/habit_shield_dao.dart';
+import 'daos/routine_dao.dart';
 import 'database_seeder.dart';
 import 'tables/achievements.dart';
 import 'tables/habit_categories.dart';
 import 'tables/habit_logs.dart';
+import 'tables/habit_routines.dart';
 import 'tables/habit_shields.dart';
 import 'tables/habits.dart';
+import 'tables/routine_logs.dart';
 import 'tables/user_gamification.dart';
 
 part 'app_database.g.dart';
 
 @DriftDatabase(
-  tables: [Habits, HabitLogs, HabitShields, HabitCategories, UserGamification, Achievements],
-  daos: [HabitDao, HabitLogDao, HabitShieldDao, HabitCategoryDao, GamificationDao],
+  tables: [
+    Habits,
+    HabitLogs,
+    HabitShields,
+    HabitCategories,
+    UserGamification,
+    Achievements,
+    HabitRoutines,
+    RoutineLogs,
+  ],
+  daos: [
+    HabitDao,
+    HabitLogDao,
+    HabitShieldDao,
+    HabitCategoryDao,
+    GamificationDao,
+    RoutineDao,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   static AppDatabase? _sharedInstance;
@@ -68,7 +87,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   Future<void> _safeAddColumn(Migrator m, TableInfo table, GeneratedColumn column) async {
     try {
@@ -122,6 +141,14 @@ class AppDatabase extends _$AppDatabase {
           await _safeAddColumn(m, habits, habits.eliteTargetValue);
           await _safeAddColumn(m, habitLogs, habitLogs.targetTier);
         }
+        if (from < 8) {
+          try {
+            await m.createTable(habitRoutines);
+          } catch (_) {}
+          try {
+            await m.createTable(routineLogs);
+          } catch (_) {}
+        }
       },
       beforeOpen: (details) async {
         await customStatement('PRAGMA journal_mode = WAL;');
@@ -158,6 +185,13 @@ class AppDatabase extends _$AppDatabase {
             // Column already exists
           }
         }
+
+        try {
+          await customStatement('CREATE TABLE IF NOT EXISTS habit_routines (id TEXT NOT NULL, title TEXT NOT NULL, description TEXT, icon TEXT, color TEXT NOT NULL, target_time_window TEXT, habit_ids TEXT NOT NULL DEFAULT \'[]\', bonus_xp INTEGER NOT NULL DEFAULT 30, is_deleted INTEGER NOT NULL DEFAULT 0 CHECK (is_deleted IN (0, 1)), created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL, PRIMARY KEY (id));');
+        } catch (_) {}
+        try {
+          await customStatement('CREATE TABLE IF NOT EXISTS routine_logs (id TEXT NOT NULL, routine_id TEXT NOT NULL, date TEXT NOT NULL, completed_at INTEGER NOT NULL, completed_habit_ids TEXT NOT NULL DEFAULT \'[]\', xp_earned INTEGER NOT NULL DEFAULT 0, is_deleted INTEGER NOT NULL DEFAULT 0 CHECK (is_deleted IN (0, 1)), created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL, PRIMARY KEY (id));');
+        } catch (_) {}
 
         final nowEpoch = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
         final updates = [

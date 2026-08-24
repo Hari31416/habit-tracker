@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import '../../domain/models/habit_frequency_type.dart';
 import '../../domain/models/habit_target_type.dart';
+import '../../domain/models/time_window.dart';
 import 'app_database.dart';
 
 class DatabaseSeeder {
@@ -57,6 +58,35 @@ class DatabaseSeeder {
       name: const Value('Routine'),
       color: const Value('#6366F1'),
       icon: const Value('clock'),
+      isDeleted: const Value(false),
+      createdAt: Value(_seedEpoch),
+      updatedAt: Value(_seedEpoch),
+    ),
+  ];
+
+  static final List<HabitRoutinesCompanion> defaultRoutines = [
+    HabitRoutinesCompanion(
+      id: const Value('seed_routine_morning'),
+      title: const Value('Morning Momentum'),
+      description: const Value('Energize your day with hydration, mindfulness, and reading'),
+      color: const Value('#3B82F6'),
+      icon: const Value('sun'),
+      targetTimeWindow: const Value(TimeWindow(startTime: '06:00', endTime: '10:00')),
+      habitIds: const Value(['seed_habit_water', 'seed_habit_meditation', 'seed_habit_read']),
+      bonusXp: const Value(30),
+      isDeleted: const Value(false),
+      createdAt: Value(_seedEpoch),
+      updatedAt: Value(_seedEpoch),
+    ),
+    HabitRoutinesCompanion(
+      id: const Value('seed_routine_evening'),
+      title: const Value('Evening Wind-Down'),
+      description: const Value('Review daily accomplishments and prepare for tomorrow'),
+      color: const Value('#8B5CF6'),
+      icon: const Value('moon'),
+      targetTimeWindow: const Value(TimeWindow(startTime: '20:00', endTime: '23:30')),
+      habitIds: const Value(['seed_habit_evening_review']),
+      bonusXp: const Value(25),
       isDeleted: const Value(false),
       createdAt: Value(_seedEpoch),
       updatedAt: Value(_seedEpoch),
@@ -154,6 +184,11 @@ class DatabaseSeeder {
         ];
 
         await db.habitDao.insertHabits(seedHabits);
+      }
+
+      final existingRoutines = await db.routineDao.getActiveRoutinesOnce();
+      if (existingRoutines.isEmpty) {
+        await db.routineDao.insertDefaultRoutines(defaultRoutines);
       }
     } catch (_) {
       // Ignore on race condition

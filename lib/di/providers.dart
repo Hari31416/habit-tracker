@@ -6,11 +6,13 @@ import '../data/local/daos/habit_category_dao.dart';
 import '../data/local/daos/habit_dao.dart';
 import '../data/local/daos/habit_log_dao.dart';
 import '../data/local/daos/habit_shield_dao.dart';
+import '../data/local/daos/routine_dao.dart';
 import '../data/preferences/theme_preferences.dart';
 import '../data/repositories/backup_repository_impl.dart';
 import '../data/repositories/gamification_repository_impl.dart';
 import '../data/repositories/habit_repository_impl.dart';
 import '../data/repositories/health_connect_repository_impl.dart';
+import '../data/repositories/routine_repository_impl.dart';
 import '../data/schedulers/flutter_habit_reminder_scheduler.dart';
 import '../data/schedulers/local_notifications_scheduler.dart';
 import '../data/schedulers/notification_action_handler.dart';
@@ -19,11 +21,14 @@ import '../domain/engines/shield_banking_engine.dart';
 import '../domain/gamification/gamification_models.dart';
 import '../domain/models/habit.dart';
 import '../domain/models/habit_log.dart';
+import '../domain/models/habit_routine.dart';
 import '../domain/models/habit_shield.dart';
+import '../domain/models/routine_log.dart';
 import '../domain/repositories/backup_repository.dart';
 import '../domain/repositories/gamification_repository.dart';
 import '../domain/repositories/habit_repository.dart';
 import '../domain/repositories/health_connect_repository.dart';
+import '../domain/repositories/routine_repository.dart';
 import '../domain/schedulers/habit_reminder_scheduler.dart';
 import '../services/app_shortcuts_service.dart';
 import '../services/backup/backup_service.dart';
@@ -57,6 +62,10 @@ final gamificationDaoProvider = Provider<GamificationDao>((ref) {
   return ref.watch(databaseProvider).gamificationDao;
 });
 
+final routineDaoProvider = Provider<RoutineDao>((ref) {
+  return ref.watch(databaseProvider).routineDao;
+});
+
 final habitReminderSchedulerProvider = Provider<HabitReminderScheduler>((ref) {
   final habitDao = ref.watch(habitDaoProvider);
   return FlutterHabitReminderScheduler(habitDao);
@@ -73,6 +82,15 @@ final habitRepositoryProvider = Provider<HabitRepository>((ref) {
   );
 });
 
+final routineRepositoryProvider = Provider<RoutineRepository>((ref) {
+  return RoutineRepositoryImpl(
+    routineDao: ref.watch(routineDaoProvider),
+    gamificationDao: ref.watch(gamificationDaoProvider),
+    habitDao: ref.watch(habitDaoProvider),
+    habitLogDao: ref.watch(habitLogDaoProvider),
+  );
+});
+
 final gamificationRepositoryProvider = Provider<GamificationRepository>((ref) {
   return GamificationRepositoryImpl(
     habitDao: ref.watch(habitDaoProvider),
@@ -80,7 +98,16 @@ final gamificationRepositoryProvider = Provider<GamificationRepository>((ref) {
     habitShieldDao: ref.watch(habitShieldDaoProvider),
     habitCategoryDao: ref.watch(habitCategoryDaoProvider),
     gamificationDao: ref.watch(gamificationDaoProvider),
+    routineDao: ref.watch(routineDaoProvider),
   );
+});
+
+final activeRoutinesStreamProvider = StreamProvider.autoDispose<List<HabitRoutine>>((ref) {
+  return ref.watch(routineRepositoryProvider).watchActiveRoutines();
+});
+
+final todayRoutineLogsStreamProvider = StreamProvider.autoDispose.family<List<RoutineLog>, String>((ref, date) {
+  return ref.watch(routineRepositoryProvider).watchRoutineLogsForDate(date);
 });
 
 final playerProgressionStreamProvider =

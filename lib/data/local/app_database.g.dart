@@ -4197,6 +4197,1241 @@ class AchievementsCompanion extends UpdateCompanion<AchievementRow> {
   }
 }
 
+class $HabitRoutinesTable extends HabitRoutines
+    with TableInfo<$HabitRoutinesTable, HabitRoutineRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HabitRoutinesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _iconMeta = const VerificationMeta('icon');
+  @override
+  late final GeneratedColumn<String> icon = GeneratedColumn<String>(
+    'icon',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
+  @override
+  late final GeneratedColumn<String> color = GeneratedColumn<String>(
+    'color',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<TimeWindow?, String>
+  targetTimeWindow = GeneratedColumn<String>(
+    'target_time_window',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  ).withConverter<TimeWindow?>($HabitRoutinesTable.$convertertargetTimeWindown);
+  @override
+  late final GeneratedColumnWithTypeConverter<List<String>, String> habitIds =
+      GeneratedColumn<String>(
+        'habit_ids',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant('[]'),
+      ).withConverter<List<String>>($HabitRoutinesTable.$converterhabitIds);
+  static const VerificationMeta _bonusXpMeta = const VerificationMeta(
+    'bonusXp',
+  );
+  @override
+  late final GeneratedColumn<int> bonusXp = GeneratedColumn<int>(
+    'bonus_xp',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(30),
+  );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    title,
+    description,
+    icon,
+    color,
+    targetTimeWindow,
+    habitIds,
+    bonusXp,
+    isDeleted,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'habit_routines';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<HabitRoutineRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('icon')) {
+      context.handle(
+        _iconMeta,
+        icon.isAcceptableOrUnknown(data['icon']!, _iconMeta),
+      );
+    }
+    if (data.containsKey('color')) {
+      context.handle(
+        _colorMeta,
+        color.isAcceptableOrUnknown(data['color']!, _colorMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_colorMeta);
+    }
+    if (data.containsKey('bonus_xp')) {
+      context.handle(
+        _bonusXpMeta,
+        bonusXp.isAcceptableOrUnknown(data['bonus_xp']!, _bonusXpMeta),
+      );
+    }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  HabitRoutineRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return HabitRoutineRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      icon: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}icon'],
+      ),
+      color: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}color'],
+      )!,
+      targetTimeWindow: $HabitRoutinesTable.$convertertargetTimeWindown.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}target_time_window'],
+        ),
+      ),
+      habitIds: $HabitRoutinesTable.$converterhabitIds.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}habit_ids'],
+        )!,
+      ),
+      bonusXp: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}bonus_xp'],
+      )!,
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $HabitRoutinesTable createAlias(String alias) {
+    return $HabitRoutinesTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<TimeWindow, String> $convertertargetTimeWindow =
+      const TimeWindowConverter();
+  static TypeConverter<TimeWindow?, String?> $convertertargetTimeWindown =
+      NullAwareTypeConverter.wrap($convertertargetTimeWindow);
+  static TypeConverter<List<String>, String> $converterhabitIds =
+      const StringListConverter();
+}
+
+class HabitRoutineRow extends DataClass implements Insertable<HabitRoutineRow> {
+  final String id;
+  final String title;
+  final String? description;
+  final String? icon;
+  final String color;
+  final TimeWindow? targetTimeWindow;
+  final List<String> habitIds;
+  final int bonusXp;
+  final bool isDeleted;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const HabitRoutineRow({
+    required this.id,
+    required this.title,
+    this.description,
+    this.icon,
+    required this.color,
+    this.targetTimeWindow,
+    required this.habitIds,
+    required this.bonusXp,
+    required this.isDeleted,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['title'] = Variable<String>(title);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || icon != null) {
+      map['icon'] = Variable<String>(icon);
+    }
+    map['color'] = Variable<String>(color);
+    if (!nullToAbsent || targetTimeWindow != null) {
+      map['target_time_window'] = Variable<String>(
+        $HabitRoutinesTable.$convertertargetTimeWindown.toSql(targetTimeWindow),
+      );
+    }
+    {
+      map['habit_ids'] = Variable<String>(
+        $HabitRoutinesTable.$converterhabitIds.toSql(habitIds),
+      );
+    }
+    map['bonus_xp'] = Variable<int>(bonusXp);
+    map['is_deleted'] = Variable<bool>(isDeleted);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  HabitRoutinesCompanion toCompanion(bool nullToAbsent) {
+    return HabitRoutinesCompanion(
+      id: Value(id),
+      title: Value(title),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      icon: icon == null && nullToAbsent ? const Value.absent() : Value(icon),
+      color: Value(color),
+      targetTimeWindow: targetTimeWindow == null && nullToAbsent
+          ? const Value.absent()
+          : Value(targetTimeWindow),
+      habitIds: Value(habitIds),
+      bonusXp: Value(bonusXp),
+      isDeleted: Value(isDeleted),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory HabitRoutineRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return HabitRoutineRow(
+      id: serializer.fromJson<String>(json['id']),
+      title: serializer.fromJson<String>(json['title']),
+      description: serializer.fromJson<String?>(json['description']),
+      icon: serializer.fromJson<String?>(json['icon']),
+      color: serializer.fromJson<String>(json['color']),
+      targetTimeWindow: serializer.fromJson<TimeWindow?>(
+        json['targetTimeWindow'],
+      ),
+      habitIds: serializer.fromJson<List<String>>(json['habitIds']),
+      bonusXp: serializer.fromJson<int>(json['bonusXp']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'title': serializer.toJson<String>(title),
+      'description': serializer.toJson<String?>(description),
+      'icon': serializer.toJson<String?>(icon),
+      'color': serializer.toJson<String>(color),
+      'targetTimeWindow': serializer.toJson<TimeWindow?>(targetTimeWindow),
+      'habitIds': serializer.toJson<List<String>>(habitIds),
+      'bonusXp': serializer.toJson<int>(bonusXp),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  HabitRoutineRow copyWith({
+    String? id,
+    String? title,
+    Value<String?> description = const Value.absent(),
+    Value<String?> icon = const Value.absent(),
+    String? color,
+    Value<TimeWindow?> targetTimeWindow = const Value.absent(),
+    List<String>? habitIds,
+    int? bonusXp,
+    bool? isDeleted,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => HabitRoutineRow(
+    id: id ?? this.id,
+    title: title ?? this.title,
+    description: description.present ? description.value : this.description,
+    icon: icon.present ? icon.value : this.icon,
+    color: color ?? this.color,
+    targetTimeWindow: targetTimeWindow.present
+        ? targetTimeWindow.value
+        : this.targetTimeWindow,
+    habitIds: habitIds ?? this.habitIds,
+    bonusXp: bonusXp ?? this.bonusXp,
+    isDeleted: isDeleted ?? this.isDeleted,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  HabitRoutineRow copyWithCompanion(HabitRoutinesCompanion data) {
+    return HabitRoutineRow(
+      id: data.id.present ? data.id.value : this.id,
+      title: data.title.present ? data.title.value : this.title,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      icon: data.icon.present ? data.icon.value : this.icon,
+      color: data.color.present ? data.color.value : this.color,
+      targetTimeWindow: data.targetTimeWindow.present
+          ? data.targetTimeWindow.value
+          : this.targetTimeWindow,
+      habitIds: data.habitIds.present ? data.habitIds.value : this.habitIds,
+      bonusXp: data.bonusXp.present ? data.bonusXp.value : this.bonusXp,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HabitRoutineRow(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
+          ..write('icon: $icon, ')
+          ..write('color: $color, ')
+          ..write('targetTimeWindow: $targetTimeWindow, ')
+          ..write('habitIds: $habitIds, ')
+          ..write('bonusXp: $bonusXp, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    title,
+    description,
+    icon,
+    color,
+    targetTimeWindow,
+    habitIds,
+    bonusXp,
+    isDeleted,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is HabitRoutineRow &&
+          other.id == this.id &&
+          other.title == this.title &&
+          other.description == this.description &&
+          other.icon == this.icon &&
+          other.color == this.color &&
+          other.targetTimeWindow == this.targetTimeWindow &&
+          other.habitIds == this.habitIds &&
+          other.bonusXp == this.bonusXp &&
+          other.isDeleted == this.isDeleted &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class HabitRoutinesCompanion extends UpdateCompanion<HabitRoutineRow> {
+  final Value<String> id;
+  final Value<String> title;
+  final Value<String?> description;
+  final Value<String?> icon;
+  final Value<String> color;
+  final Value<TimeWindow?> targetTimeWindow;
+  final Value<List<String>> habitIds;
+  final Value<int> bonusXp;
+  final Value<bool> isDeleted;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const HabitRoutinesCompanion({
+    this.id = const Value.absent(),
+    this.title = const Value.absent(),
+    this.description = const Value.absent(),
+    this.icon = const Value.absent(),
+    this.color = const Value.absent(),
+    this.targetTimeWindow = const Value.absent(),
+    this.habitIds = const Value.absent(),
+    this.bonusXp = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  HabitRoutinesCompanion.insert({
+    required String id,
+    required String title,
+    this.description = const Value.absent(),
+    this.icon = const Value.absent(),
+    required String color,
+    this.targetTimeWindow = const Value.absent(),
+    this.habitIds = const Value.absent(),
+    this.bonusXp = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       title = Value(title),
+       color = Value(color),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<HabitRoutineRow> custom({
+    Expression<String>? id,
+    Expression<String>? title,
+    Expression<String>? description,
+    Expression<String>? icon,
+    Expression<String>? color,
+    Expression<String>? targetTimeWindow,
+    Expression<String>? habitIds,
+    Expression<int>? bonusXp,
+    Expression<bool>? isDeleted,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (title != null) 'title': title,
+      if (description != null) 'description': description,
+      if (icon != null) 'icon': icon,
+      if (color != null) 'color': color,
+      if (targetTimeWindow != null) 'target_time_window': targetTimeWindow,
+      if (habitIds != null) 'habit_ids': habitIds,
+      if (bonusXp != null) 'bonus_xp': bonusXp,
+      if (isDeleted != null) 'is_deleted': isDeleted,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  HabitRoutinesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? title,
+    Value<String?>? description,
+    Value<String?>? icon,
+    Value<String>? color,
+    Value<TimeWindow?>? targetTimeWindow,
+    Value<List<String>>? habitIds,
+    Value<int>? bonusXp,
+    Value<bool>? isDeleted,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return HabitRoutinesCompanion(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      icon: icon ?? this.icon,
+      color: color ?? this.color,
+      targetTimeWindow: targetTimeWindow ?? this.targetTimeWindow,
+      habitIds: habitIds ?? this.habitIds,
+      bonusXp: bonusXp ?? this.bonusXp,
+      isDeleted: isDeleted ?? this.isDeleted,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (icon.present) {
+      map['icon'] = Variable<String>(icon.value);
+    }
+    if (color.present) {
+      map['color'] = Variable<String>(color.value);
+    }
+    if (targetTimeWindow.present) {
+      map['target_time_window'] = Variable<String>(
+        $HabitRoutinesTable.$convertertargetTimeWindown.toSql(
+          targetTimeWindow.value,
+        ),
+      );
+    }
+    if (habitIds.present) {
+      map['habit_ids'] = Variable<String>(
+        $HabitRoutinesTable.$converterhabitIds.toSql(habitIds.value),
+      );
+    }
+    if (bonusXp.present) {
+      map['bonus_xp'] = Variable<int>(bonusXp.value);
+    }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HabitRoutinesCompanion(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
+          ..write('icon: $icon, ')
+          ..write('color: $color, ')
+          ..write('targetTimeWindow: $targetTimeWindow, ')
+          ..write('habitIds: $habitIds, ')
+          ..write('bonusXp: $bonusXp, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $RoutineLogsTable extends RoutineLogs
+    with TableInfo<$RoutineLogsTable, RoutineLogRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RoutineLogsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _routineIdMeta = const VerificationMeta(
+    'routineId',
+  );
+  @override
+  late final GeneratedColumn<String> routineId = GeneratedColumn<String>(
+    'routine_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<String> date = GeneratedColumn<String>(
+    'date',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _completedAtMeta = const VerificationMeta(
+    'completedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> completedAt = GeneratedColumn<DateTime>(
+    'completed_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<List<String>, String>
+  completedHabitIds = GeneratedColumn<String>(
+    'completed_habit_ids',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  ).withConverter<List<String>>($RoutineLogsTable.$convertercompletedHabitIds);
+  static const VerificationMeta _xpEarnedMeta = const VerificationMeta(
+    'xpEarned',
+  );
+  @override
+  late final GeneratedColumn<int> xpEarned = GeneratedColumn<int>(
+    'xp_earned',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    routineId,
+    date,
+    completedAt,
+    completedHabitIds,
+    xpEarned,
+    isDeleted,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'routine_logs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RoutineLogRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('routine_id')) {
+      context.handle(
+        _routineIdMeta,
+        routineId.isAcceptableOrUnknown(data['routine_id']!, _routineIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_routineIdMeta);
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    if (data.containsKey('completed_at')) {
+      context.handle(
+        _completedAtMeta,
+        completedAt.isAcceptableOrUnknown(
+          data['completed_at']!,
+          _completedAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_completedAtMeta);
+    }
+    if (data.containsKey('xp_earned')) {
+      context.handle(
+        _xpEarnedMeta,
+        xpEarned.isAcceptableOrUnknown(data['xp_earned']!, _xpEarnedMeta),
+      );
+    }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RoutineLogRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RoutineLogRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      routineId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}routine_id'],
+      )!,
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}date'],
+      )!,
+      completedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}completed_at'],
+      )!,
+      completedHabitIds: $RoutineLogsTable.$convertercompletedHabitIds.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}completed_habit_ids'],
+        )!,
+      ),
+      xpEarned: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}xp_earned'],
+      )!,
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $RoutineLogsTable createAlias(String alias) {
+    return $RoutineLogsTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<List<String>, String> $convertercompletedHabitIds =
+      const StringListConverter();
+}
+
+class RoutineLogRow extends DataClass implements Insertable<RoutineLogRow> {
+  final String id;
+  final String routineId;
+  final String date;
+  final DateTime completedAt;
+  final List<String> completedHabitIds;
+  final int xpEarned;
+  final bool isDeleted;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const RoutineLogRow({
+    required this.id,
+    required this.routineId,
+    required this.date,
+    required this.completedAt,
+    required this.completedHabitIds,
+    required this.xpEarned,
+    required this.isDeleted,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['routine_id'] = Variable<String>(routineId);
+    map['date'] = Variable<String>(date);
+    map['completed_at'] = Variable<DateTime>(completedAt);
+    {
+      map['completed_habit_ids'] = Variable<String>(
+        $RoutineLogsTable.$convertercompletedHabitIds.toSql(completedHabitIds),
+      );
+    }
+    map['xp_earned'] = Variable<int>(xpEarned);
+    map['is_deleted'] = Variable<bool>(isDeleted);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  RoutineLogsCompanion toCompanion(bool nullToAbsent) {
+    return RoutineLogsCompanion(
+      id: Value(id),
+      routineId: Value(routineId),
+      date: Value(date),
+      completedAt: Value(completedAt),
+      completedHabitIds: Value(completedHabitIds),
+      xpEarned: Value(xpEarned),
+      isDeleted: Value(isDeleted),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory RoutineLogRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RoutineLogRow(
+      id: serializer.fromJson<String>(json['id']),
+      routineId: serializer.fromJson<String>(json['routineId']),
+      date: serializer.fromJson<String>(json['date']),
+      completedAt: serializer.fromJson<DateTime>(json['completedAt']),
+      completedHabitIds: serializer.fromJson<List<String>>(
+        json['completedHabitIds'],
+      ),
+      xpEarned: serializer.fromJson<int>(json['xpEarned']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'routineId': serializer.toJson<String>(routineId),
+      'date': serializer.toJson<String>(date),
+      'completedAt': serializer.toJson<DateTime>(completedAt),
+      'completedHabitIds': serializer.toJson<List<String>>(completedHabitIds),
+      'xpEarned': serializer.toJson<int>(xpEarned),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  RoutineLogRow copyWith({
+    String? id,
+    String? routineId,
+    String? date,
+    DateTime? completedAt,
+    List<String>? completedHabitIds,
+    int? xpEarned,
+    bool? isDeleted,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => RoutineLogRow(
+    id: id ?? this.id,
+    routineId: routineId ?? this.routineId,
+    date: date ?? this.date,
+    completedAt: completedAt ?? this.completedAt,
+    completedHabitIds: completedHabitIds ?? this.completedHabitIds,
+    xpEarned: xpEarned ?? this.xpEarned,
+    isDeleted: isDeleted ?? this.isDeleted,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  RoutineLogRow copyWithCompanion(RoutineLogsCompanion data) {
+    return RoutineLogRow(
+      id: data.id.present ? data.id.value : this.id,
+      routineId: data.routineId.present ? data.routineId.value : this.routineId,
+      date: data.date.present ? data.date.value : this.date,
+      completedAt: data.completedAt.present
+          ? data.completedAt.value
+          : this.completedAt,
+      completedHabitIds: data.completedHabitIds.present
+          ? data.completedHabitIds.value
+          : this.completedHabitIds,
+      xpEarned: data.xpEarned.present ? data.xpEarned.value : this.xpEarned,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RoutineLogRow(')
+          ..write('id: $id, ')
+          ..write('routineId: $routineId, ')
+          ..write('date: $date, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('completedHabitIds: $completedHabitIds, ')
+          ..write('xpEarned: $xpEarned, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    routineId,
+    date,
+    completedAt,
+    completedHabitIds,
+    xpEarned,
+    isDeleted,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RoutineLogRow &&
+          other.id == this.id &&
+          other.routineId == this.routineId &&
+          other.date == this.date &&
+          other.completedAt == this.completedAt &&
+          other.completedHabitIds == this.completedHabitIds &&
+          other.xpEarned == this.xpEarned &&
+          other.isDeleted == this.isDeleted &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class RoutineLogsCompanion extends UpdateCompanion<RoutineLogRow> {
+  final Value<String> id;
+  final Value<String> routineId;
+  final Value<String> date;
+  final Value<DateTime> completedAt;
+  final Value<List<String>> completedHabitIds;
+  final Value<int> xpEarned;
+  final Value<bool> isDeleted;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const RoutineLogsCompanion({
+    this.id = const Value.absent(),
+    this.routineId = const Value.absent(),
+    this.date = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.completedHabitIds = const Value.absent(),
+    this.xpEarned = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RoutineLogsCompanion.insert({
+    required String id,
+    required String routineId,
+    required String date,
+    required DateTime completedAt,
+    this.completedHabitIds = const Value.absent(),
+    this.xpEarned = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       routineId = Value(routineId),
+       date = Value(date),
+       completedAt = Value(completedAt),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<RoutineLogRow> custom({
+    Expression<String>? id,
+    Expression<String>? routineId,
+    Expression<String>? date,
+    Expression<DateTime>? completedAt,
+    Expression<String>? completedHabitIds,
+    Expression<int>? xpEarned,
+    Expression<bool>? isDeleted,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (routineId != null) 'routine_id': routineId,
+      if (date != null) 'date': date,
+      if (completedAt != null) 'completed_at': completedAt,
+      if (completedHabitIds != null) 'completed_habit_ids': completedHabitIds,
+      if (xpEarned != null) 'xp_earned': xpEarned,
+      if (isDeleted != null) 'is_deleted': isDeleted,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RoutineLogsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? routineId,
+    Value<String>? date,
+    Value<DateTime>? completedAt,
+    Value<List<String>>? completedHabitIds,
+    Value<int>? xpEarned,
+    Value<bool>? isDeleted,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return RoutineLogsCompanion(
+      id: id ?? this.id,
+      routineId: routineId ?? this.routineId,
+      date: date ?? this.date,
+      completedAt: completedAt ?? this.completedAt,
+      completedHabitIds: completedHabitIds ?? this.completedHabitIds,
+      xpEarned: xpEarned ?? this.xpEarned,
+      isDeleted: isDeleted ?? this.isDeleted,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (routineId.present) {
+      map['routine_id'] = Variable<String>(routineId.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<String>(date.value);
+    }
+    if (completedAt.present) {
+      map['completed_at'] = Variable<DateTime>(completedAt.value);
+    }
+    if (completedHabitIds.present) {
+      map['completed_habit_ids'] = Variable<String>(
+        $RoutineLogsTable.$convertercompletedHabitIds.toSql(
+          completedHabitIds.value,
+        ),
+      );
+    }
+    if (xpEarned.present) {
+      map['xp_earned'] = Variable<int>(xpEarned.value);
+    }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RoutineLogsCompanion(')
+          ..write('id: $id, ')
+          ..write('routineId: $routineId, ')
+          ..write('date: $date, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('completedHabitIds: $completedHabitIds, ')
+          ..write('xpEarned: $xpEarned, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4210,6 +5445,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     this,
   );
   late final $AchievementsTable achievements = $AchievementsTable(this);
+  late final $HabitRoutinesTable habitRoutines = $HabitRoutinesTable(this);
+  late final $RoutineLogsTable routineLogs = $RoutineLogsTable(this);
   late final Index idxHabitLogsHabitId = Index(
     'idx_habit_logs_habit_id',
     'CREATE INDEX idx_habit_logs_habit_id ON habit_logs (habit_id)',
@@ -4249,6 +5486,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final GamificationDao gamificationDao = GamificationDao(
     this as AppDatabase,
   );
+  late final RoutineDao routineDao = RoutineDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4260,6 +5498,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     habitCategories,
     userGamification,
     achievements,
+    habitRoutines,
+    routineLogs,
     idxHabitLogsHabitId,
     idxHabitLogsDate,
     idxHabitLogsHabitIdDate,
@@ -6732,6 +7972,609 @@ typedef $$AchievementsTableProcessedTableManager =
       AchievementRow,
       PrefetchHooks Function()
     >;
+typedef $$HabitRoutinesTableCreateCompanionBuilder =
+    HabitRoutinesCompanion Function({
+      required String id,
+      required String title,
+      Value<String?> description,
+      Value<String?> icon,
+      required String color,
+      Value<TimeWindow?> targetTimeWindow,
+      Value<List<String>> habitIds,
+      Value<int> bonusXp,
+      Value<bool> isDeleted,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$HabitRoutinesTableUpdateCompanionBuilder =
+    HabitRoutinesCompanion Function({
+      Value<String> id,
+      Value<String> title,
+      Value<String?> description,
+      Value<String?> icon,
+      Value<String> color,
+      Value<TimeWindow?> targetTimeWindow,
+      Value<List<String>> habitIds,
+      Value<int> bonusXp,
+      Value<bool> isDeleted,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$HabitRoutinesTableFilterComposer
+    extends Composer<_$AppDatabase, $HabitRoutinesTable> {
+  $$HabitRoutinesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get icon => $composableBuilder(
+    column: $table.icon,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<TimeWindow?, TimeWindow, String>
+  get targetTimeWindow => $composableBuilder(
+    column: $table.targetTimeWindow,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<List<String>, List<String>, String>
+  get habitIds => $composableBuilder(
+    column: $table.habitIds,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<int> get bonusXp => $composableBuilder(
+    column: $table.bonusXp,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$HabitRoutinesTableOrderingComposer
+    extends Composer<_$AppDatabase, $HabitRoutinesTable> {
+  $$HabitRoutinesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get icon => $composableBuilder(
+    column: $table.icon,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetTimeWindow => $composableBuilder(
+    column: $table.targetTimeWindow,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get habitIds => $composableBuilder(
+    column: $table.habitIds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get bonusXp => $composableBuilder(
+    column: $table.bonusXp,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$HabitRoutinesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $HabitRoutinesTable> {
+  $$HabitRoutinesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get icon =>
+      $composableBuilder(column: $table.icon, builder: (column) => column);
+
+  GeneratedColumn<String> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<TimeWindow?, String> get targetTimeWindow =>
+      $composableBuilder(
+        column: $table.targetTimeWindow,
+        builder: (column) => column,
+      );
+
+  GeneratedColumnWithTypeConverter<List<String>, String> get habitIds =>
+      $composableBuilder(column: $table.habitIds, builder: (column) => column);
+
+  GeneratedColumn<int> get bonusXp =>
+      $composableBuilder(column: $table.bonusXp, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$HabitRoutinesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $HabitRoutinesTable,
+          HabitRoutineRow,
+          $$HabitRoutinesTableFilterComposer,
+          $$HabitRoutinesTableOrderingComposer,
+          $$HabitRoutinesTableAnnotationComposer,
+          $$HabitRoutinesTableCreateCompanionBuilder,
+          $$HabitRoutinesTableUpdateCompanionBuilder,
+          (
+            HabitRoutineRow,
+            BaseReferences<_$AppDatabase, $HabitRoutinesTable, HabitRoutineRow>,
+          ),
+          HabitRoutineRow,
+          PrefetchHooks Function()
+        > {
+  $$HabitRoutinesTableTableManager(_$AppDatabase db, $HabitRoutinesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$HabitRoutinesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$HabitRoutinesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$HabitRoutinesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<String?> icon = const Value.absent(),
+                Value<String> color = const Value.absent(),
+                Value<TimeWindow?> targetTimeWindow = const Value.absent(),
+                Value<List<String>> habitIds = const Value.absent(),
+                Value<int> bonusXp = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => HabitRoutinesCompanion(
+                id: id,
+                title: title,
+                description: description,
+                icon: icon,
+                color: color,
+                targetTimeWindow: targetTimeWindow,
+                habitIds: habitIds,
+                bonusXp: bonusXp,
+                isDeleted: isDeleted,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String title,
+                Value<String?> description = const Value.absent(),
+                Value<String?> icon = const Value.absent(),
+                required String color,
+                Value<TimeWindow?> targetTimeWindow = const Value.absent(),
+                Value<List<String>> habitIds = const Value.absent(),
+                Value<int> bonusXp = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => HabitRoutinesCompanion.insert(
+                id: id,
+                title: title,
+                description: description,
+                icon: icon,
+                color: color,
+                targetTimeWindow: targetTimeWindow,
+                habitIds: habitIds,
+                bonusXp: bonusXp,
+                isDeleted: isDeleted,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$HabitRoutinesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $HabitRoutinesTable,
+      HabitRoutineRow,
+      $$HabitRoutinesTableFilterComposer,
+      $$HabitRoutinesTableOrderingComposer,
+      $$HabitRoutinesTableAnnotationComposer,
+      $$HabitRoutinesTableCreateCompanionBuilder,
+      $$HabitRoutinesTableUpdateCompanionBuilder,
+      (
+        HabitRoutineRow,
+        BaseReferences<_$AppDatabase, $HabitRoutinesTable, HabitRoutineRow>,
+      ),
+      HabitRoutineRow,
+      PrefetchHooks Function()
+    >;
+typedef $$RoutineLogsTableCreateCompanionBuilder =
+    RoutineLogsCompanion Function({
+      required String id,
+      required String routineId,
+      required String date,
+      required DateTime completedAt,
+      Value<List<String>> completedHabitIds,
+      Value<int> xpEarned,
+      Value<bool> isDeleted,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$RoutineLogsTableUpdateCompanionBuilder =
+    RoutineLogsCompanion Function({
+      Value<String> id,
+      Value<String> routineId,
+      Value<String> date,
+      Value<DateTime> completedAt,
+      Value<List<String>> completedHabitIds,
+      Value<int> xpEarned,
+      Value<bool> isDeleted,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$RoutineLogsTableFilterComposer
+    extends Composer<_$AppDatabase, $RoutineLogsTable> {
+  $$RoutineLogsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get routineId => $composableBuilder(
+    column: $table.routineId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<List<String>, List<String>, String>
+  get completedHabitIds => $composableBuilder(
+    column: $table.completedHabitIds,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<int> get xpEarned => $composableBuilder(
+    column: $table.xpEarned,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$RoutineLogsTableOrderingComposer
+    extends Composer<_$AppDatabase, $RoutineLogsTable> {
+  $$RoutineLogsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get routineId => $composableBuilder(
+    column: $table.routineId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get completedHabitIds => $composableBuilder(
+    column: $table.completedHabitIds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get xpEarned => $composableBuilder(
+    column: $table.xpEarned,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$RoutineLogsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RoutineLogsTable> {
+  $$RoutineLogsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get routineId =>
+      $composableBuilder(column: $table.routineId, builder: (column) => column);
+
+  GeneratedColumn<String> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<List<String>, String>
+  get completedHabitIds => $composableBuilder(
+    column: $table.completedHabitIds,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get xpEarned =>
+      $composableBuilder(column: $table.xpEarned, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$RoutineLogsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RoutineLogsTable,
+          RoutineLogRow,
+          $$RoutineLogsTableFilterComposer,
+          $$RoutineLogsTableOrderingComposer,
+          $$RoutineLogsTableAnnotationComposer,
+          $$RoutineLogsTableCreateCompanionBuilder,
+          $$RoutineLogsTableUpdateCompanionBuilder,
+          (
+            RoutineLogRow,
+            BaseReferences<_$AppDatabase, $RoutineLogsTable, RoutineLogRow>,
+          ),
+          RoutineLogRow,
+          PrefetchHooks Function()
+        > {
+  $$RoutineLogsTableTableManager(_$AppDatabase db, $RoutineLogsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RoutineLogsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RoutineLogsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RoutineLogsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> routineId = const Value.absent(),
+                Value<String> date = const Value.absent(),
+                Value<DateTime> completedAt = const Value.absent(),
+                Value<List<String>> completedHabitIds = const Value.absent(),
+                Value<int> xpEarned = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RoutineLogsCompanion(
+                id: id,
+                routineId: routineId,
+                date: date,
+                completedAt: completedAt,
+                completedHabitIds: completedHabitIds,
+                xpEarned: xpEarned,
+                isDeleted: isDeleted,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String routineId,
+                required String date,
+                required DateTime completedAt,
+                Value<List<String>> completedHabitIds = const Value.absent(),
+                Value<int> xpEarned = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => RoutineLogsCompanion.insert(
+                id: id,
+                routineId: routineId,
+                date: date,
+                completedAt: completedAt,
+                completedHabitIds: completedHabitIds,
+                xpEarned: xpEarned,
+                isDeleted: isDeleted,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$RoutineLogsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RoutineLogsTable,
+      RoutineLogRow,
+      $$RoutineLogsTableFilterComposer,
+      $$RoutineLogsTableOrderingComposer,
+      $$RoutineLogsTableAnnotationComposer,
+      $$RoutineLogsTableCreateCompanionBuilder,
+      $$RoutineLogsTableUpdateCompanionBuilder,
+      (
+        RoutineLogRow,
+        BaseReferences<_$AppDatabase, $RoutineLogsTable, RoutineLogRow>,
+      ),
+      RoutineLogRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -6748,4 +8591,8 @@ class $AppDatabaseManager {
       $$UserGamificationTableTableManager(_db, _db.userGamification);
   $$AchievementsTableTableManager get achievements =>
       $$AchievementsTableTableManager(_db, _db.achievements);
+  $$HabitRoutinesTableTableManager get habitRoutines =>
+      $$HabitRoutinesTableTableManager(_db, _db.habitRoutines);
+  $$RoutineLogsTableTableManager get routineLogs =>
+      $$RoutineLogsTableTableManager(_db, _db.routineLogs);
 }

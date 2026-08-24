@@ -16,6 +16,7 @@ import 'package:habit_tracker/data/local/app_database.dart';
 import '../generated_migrations/schema.dart';
 import '../generated_migrations/schema_v6.dart' as v6;
 import '../generated_migrations/schema_v7.dart' as v7;
+import '../generated_migrations/schema_v8.dart' as v8;
 
 void main() {
   late SchemaVerifier verifier;
@@ -24,10 +25,10 @@ void main() {
     verifier = SchemaVerifier(GeneratedHelper());
   });
 
-  test('current schema opens without migration (7 → 7)', () async {
-    final connection = await verifier.startAt(7);
+  test('current schema opens without migration (8 → 8)', () async {
+    final connection = await verifier.startAt(8);
     final db = AppDatabase.forSchemaVerification(connection);
-    await verifier.migrateAndValidate(db, 7);
+    await verifier.migrateAndValidate(db, 8);
     await db.close();
   });
 
@@ -109,6 +110,61 @@ void main() {
           ..where((t) => t.id.equals('log_mig_v6')))
         .getSingle();
     expect(updatedLog.targetTier, 'mini');
+
+    await migrated.close();
+  });
+
+  test('upgrade from v7 to v8 adds habit_routines and routine_logs tables', () async {
+    final schema = await verifier.schemaAt(7);
+    final createdAt = DateTime.utc(2026, 3, 15).millisecondsSinceEpoch;
+    final updatedAt = DateTime.utc(2026, 3, 16).millisecondsSinceEpoch;
+
+    final oldDb = v7.DatabaseAtV7(schema.newConnection());
+    await oldDb.into(oldDb.habits).insert(
+          v7.HabitsCompanion.insert(
+            id: 'habit_mig_v7',
+            title: 'Migration Walk v7',
+            color: '#10B981',
+            frequencyType: 'daily',
+            targetType: 'numeric',
+            targetValue: const Value(8000.0),
+            miniTargetValue: const Value(2500.0),
+            eliteTargetValue: const Value(12000.0),
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          ),
+        );
+    await oldDb.close();
+
+    final db = AppDatabase.forSchemaVerification(schema.newConnection());
+    await verifier.migrateAndValidate(db, 8);
+    await db.close();
+
+    final migrated = v8.DatabaseAtV8(schema.newConnection());
+    final habit = await (migrated.select(migrated.habits)
+          ..where((t) => t.id.equals('habit_mig_v7')))
+        .getSingle();
+    expect(habit.title, 'Migration Walk v7');
+    expect(habit.miniTargetValue, 2500.0);
+    expect(habit.eliteTargetValue, 12000.0);
+
+    // New v8 tables accept inserts
+    await migrated.into(migrated.habitRoutines).insert(
+          v8.HabitRoutinesCompanion.insert(
+            id: 'routine_mig_v8',
+            title: 'Morning Routine',
+            color: '#3B82F6',
+            habitIds: const Value('["habit_mig_v7"]'),
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          ),
+        );
+
+    final routine = await (migrated.select(migrated.habitRoutines)
+          ..where((t) => t.id.equals('routine_mig_v8')))
+        .getSingle();
+    expect(routine.title, 'Morning Routine');
+    expect(routine.bonusXp, 30);
 
     await migrated.close();
   });

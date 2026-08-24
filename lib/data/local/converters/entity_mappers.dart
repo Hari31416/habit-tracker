@@ -2,7 +2,9 @@ import 'package:drift/drift.dart';
 import '../../../domain/models/habit.dart';
 import '../../../domain/models/habit_category.dart';
 import '../../../domain/models/habit_log.dart';
+import '../../../domain/models/habit_routine.dart';
 import '../../../domain/models/habit_shield.dart';
+import '../../../domain/models/routine_log.dart';
 import '../app_database.dart';
 
 extension HabitRowMapper on HabitRow {
@@ -158,4 +160,64 @@ extension HabitCategoryCompanionMapper on HabitCategory {
       updatedAt: Value(updatedAt ?? now),
     );
   }
+}
+
+extension HabitRoutineRowMapper on HabitRoutineRow {
+  HabitRoutine toDomain() => HabitRoutine(
+        id: id,
+        title: title,
+        description: description,
+        color: color,
+        icon: icon,
+        targetTimeWindow: targetTimeWindow,
+        habitIds: habitIds,
+        bonusXp: bonusXp,
+        isDeleted: isDeleted,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+      );
+}
+
+extension HabitRoutineCompanionMapper on HabitRoutine {
+  HabitRoutinesCompanion toCompanion() => HabitRoutinesCompanion(
+        id: Value(id),
+        title: Value(title),
+        description: Value(description),
+        color: Value(color),
+        icon: Value(icon),
+        targetTimeWindow: Value(targetTimeWindow),
+        habitIds: Value(habitIds),
+        bonusXp: Value(bonusXp),
+        isDeleted: Value(isDeleted),
+        createdAt: Value(createdAt),
+        updatedAt: Value(updatedAt),
+      );
+}
+
+extension RoutineLogRowMapper on RoutineLogRow {
+  RoutineLog toDomain() => RoutineLog(
+        id: id,
+        routineId: routineId,
+        date: date,
+        completedAt: completedAt,
+        completedHabitIds: completedHabitIds,
+        xpEarned: xpEarned,
+        isDeleted: isDeleted,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+      );
+}
+
+extension RoutineLogCompanionMapper on RoutineLog {
+  RoutineLogsCompanion toCompanion() => RoutineLogsCompanion(
+        id: Value(id),
+        routineId: Value(routineId),
+        date: Value(date),
+        completedAt: Value(completedAt),
+        completedHabitIds: Value(completedHabitIds),
+        xpEarned: Value(xpEarned),
+        isDeleted: Value(isDeleted),
+        createdAt: Value(createdAt),
+        updatedAt: Value(updatedAt),
+      );
 }

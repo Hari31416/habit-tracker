@@ -20,6 +20,7 @@ import '../local/daos/habit_category_dao.dart';
 import '../local/daos/habit_dao.dart';
 import '../local/daos/habit_log_dao.dart';
 import '../local/daos/habit_shield_dao.dart';
+import '../local/daos/routine_dao.dart';
 
 class _CombinedGamificationData {
   final PlayerProgression progression;
@@ -41,6 +42,7 @@ class GamificationRepositoryImpl implements GamificationRepository {
   final HabitShieldDao habitShieldDao;
   final HabitCategoryDao habitCategoryDao;
   final GamificationDao gamificationDao;
+  final RoutineDao? routineDao;
 
   GamificationRepositoryImpl({
     required this.habitDao,
@@ -48,6 +50,7 @@ class GamificationRepositoryImpl implements GamificationRepository {
     required this.habitShieldDao,
     required this.habitCategoryDao,
     required this.gamificationDao,
+    this.routineDao,
   });
 
   @visibleForTesting
@@ -67,6 +70,8 @@ class GamificationRepositoryImpl implements GamificationRepository {
       List<HabitCategoryRow>? latestCategories;
       List<AchievementRow>? latestAchievements;
       UserGamificationRow? latestUserGamification;
+      List<HabitRoutineRow>? latestRoutines = routineDao == null ? [] : null;
+      List<RoutineLogRow>? latestRoutineLogs = routineDao == null ? [] : null;
       var hasUserGamificationEmitted = false;
 
       StreamSubscription? subHabits;
@@ -75,6 +80,8 @@ class GamificationRepositoryImpl implements GamificationRepository {
       StreamSubscription? subCategories;
       StreamSubscription? subAchievements;
       StreamSubscription? subUserGamification;
+      StreamSubscription? subRoutines;
+      StreamSubscription? subRoutineLogs;
 
       bool evaluateScheduled = false;
       Set<String> knownUnlockedIds = {};
@@ -86,6 +93,8 @@ class GamificationRepositoryImpl implements GamificationRepository {
             latestShields == null ||
             latestCategories == null ||
             latestAchievements == null ||
+            latestRoutines == null ||
+            latestRoutineLogs == null ||
             !hasUserGamificationEmitted) {
           return;
         }
@@ -94,6 +103,8 @@ class GamificationRepositoryImpl implements GamificationRepository {
         final logs = latestLogs!.map((r) => r.toDomain()).toList();
         final shields = latestShields!.map((r) => r.toDomain()).toList();
         final categories = latestCategories!.map((r) => r.toDomain()).toList();
+        final routines = latestRoutines!.map((r) => r.toDomain()).toList();
+        final routineLogs = latestRoutineLogs!.map((r) => r.toDomain()).toList();
         
         final logsByHabit = <String, List<HabitLog>>{};
         final logsByDate = <String, List<HabitLog>>{};
@@ -161,8 +172,15 @@ class GamificationRepositoryImpl implements GamificationRepository {
           }
         }
 
-        // 4. Achievement Evaluator with convergence loop for level-dependent mastery badges
-        final initialTotalXp = habitCheckInXp + perfectDaysBonusXp;
+        // 4. Routine Bonus XP
+        var routineBonusXp = 0;
+        for (final rLog in routineLogs) {
+          if (rLog.isDeleted) continue;
+          routineBonusXp += rLog.xpEarned;
+        }
+
+        // 5. Achievement Evaluator with convergence loop for level-dependent mastery badges
+        final initialTotalXp = habitCheckInXp + perfectDaysBonusXp + routineBonusXp;
         var currentProgression = GamificationEngine.calculateProgression(
           totalXp: initialTotalXp,
           longestActiveStreak: longestActiveStreak,
@@ -175,6 +193,8 @@ class GamificationRepositoryImpl implements GamificationRepository {
             habits: habits,
             allLogs: logs,
             categories: categories,
+            routines: routines,
+            routineLogs: routineLogs,
             currentLevel: currentProgression.level,
             storedUnlocks: { for (var a in latestAchievements!) a.id: a.unlockedAt },
             referenceDate: today,
@@ -313,6 +333,16 @@ class GamificationRepositoryImpl implements GamificationRepository {
             hasUserGamificationEmitted = true;
             scheduleEvaluation();
           });
+          if (routineDao != null) {
+            subRoutines = routineDao!.watchActiveRoutines().listen((data) {
+              latestRoutines = data;
+              scheduleEvaluation();
+            });
+            subRoutineLogs = routineDao!.watchAllRoutineLogs().listen((data) {
+              latestRoutineLogs = data;
+              scheduleEvaluation();
+            });
+          }
         },
         onCancel: () {
           subHabits?.cancel();
@@ -321,6 +351,8 @@ class GamificationRepositoryImpl implements GamificationRepository {
           subCategories?.cancel();
           subAchievements?.cancel();
           subUserGamification?.cancel();
+          subRoutines?.cancel();
+          subRoutineLogs?.cancel();
           _broadcastController = null;
           _lastCombinedData = null;
         },
