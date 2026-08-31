@@ -242,6 +242,7 @@ void main() {
         habitShieldDao: db.habitShieldDao,
         habitCategoryDao: db.habitCategoryDao,
         gamificationDao: db.gamificationDao,
+        routineDao: db.routineDao,
       );
 
       final now = DateTime.now().toUtc();

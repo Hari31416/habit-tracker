@@ -12,6 +12,14 @@
       },
       {
         "createdAt": "2026-04-11T09:15:30.000Z",
+        "id": "routine_1",
+        "notified": false,
+        "progress": 1,
+        "unlockedAt": "2026-04-11T09:15:30.000Z",
+        "updatedAt": "2026-04-11T09:15:30.000Z"
+      },
+      {
+        "createdAt": "2026-04-11T09:15:30.000Z",
         "id": "vol_1",
         "notified": true,
         "progress": 1,
@@ -86,10 +94,10 @@
     ],
     "gamification": {
       "autoConsumeShields": false,
-      "currentLevel": 2,
+      "currentLevel": 3,
       "lastCelebratedLevel": 4,
       "maxShieldsCapacity": 7,
-      "totalXp": 160,
+      "totalXp": 252,
       "updatedAt": "2026-04-11T09:15:30.000Z"
     },
     "habits": [
@@ -159,6 +167,42 @@
       "themeMode": "dark",
       "userName": "ContractUser"
     },
+    "routineLogs": [
+      {
+        "completedAt": "2026-03-20T07:45:12.000Z",
+        "completedHabitIds": [
+          "habit_contract_full"
+        ],
+        "createdAt": "2026-03-15T14:30:00.000Z",
+        "date": "2026-03-20",
+        "id": "routine_log_contract_full",
+        "isDeleted": false,
+        "routineId": "routine_contract_morning",
+        "updatedAt": "2026-03-16T08:05:00.000Z",
+        "xpEarned": 42
+      }
+    ],
+    "routines": [
+      {
+        "bonusXp": 42,
+        "color": "#7C2D12",
+        "createdAt": "2026-03-15T14:30:00.000Z",
+        "description": "Distinctive routine description",
+        "habitIds": [
+          "habit_contract_full",
+          "habit_contract_secondary"
+        ],
+        "icon": "sunrise",
+        "id": "routine_contract_morning",
+        "isDeleted": false,
+        "targetTimeWindow": {
+          "endTime": "08:00",
+          "startTime": "06:00"
+        },
+        "title": "Contract Morning Stack",
+        "updatedAt": "2026-03-16T08:05:00.000Z"
+      }
+    ],
     "shields": [
       {
         "autoApplied": true,
