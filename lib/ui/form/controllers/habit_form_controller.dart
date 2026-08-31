@@ -33,6 +33,8 @@ class HabitFormState {
   final bool promptReflection;
   final HealthMetricType? healthMetric;
   final bool healthSyncEnabled;
+  final bool isNegative;
+  final DateTime? cleanSince;
   final bool enableElasticGoals;
   final String miniTargetValue;
   final String eliteTargetValue;
@@ -69,6 +71,8 @@ class HabitFormState {
     this.promptReflection = false,
     this.healthMetric,
     this.healthSyncEnabled = false,
+    this.isNegative = false,
+    this.cleanSince,
     this.miniTargetValueError,
     this.eliteTargetValueError,
     this.titleError,
@@ -105,6 +109,9 @@ class HabitFormState {
     HealthMetricType? healthMetric,
     bool clearHealthMetric = false,
     bool? healthSyncEnabled,
+    bool? isNegative,
+    DateTime? cleanSince,
+    bool clearCleanSince = false,
     String? miniTargetValueError,
     bool clearMiniTargetValueError = false,
     String? eliteTargetValueError,
@@ -142,6 +149,8 @@ class HabitFormState {
       promptReflection: promptReflection ?? this.promptReflection,
       healthMetric: clearHealthMetric ? null : (healthMetric ?? this.healthMetric),
       healthSyncEnabled: healthSyncEnabled ?? this.healthSyncEnabled,
+      isNegative: isNegative ?? this.isNegative,
+      cleanSince: clearCleanSince ? null : (cleanSince ?? this.cleanSince),
       miniTargetValueError: clearMiniTargetValueError
           ? null
           : (miniTargetValueError ?? this.miniTargetValueError),
@@ -216,11 +225,36 @@ class HabitFormController extends StateNotifier<HabitFormState> {
       promptReflection: habit.promptReflection,
       healthMetric: habit.healthMetric,
       healthSyncEnabled: habit.healthSyncEnabled,
+      isNegative: habit.isNegative,
+      cleanSince: habit.cleanSince,
     );
   }
 
   void resetForm() {
     state = const HabitFormState();
+  }
+
+  void onIsNegativeChange(bool isNegative) {
+    if (isNegative) {
+      state = state.copyWith(
+        isNegative: true,
+        cleanSince: state.cleanSince ?? DateTime.now(),
+        targetType: HabitTargetType.boolean,
+        frequencyType: HabitFrequencyType.daily,
+        enableElasticGoals: false,
+        healthSyncEnabled: false,
+        healthMetric: null,
+      );
+    } else {
+      state = state.copyWith(
+        isNegative: false,
+        cleanSince: null,
+      );
+    }
+  }
+
+  void onCleanSinceChange(DateTime cleanSince) {
+    state = state.copyWith(cleanSince: cleanSince);
   }
 
   void onTitleChange(String title) {
@@ -519,6 +553,10 @@ class HabitFormController extends StateNotifier<HabitFormState> {
         promptReflection: state.promptReflection,
         healthMetric: state.healthMetric,
         healthSyncEnabled: state.healthSyncEnabled && state.healthMetric != null,
+        isNegative: state.isNegative,
+        cleanSince: state.isNegative
+            ? (state.cleanSince ?? existingHabit?.cleanSince ?? now)
+            : null,
         createdAt: existingHabit?.createdAt ?? now,
         updatedAt: now,
       );

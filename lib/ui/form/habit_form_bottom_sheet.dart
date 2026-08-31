@@ -254,7 +254,15 @@ class _HabitFormBottomSheetState extends ConsumerState<HabitFormBottomSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
+
+            // Goal Type Mode (Positive vs Sobriety)
+            HabitModeSection(
+              formState: formState,
+              controller: controller,
+              accentColor: accentColor,
+            ),
+            const SizedBox(height: 20),
 
             // Category & Appearance Section
             HabitAppearanceSection(
@@ -265,26 +273,28 @@ class _HabitFormBottomSheetState extends ConsumerState<HabitFormBottomSheet> {
             ),
             const SizedBox(height: 20),
 
-            // Target Type Section & Elastic Goals
-            HabitTargetSection(
-              formState: formState,
-              controller: controller,
-              targetValueController: _targetValueController,
-              miniTargetController: _miniTargetController,
-              eliteTargetController: _eliteTargetController,
-              unitController: _unitController,
-            ),
-            const SizedBox(height: 20),
+            if (!formState.isNegative) ...[
+              // Target Type Section & Elastic Goals
+              HabitTargetSection(
+                formState: formState,
+                controller: controller,
+                targetValueController: _targetValueController,
+                miniTargetController: _miniTargetController,
+                eliteTargetController: _eliteTargetController,
+                unitController: _unitController,
+              ),
+              const SizedBox(height: 20),
 
-            // Frequency Rules Section
-            HabitFrequencySection(
-              formState: formState,
-              controller: controller,
-              accentColor: accentColor,
-              startTimeController: _startTimeController,
-              endTimeController: _endTimeController,
-            ),
-            const SizedBox(height: 20),
+              // Frequency Rules Section
+              HabitFrequencySection(
+                formState: formState,
+                controller: controller,
+                accentColor: accentColor,
+                startTimeController: _startTimeController,
+                endTimeController: _endTimeController,
+              ),
+              const SizedBox(height: 20),
+            ],
 
             // Reminders Section
             HabitRemindersSection(
@@ -295,13 +305,17 @@ class _HabitFormBottomSheetState extends ConsumerState<HabitFormBottomSheet> {
             ),
             const SizedBox(height: 20),
 
-            // Health & Reflection Section
-            HabitHealthAndReflectionSection(
-              formState: formState,
-              controller: controller,
-              onSyncControllers: _syncControllersWithState,
-            ),
-            const SizedBox(height: 28),
+            if (!formState.isNegative) ...[
+              // Health & Reflection Section
+              HabitHealthAndReflectionSection(
+                formState: formState,
+                controller: controller,
+                onSyncControllers: _syncControllersWithState,
+              ),
+              const SizedBox(height: 28),
+            ] else ...[
+              const SizedBox(height: 8),
+            ],
 
             // 5. Footer Actions
             Row(

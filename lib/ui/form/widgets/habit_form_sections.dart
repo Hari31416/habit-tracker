@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import '../../../di/providers.dart';
 import '../../../domain/models/habit_category.dart';
 import '../../../domain/models/habit_frequency_type.dart';
@@ -10,6 +11,144 @@ import '../../common/habit_icon_registry.dart';
 import '../../common/haptics_helper.dart';
 import '../../theme/app_colors.dart';
 import '../controllers/habit_form_controller.dart';
+
+class HabitModeSection extends StatelessWidget {
+  final HabitFormState formState;
+  final HabitFormController controller;
+  final Color accentColor;
+
+  const HabitModeSection({
+    super.key,
+    required this.formState,
+    required this.controller,
+    required this.accentColor,
+  });
+
+  Future<void> _pickCleanSinceDate(BuildContext context) async {
+    final now = DateTime.now();
+    final initialDate = formState.cleanSince ?? now;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate.isAfter(now) ? now : initialDate,
+      firstDate: DateTime(2020),
+      lastDate: now,
+    );
+    if (picked != null) {
+      controller.onCleanSinceChange(picked);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cleanDate = formState.cleanSince ?? DateTime.now();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Habit Goal Type',
+          style: theme.textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 8),
+        SegmentedButton<bool>(
+          segments: const [
+            ButtonSegment<bool>(
+              value: false,
+              label: Text('Build Habit'),
+              icon: Icon(Icons.trending_up),
+            ),
+            ButtonSegment<bool>(
+              value: true,
+              label: Text('Quit / Sobriety'),
+              icon: Icon(Icons.shield_outlined),
+            ),
+          ],
+          selected: {formState.isNegative},
+          onSelectionChanged: (selected) {
+            HapticsHelper.performLightHaptic();
+            controller.onIsNegativeChange(selected.first);
+          },
+        ),
+        if (formState.isNegative) ...[
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      size: 16,
+                      color: accentColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Abstinence mode tracks continuous clean time & enables the Urge Surfer craving tool.',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const Divider(height: 16),
+                InkWell(
+                  onTap: () => _pickCleanSinceDate(context),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Clean / Sobriety Start Date',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              DateFormat('MMM d, yyyy').format(cleanDate),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: accentColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(
+                              Icons.calendar_today,
+                              size: 16,
+                              color: accentColor,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
 
 class HabitAppearanceSection extends StatelessWidget {
   final HabitFormState formState;

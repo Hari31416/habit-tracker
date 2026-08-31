@@ -229,7 +229,7 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
     final logsOnDate =
         _currentLogs.where((log) => log.date == dateStr).toList();
     final isCompleted =
-        StreakCalculator.isHabitCompletedOnDate(habit, logsOnDate);
+        StreakCalculator.isHabitCompletedOnDate(habit, logsOnDate, state.selectedDate);
     final isShielded = _currentShields.any((s) => s.date == dateStr);
 
     final currentValue = _calculateCurrentValue(habit, logsOnDate, isCompleted);
@@ -391,6 +391,26 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
 
   Future<bool> toggleShieldForSelectedDate() async {
     return await repository.toggleShield(habitId, state.selectedDate);
+  }
+
+  Future<void> resetSobriety({String? note}) async {
+    final habit = state.habit;
+    if (habit == null) return;
+    final now = DateTime.now();
+    final updatedHabit = habit.copyWith(
+      cleanSince: now,
+      updatedAt: now,
+    );
+    await repository.upsertHabit(updatedHabit);
+
+    if (note != null && note.isNotEmpty) {
+      await repository.logCheckIn(
+        habitId: habit.id,
+        date: now,
+        completed: false,
+        note: note,
+      );
+    }
   }
 
   Future<void> toggleReminder(String time) async {

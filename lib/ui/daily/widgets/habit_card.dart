@@ -241,6 +241,29 @@ class HabitCard extends StatelessWidget {
     String streakLabel,
     bool isShielded,
   ) {
+    if (habit.isNegative) {
+      final habitColor = ColorUtils.parseHexColor(habit.color);
+      final cleanDays = streak.currentStreak;
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.shield_outlined,
+            size: 13,
+            color: habitColor,
+          ),
+          const SizedBox(width: 3),
+          Text(
+            '$cleanDays days clean',
+            style: theme.textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: habitColor,
+            ),
+          ),
+        ],
+      );
+    }
+
     if (isShielded) {
       return Row(
         mainAxisSize: MainAxisSize.min,

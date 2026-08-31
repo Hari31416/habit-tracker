@@ -22,8 +22,10 @@ import 'widgets/elastic_goals_card.dart';
 import 'widgets/habit_monthly_calendar.dart';
 import 'widgets/motivation_card.dart';
 import 'widgets/reflection_history_timeline.dart';
+import 'widgets/sobriety_counter_card.dart';
 import 'widgets/stats_metric_strip.dart';
 import 'widgets/ten_dot_progress_bar.dart';
+import 'urge_surfer_screen.dart';
 
 class HabitDetailScreen extends ConsumerStatefulWidget {
   final String habitId;
@@ -308,6 +310,29 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Column(
           children: [
+            // Sobriety Live Elapsed Counter (For Negative / Abstinence Habits)
+            if (habit.isNegative) ...[
+              SobrietyCounterCard(
+                habit: habit,
+                onLaunchUrgeSurfer: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => UrgeSurferScreen(
+                        habitId: habit.id,
+                        habitTitle: habit.title,
+                        habitColor: habit.color,
+                        onBack: () => Navigator.of(context).pop(),
+                      ),
+                    ),
+                  );
+                },
+                onResetSobriety: (note) async {
+                  await controller.resetSobriety(note: note);
+                },
+              ),
+              const SizedBox(height: 14),
+            ],
+
             // 1. Hero Header Card
             Card(
               shape: RoundedRectangleBorder(
