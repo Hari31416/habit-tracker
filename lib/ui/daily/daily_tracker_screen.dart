@@ -775,6 +775,7 @@ class _DailyHabitsList extends ConsumerWidget {
 
     if (habits.isEmpty) {
       return ListView(
+        key: const ValueKey('daily_empty_list'),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         children: [
           if (showRoutines) ...[
@@ -870,6 +871,7 @@ class _DailyHabitsList extends ConsumerWidget {
     final totalCount = showRoutines ? habits.length + 1 : habits.length;
 
     return ListView.separated(
+      key: const ValueKey('daily_habit_list'),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       itemCount: totalCount,
       separatorBuilder: (_, index) {

@@ -181,6 +181,7 @@ class _RoutineBuilderSheetState extends ConsumerState<RoutineBuilderSheet> {
       ),
       child: SafeArea(
         child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -431,11 +432,15 @@ class _RoutineBuilderSheetState extends ConsumerState<RoutineBuilderSheet> {
                     'Sequential Habit Chain',
                     style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold),
                   ),
-                  TextButton.icon(
-                    style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
-                    onPressed: () => _showAddHabitPicker(context, allHabits),
-                    icon: const Icon(Icons.add_circle_outline, size: 16),
-                    label: const Text('Add Step'),
+                  Semantics(
+                    identifier: 'btn_add_routine_step',
+                    button: true,
+                    child: TextButton.icon(
+                      style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+                      onPressed: () => _showAddHabitPicker(context, allHabits),
+                      icon: const Icon(Icons.add_circle_outline, size: 16),
+                      label: const Text('Add Step'),
+                    ),
                   ),
                 ],
               ),
@@ -503,63 +508,66 @@ class _RoutineBuilderSheetState extends ConsumerState<RoutineBuilderSheet> {
                       key: ValueKey(habitId),
                       color: theme.colorScheme.surfaceContainerHigh,
                       borderRadius: BorderRadius.circular(14),
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(vertical: 4),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
-                          ),
-                        ),
-                        child: ListTile(
-                          dense: true,
-                          leading: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ReorderableDragStartListener(
-                                index: index,
-                                child: Icon(
-                                  Icons.drag_handle_rounded,
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              CircleAvatar(
-                                radius: 12,
-                                backgroundColor: habitColor,
-                                child: Text(
-                                  '${index + 1}',
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          title: Text(
-                            habit?.title ?? 'Unknown Habit',
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          subtitle: Text(
-                            index == 0
-                                ? 'Trigger habit (First step)'
-                                : 'After Step $index, perform this',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                              fontSize: 11,
+                      child: Semantics(
+                        identifier: 'stack_step_${index + 1}',
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(vertical: 4),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
                             ),
                           ),
-                          trailing: IconButton(
-                            iconSize: 18,
-                            icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
-                            onPressed: () {
-                              HapticsHelper.selectionClick();
-                              setState(() {
-                                _orderedHabitIds.removeAt(index);
-                              });
-                            },
+                          child: ListTile(
+                            dense: true,
+                            leading: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                ReorderableDragStartListener(
+                                  index: index,
+                                  child: Icon(
+                                    Icons.drag_handle_rounded,
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                CircleAvatar(
+                                  radius: 12,
+                                  backgroundColor: habitColor,
+                                  child: Text(
+                                    '${index + 1}',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            title: Text(
+                              habit?.title ?? 'Unknown Habit',
+                              style: const TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            subtitle: Text(
+                              index == 0
+                                  ? 'Trigger habit (First step)'
+                                  : 'After Step $index, perform this',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                fontSize: 11,
+                              ),
+                            ),
+                            trailing: IconButton(
+                              iconSize: 18,
+                              icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                              onPressed: () {
+                                HapticsHelper.selectionClick();
+                                setState(() {
+                                  _orderedHabitIds.removeAt(index);
+                                });
+                              },
+                            ),
                           ),
                         ),
                       ),
@@ -586,19 +594,24 @@ class _RoutineBuilderSheetState extends ConsumerState<RoutineBuilderSheet> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: FilledButton(
-                      style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                    child: Semantics(
+                      identifier: 'btn_save_routine',
+                      button: true,
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                         ),
+                        onPressed: _save,
+                        child: Text(isEditing ? 'Save Changes' : 'Create Stack'),
                       ),
-                      onPressed: _save,
-                      child: Text(isEditing ? 'Save Changes' : 'Create Stack'),
                     ),
                   ),
                 ],
               ),
+              const SizedBox(height: 32),
             ],
           ),
         ),
@@ -644,29 +657,33 @@ class _RoutineBuilderSheetState extends ConsumerState<RoutineBuilderSheet> {
                         final habit = available[idx];
                         final habitColor = ColorUtils.fromHex(habit.color);
 
-                        return ListTile(
-                          leading: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: habitColor.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(8),
+                        return Semantics(
+                          identifier: 'picker_habit_${habit.id}',
+                          button: true,
+                          child: ListTile(
+                            leading: Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: habitColor.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                HabitIconRegistry.getIcon(habit.icon),
+                                color: habitColor,
+                                size: 18,
+                              ),
                             ),
-                            child: Icon(
-                              HabitIconRegistry.getIcon(habit.icon),
-                              color: habitColor,
-                              size: 18,
-                            ),
+                            title: Text(habit.title),
+                            subtitle: Text(habit.frequencyType.name),
+                            onTap: () {
+                              HapticsHelper.selectionClick();
+                              setState(() {
+                                _orderedHabitIds.add(habit.id);
+                              });
+                              Navigator.of(ctx).pop();
+                            },
                           ),
-                          title: Text(habit.title),
-                          subtitle: Text(habit.frequencyType.name),
-                          onTap: () {
-                            HapticsHelper.selectionClick();
-                            setState(() {
-                              _orderedHabitIds.add(habit.id);
-                            });
-                            Navigator.of(ctx).pop();
-                          },
                         );
                       },
                     ),

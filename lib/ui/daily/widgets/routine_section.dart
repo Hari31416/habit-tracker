@@ -65,12 +65,15 @@ class _RoutineSectionState extends ConsumerState<RoutineSection> {
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        'Routines & Stacks',
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onSurface,
-                          letterSpacing: 0.2,
+                      Semantics(
+                        identifier: 'routine_section_header',
+                        child: Text(
+                          'Routines & Stacks',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurface,
+                            letterSpacing: 0.2,
+                          ),
                         ),
                       ),
                       if (routines.isNotEmpty) ...[

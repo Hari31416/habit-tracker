@@ -574,39 +574,55 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            IconButton.filledTonal(
-              iconSize: 20,
-              onPressed: () => _adjustTimer(-60),
-              icon: const Text('-1m', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
-              tooltip: '-1 Minute',
-            ),
-            const SizedBox(width: 8),
-            FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: habitColor,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              ),
-              onPressed: _toggleStepTimer,
-              icon: Icon(_isTimerRunning ? Icons.pause_rounded : Icons.play_arrow_rounded),
-              label: Text(
-                _isTimerRunning ? 'Pause' : 'Start Timer',
-                style: const TextStyle(fontWeight: FontWeight.bold),
+            Semantics(
+              identifier: 'btn_timer_minus',
+              button: true,
+              child: IconButton.filledTonal(
+                iconSize: 20,
+                onPressed: () => _adjustTimer(-60),
+                icon: const Text('-1m', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                tooltip: '-1 Minute',
               ),
             ),
             const SizedBox(width: 8),
-            IconButton.filledTonal(
-              iconSize: 20,
-              onPressed: () => _adjustTimer(60),
-              icon: const Text('+1m', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
-              tooltip: '+1 Minute',
+            Semantics(
+              identifier: 'btn_timer_toggle',
+              button: true,
+              child: FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: habitColor,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                onPressed: _toggleStepTimer,
+                icon: Icon(_isTimerRunning ? Icons.pause_rounded : Icons.play_arrow_rounded),
+                label: Text(
+                  _isTimerRunning ? 'Pause' : 'Start Timer',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
             ),
             const SizedBox(width: 8),
-            IconButton.filledTonal(
-              iconSize: 20,
-              onPressed: _resetTimer,
-              icon: const Icon(Icons.refresh_rounded, size: 18),
-              tooltip: 'Reset Timer',
+            Semantics(
+              identifier: 'btn_timer_plus',
+              button: true,
+              child: IconButton.filledTonal(
+                iconSize: 20,
+                onPressed: () => _adjustTimer(60),
+                icon: const Text('+1m', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                tooltip: '+1 Minute',
+              ),
+            ),
+            const SizedBox(width: 8),
+            Semantics(
+              identifier: 'btn_timer_reset',
+              button: true,
+              child: IconButton.filledTonal(
+                iconSize: 20,
+                onPressed: _resetTimer,
+                icon: const Icon(Icons.refresh_rounded, size: 18),
+                tooltip: 'Reset Timer',
+              ),
             ),
           ],
         ),
@@ -661,14 +677,18 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
                     icon: const Icon(Icons.remove),
                   ),
                   const SizedBox(width: 12),
-                  FilledButton.tonal(
-                    onPressed: () {
-                      HapticsHelper.selectionClick();
-                      setState(() {
-                        _numericValues[habit.id] = target;
-                      });
-                    },
-                    child: Text('Fill Goal ($target)'),
+                  Semantics(
+                    identifier: 'btn_numeric_fill',
+                    button: true,
+                    child: FilledButton.tonal(
+                      onPressed: () {
+                        HapticsHelper.selectionClick();
+                        setState(() {
+                          _numericValues[habit.id] = target;
+                        });
+                      },
+                      child: Text('Fill Goal ($target)'),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   IconButton.filledTonal(
@@ -777,24 +797,32 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
       child: Row(
         children: [
           if (currentStep > 0)
-            IconButton(
-              icon: const Icon(Icons.arrow_back_rounded),
-              tooltip: 'Previous Step',
+            Semantics(
+              identifier: 'btn_step_previous',
+              button: true,
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back_rounded),
+                tooltip: 'Previous Step',
+                onPressed: () {
+                  HapticsHelper.selectionClick();
+                  setState(() => _currentStepIndex--);
+                },
+              ),
+            ),
+          Semantics(
+            identifier: 'btn_step_skip',
+            button: true,
+            child: TextButton(
               onPressed: () {
                 HapticsHelper.selectionClick();
-                setState(() => _currentStepIndex--);
+                if (!isLastStep) {
+                  setState(() => _currentStepIndex++);
+                } else {
+                  _finishRoutine(routine, chainHabits);
+                }
               },
+              child: const Text('Skip Step'),
             ),
-          TextButton(
-            onPressed: () {
-              HapticsHelper.selectionClick();
-              if (!isLastStep) {
-                setState(() => _currentStepIndex++);
-              } else {
-                _finishRoutine(routine, chainHabits);
-              }
-            },
-            child: const Text('Skip Step'),
           ),
           const Spacer(),
           Semantics(

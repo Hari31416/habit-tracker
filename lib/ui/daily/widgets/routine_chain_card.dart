@@ -55,54 +55,59 @@ class RoutineChainCard extends StatelessWidget {
     final totalCount = chainHabits.length;
     final allCompleted = totalCount > 0 && completedCount == totalCount;
 
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: allCompleted
-              ? routineColor.withValues(alpha: 0.6)
-              : theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-          width: allCompleted ? 1.5 : 1.0,
+    return Semantics(
+      identifier: 'routine_card_${routine.id}',
+      child: Card(
+        elevation: 0,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: allCompleted
+                ? routineColor.withValues(alpha: 0.6)
+                : theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+            width: allCompleted ? 1.5 : 1.0,
+          ),
         ),
-      ),
-      color: theme.colorScheme.surfaceContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Top Header: Routine Icon + Title + Time Window + Overflow
-            Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: routineColor.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(12),
+        color: theme.colorScheme.surfaceContainer,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Top Header: Routine Icon + Title + Time Window + Overflow
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: routineColor.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      HabitIconRegistry.getIcon(routine.icon ?? 'link'),
+                      color: routineColor,
+                      size: 22,
+                    ),
                   ),
-                  child: Icon(
-                    HabitIconRegistry.getIcon(routine.icon ?? 'link'),
-                    color: routineColor,
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        routine.title,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onSurface,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Semantics(
+                          identifier: 'routine_title_${routine.id}',
+                          child: Text(
+                            routine.title,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
                       if (routine.targetTimeWindow != null) ...[
                         const SizedBox(height: 2),
                         Row(
@@ -152,43 +157,48 @@ class RoutineChainCard extends StatelessWidget {
                   ),
                 ),
                 if (onEditRoutine != null || onDeleteRoutine != null)
-                  PopupMenuButton<String>(
-                    icon: Icon(
-                      Icons.more_vert,
-                      size: 20,
-                      color: theme.colorScheme.onSurfaceVariant,
+                  Semantics(
+                    identifier: 'btn_routine_menu_${routine.id}',
+                    button: true,
+                    child: PopupMenuButton<String>(
+                      tooltip: 'Options for ${routine.title}',
+                      icon: Icon(
+                        Icons.more_vert,
+                        size: 20,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      onSelected: (val) {
+                        if (val == 'edit' && onEditRoutine != null) {
+                          onEditRoutine!(routine);
+                        } else if (val == 'delete' && onDeleteRoutine != null) {
+                          onDeleteRoutine!(routine);
+                        }
+                      },
+                      itemBuilder: (ctx) => [
+                        if (onEditRoutine != null)
+                          const PopupMenuItem(
+                            value: 'edit',
+                            child: Row(
+                              children: [
+                                Icon(Icons.edit_outlined, size: 18),
+                                SizedBox(width: 8),
+                                Text('Edit Stack'),
+                              ],
+                            ),
+                          ),
+                        if (onDeleteRoutine != null)
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                                SizedBox(width: 8),
+                                Text('Delete Stack', style: TextStyle(color: Colors.red)),
+                              ],
+                            ),
+                          ),
+                      ],
                     ),
-                    onSelected: (val) {
-                      if (val == 'edit' && onEditRoutine != null) {
-                        onEditRoutine!(routine);
-                      } else if (val == 'delete' && onDeleteRoutine != null) {
-                        onDeleteRoutine!(routine);
-                      }
-                    },
-                    itemBuilder: (ctx) => [
-                      if (onEditRoutine != null)
-                        const PopupMenuItem(
-                          value: 'edit',
-                          child: Row(
-                            children: [
-                              Icon(Icons.edit_outlined, size: 18),
-                              SizedBox(width: 8),
-                              Text('Edit Stack'),
-                            ],
-                          ),
-                        ),
-                      if (onDeleteRoutine != null)
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              Icon(Icons.delete_outline, size: 18, color: Colors.red),
-                              SizedBox(width: 8),
-                              Text('Delete Stack', style: TextStyle(color: Colors.red)),
-                            ],
-                          ),
-                        ),
-                    ],
                   ),
               ],
             ),
@@ -250,15 +260,16 @@ class RoutineChainCard extends StatelessWidget {
                           : theme.colorScheme.onSurfaceVariant,
                     ),
                     const SizedBox(width: 6),
-                    Text(
-                      allCompleted
-                          ? 'Stack Complete!'
-                          : '$completedCount of $totalCount Done',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: allCompleted
-                            ? Colors.green
-                            : theme.colorScheme.onSurfaceVariant,
+                    Semantics(
+                      identifier: 'routine_progress_${routine.id}',
+                      child: Text(
+                        allCompleted ? 'Stack Complete!' : '$completedCount of $totalCount Done',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: allCompleted
+                              ? Colors.green
+                              : theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
                   ],
@@ -295,8 +306,9 @@ class RoutineChainCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildHabitStepChip({
     required BuildContext context,
