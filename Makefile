@@ -16,7 +16,7 @@ MAIN_ACTIVITY := $(PACKAGE_NAME).MainActivity
 DEFAULT_AVD := $(shell $(EMULATOR) -list-avds 2>/dev/null | head -n 1)
 AVD ?= $(DEFAULT_AVD)
 
-.PHONY: help build build-release build-release-universal build-appbundle test lint check install-hooks clean install uninstall emulator-list emulator-start emulator-stop emulator-wait start stop restart run debug profile logcat flutter-run flutter-run-profile flutter-run-android flutter-build-apk flutter-build-release flutter-build-appbundle flutter-test flutter-analyze flutter-codegen codegen schema-dump schema-generate adb-test maestro maestro-ci maestro-smoke perf-test benchmark
+.PHONY: help build build-release build-release-universal build-appbundle test lint check check-fast check-full install-hooks clean install uninstall emulator-list emulator-start emulator-stop emulator-wait start stop restart run debug profile logcat flutter-run flutter-run-profile flutter-run-android flutter-build-apk flutter-build-release flutter-build-appbundle flutter-test flutter-analyze flutter-codegen codegen schema-dump schema-generate adb-test maestro maestro-ci maestro-smoke perf-test benchmark
 
 help: ## Show this help message
 	@echo "Usage: make [target] [AVD=avd_name]"
@@ -27,8 +27,10 @@ help: ## Show this help message
 	@echo "  make build-appbundle - Build release Android App Bundle (.aab) via Flutter"
 	@echo "  make test            - Run all Flutter unit and widget tests"
 	@echo "  make lint            - Run Flutter code analysis"
-	@echo "  make check           - Run lint, tests with coverage, and coverage floor check"
-	@echo "  make install-hooks   - Configure and enable git pre-commit hooks (.githooks)"
+	@echo "  make check           - Fast gate: lint + test (no coverage) [pre-commit]"
+	@echo "  make check-fast      - Fast gate: lint + test (no coverage) (~6s)"
+	@echo "  make check-full      - Full gate: lint + test --coverage + coverage floor (~15s) [pre-push/CI]"
+	@echo "  make install-hooks   - Configure and enable git hooks (.githooks/pre-commit fast, pre-push full)"
 	@echo "  make clean           - Clean Flutter and Gradle build artifacts"
 	@echo "  make run             - Complete pipeline: ensure emulator, build, and launch Flutter app in debug mode"
 	@echo "  make profile         - Launch Flutter app in profile mode for benchmarking"
@@ -90,13 +92,17 @@ test: ## Run Flutter unit and widget tests
 lint: ## Run Flutter analyzer
 	flutter analyze
 
-check: ## Run lint, unit/widget tests with coverage, and coverage floor check
+check: check-fast ## Alias for check-fast (fast pre-commit gate)
+check-fast: ## Fast gate: lint + test without coverage (~6s)
 	@./.githooks/pre-commit
 
-install-hooks: ## Configure and enable git pre-commit hooks (.githooks)
+check-full: ## Full gate: lint + test --coverage + coverage floor (~15s)
+	@HOOK_FULL=1 ./.githooks/pre-commit
+
+install-hooks: ## Configure and enable git hooks (.githooks/pre-commit + pre-push)
 	git config core.hooksPath .githooks
-	chmod +x .githooks/*
-	@echo "Git hooks installed and enabled."
+	chmod +x .githooks/pre-commit .githooks/pre-push
+	@echo "Git hooks installed and enabled (pre-commit=FAST, pre-push=FULL)."
 
 clean: ## Clean Flutter and Gradle build artifacts
 	flutter clean
