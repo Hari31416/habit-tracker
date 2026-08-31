@@ -782,6 +782,9 @@ class _DailyHabitsList extends ConsumerWidget {
     final selectedCategoryId = ref.watch(
       dailyTrackerControllerProvider.select((s) => s.selectedCategoryId),
     );
+    final categories = ref.watch(
+      dailyTrackerControllerProvider.select((s) => s.categories),
+    );
     final selectedDate = ref.watch(
       dailyTrackerControllerProvider.select((s) => s.selectedDate),
     );
@@ -797,6 +800,30 @@ class _DailyHabitsList extends ConsumerWidget {
     }
 
     if (habits.isEmpty) {
+      final selectedCat = categories
+          .where((c) => c.id == selectedCategoryId)
+          .firstOrNull;
+      final categoryName = selectedCat?.name ?? 'this category';
+
+      final String emptyTitle;
+      final String emptySubtitle;
+      final IconData emptyIcon;
+
+      if (searchQuery.isNotEmpty) {
+        emptyTitle = 'No matching habits found';
+        emptySubtitle = 'Try searching for a different keyword';
+        emptyIcon = Icons.search_off;
+      } else if (selectedCategoryId != null) {
+        emptyTitle = 'No habits in "$categoryName"';
+        emptySubtitle = 'Create a habit in this category or view all habits.';
+        emptyIcon = Icons.category_outlined;
+      } else {
+        emptyTitle = 'No habits scheduled for this day';
+        emptySubtitle =
+            'Create your own habit or load starter habits to explore features.';
+        emptyIcon = Icons.track_changes_outlined;
+      }
+
       return ListView(
         key: const ValueKey('daily_empty_list'),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -805,7 +832,8 @@ class _DailyHabitsList extends ConsumerWidget {
             RoutineSection(
               selectedDate: selectedDate,
               onStartRoutinePlayer: (routine) {
-                Navigator.of(context).pushNamed(Screen.routinePlayerRoute(routine.id));
+                Navigator.of(context)
+                    .pushNamed(Screen.routinePlayerRoute(routine.id));
               },
             ),
             const SizedBox(height: 12),
@@ -819,20 +847,19 @@ class _DailyHabitsList extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                      color: theme.colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.4),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      searchQuery.isNotEmpty ? Icons.search_off : Icons.track_changes_outlined,
+                      emptyIcon,
                       size: 40,
                       color: theme.colorScheme.primary,
                     ),
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    searchQuery.isNotEmpty
-                        ? 'No matching habits found'
-                        : 'No habits scheduled for this day',
+                    emptyTitle,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: theme.colorScheme.onSurfaceVariant,
@@ -841,21 +868,45 @@ class _DailyHabitsList extends ConsumerWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    searchQuery.isNotEmpty
-                        ? 'Try searching for a different keyword or category'
-                        : 'Create your own habit or load starter habits to explore features.',
+                    emptySubtitle,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.outline,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  if (searchQuery.isEmpty) ...[
-                    const SizedBox(height: 20),
-                    Wrap(
-                      spacing: 12,
-                      runSpacing: 10,
-                      alignment: WrapAlignment.center,
-                      children: [
+                  const SizedBox(height: 20),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 10,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      if (searchQuery.isNotEmpty)
+                        OutlinedButton.icon(
+                          icon: const Icon(Icons.clear, size: 18),
+                          label: const Text('Clear Search'),
+                          onPressed: () {
+                            HapticsHelper.performLightHaptic();
+                            controller.setSearchQuery('');
+                          },
+                        )
+                      else if (selectedCategoryId != null) ...[
+                        FilledButton.icon(
+                          icon: const Icon(Icons.add, size: 18),
+                          label: const Text('Create Habit'),
+                          onPressed: () {
+                            HapticsHelper.performLightHaptic();
+                            HabitFormBottomSheet.show(context);
+                          },
+                        ),
+                        OutlinedButton.icon(
+                          icon: const Icon(Icons.apps, size: 18),
+                          label: const Text('View All Habits'),
+                          onPressed: () {
+                            HapticsHelper.performLightHaptic();
+                            controller.selectCategory(null);
+                          },
+                        ),
+                      ] else ...[
                         FilledButton.icon(
                           icon: const Icon(Icons.add, size: 18),
                           label: const Text('Create Habit'),
@@ -881,8 +932,8 @@ class _DailyHabitsList extends ConsumerWidget {
                           },
                         ),
                       ],
-                    ),
-                  ],
+                    ],
+                  ),
                 ],
               ),
             ),

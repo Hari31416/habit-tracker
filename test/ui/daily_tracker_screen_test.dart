@@ -153,4 +153,71 @@ void main() {
     // Verify demo habit is now rendered
     expect(find.text('Demo Habit'), findsOneWidget);
   });
+
+  testWidgets('DailyTrackerScreen empty category shows category-specific empty state and View All Habits button',
+      (WidgetTester tester) async {
+    final habit = Habit(
+      id: 'h-1',
+      title: 'Study Math',
+      color: '#10B981',
+      icon: 'book',
+      categoryId: 'cat-learning',
+      frequencyType: HabitFrequencyType.daily,
+      targetType: HabitTargetType.boolean,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+    const categoryLearning = HabitCategory(
+      id: 'cat-learning',
+      name: 'Learning',
+      color: '#10B981',
+      icon: 'book',
+    );
+    const categoryRoutine = HabitCategory(
+      id: 'cat-routine',
+      name: 'Routine',
+      color: '#6366F1',
+      icon: 'sun',
+    );
+
+    final fakeRepo = FakeHabitRepository(
+      initialHabits: [habit],
+      initialCategories: [categoryLearning, categoryRoutine],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          dailyTrackerControllerProvider.overrideWith(
+            (ref) => DailyTrackerController(fakeRepo),
+          ),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: const DailyTrackerScreen(),
+        ),
+      ),
+    );
+
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // Initially habit is visible
+    expect(find.text('Study Math'), findsOneWidget);
+
+    // Tap Routine category chip (which has 0 habits)
+    await tester.tap(find.text('Routine (0)'));
+    await tester.pumpAndSettle();
+
+    // Verify empty category state
+    expect(find.text('No habits in "Routine"'), findsOneWidget);
+    expect(find.text('View All Habits'), findsOneWidget);
+    expect(find.text('Load Demo Habits'), findsNothing);
+
+    // Tap View All Habits button
+    await tester.tap(find.text('View All Habits'));
+    await tester.pumpAndSettle();
+
+    // Verify habit is visible again
+    expect(find.text('Study Math'), findsOneWidget);
+  });
 }
