@@ -54,9 +54,9 @@ Strategic feature roadmap for the Habit Tracker application, ordered sequentiall
 
 ## 9. Negative Habits and Sobriety Counter
 
-- [ ] **Abstinence Tracking:** Dedicated mode for habits to break (smoking, social media detox, sugar).
-- [ ] **Elapsed Time Counter:** Real-time counter displaying days, hours, and minutes since last reset.
-- [ ] **Urge Surfer Tool:** 2-minute box breathing focus timer to assist in overcoming sudden cravings.
+- [x] **Abstinence Tracking:** Dedicated mode for habits to break (smoking, social media detox, sugar).
+- [x] **Elapsed Time Counter:** Real-time counter displaying days, hours, and minutes since last reset.
+- [x] **Urge Surfer Tool:** 2-minute box breathing focus timer to assist in overcoming sudden cravings.
 
 ## 10. "Habit Wrapped" Shareable Summaries
 

@@ -1,0 +1,102 @@
+# Negative Habits & Sobriety Counter journey:
+# 1. Create negative / abstinence habit (Quit Social Media Detox)
+# 2. Select Quit / Sobriety mode in form
+# 3. Verify clean days badge on Today dashboard
+# 4. Open Habit Detail and verify live Sobriety Counter card (DAYS, HOURS, MINS, SECS, milestones)
+# 5. Launch Urge Surfer tool, verify 4-4-4-4 box breathing guide and play/pause controls
+# 6. Test Sobriety Reset flow with trigger reflection note
+
+appId: app.phial.habits
+tags:
+  - journey
+  - full
+  - sobriety
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "nav_today"
+    timeout: 30000
+
+# 1. Create negative / abstinence habit
+- runFlow:
+    file: helpers/open_add_habit.yaml
+- tapOn:
+    id: "habit_form_title"
+- inputText: "Quit Social Media Detox"
+- assertVisible: "Quit Social Media Detox"
+- runFlow:
+    file: helpers/dismiss_stylus_prompt.yaml
+
+# 2. Select Quit / Sobriety goal mode
+- tapOn: "Quit / Sobriety"
+- assertVisible: "Abstinence mode tracks continuous clean time & enables the Urge Surfer craving tool."
+
+# Save habit
+- runFlow:
+    file: helpers/save_habit_form.yaml
+
+# 3. Verify clean days badge on Today dashboard
+- extendedWaitUntil:
+    visible: "Quit Social Media Detox"
+    timeout: 10000
+- assertVisible: "Quit Social Media Detox"
+
+# 4. Open Habit Detail screen
+- tapOn: "Quit Social Media Detox"
+- extendedWaitUntil:
+    visible: "Sobriety Counter"
+    timeout: 10000
+
+- assertVisible: "Sobriety Counter"
+- assertVisible: "DAYS"
+- assertVisible: "HOURS"
+- assertVisible: "MINS"
+- assertVisible: "SECS"
+- assertVisible: "Next Milestone: 24 Hours"
+- assertVisible: "Urge Surfer"
+- assertVisible: "Reset"
+
+# 5. Launch Urge Surfer tool
+- tapOn: "Urge Surfer"
+- extendedWaitUntil:
+    visible: "Urge Surfer • Quit Social Media Detox"
+    timeout: 10000
+
+- assertVisible: "Box Breathing Technique (4-4-4-4)"
+- assertVisible: "Inhale Slowly"
+- assertVisible: "Pause"
+- assertVisible: "Restart"
+
+# Test Pause & Resume
+- tapOn: "Pause"
+- assertVisible: "Resume"
+- tapOn: "Resume"
+- assertVisible: "Pause"
+
+# Return to detail screen
+- back
+
+# 6. Test Reset Sobriety Clock flow
+- extendedWaitUntil:
+    visible: "Sobriety Counter"
+    timeout: 10000
+- tapOn: "Reset"
+
+- extendedWaitUntil:
+    visible: "Reset Sobriety Clock?"
+    timeout: 5000
+- assertVisible: "Relapses are learning moments, not failures. Be kind to yourself and restart your clean counter today."
+
+- tapOn: "What triggered this slip? (Optional)"
+- inputText: "Boredom and notifications"
+- runFlow:
+    file: helpers/dismiss_stylus_prompt.yaml
+
+- tapOn: "Reset Clock"
+- extendedWaitUntil:
+    notVisible: "Reset Sobriety Clock?"
+    timeout: 5000
+
+- assertVisible: "Sobriety Counter"
