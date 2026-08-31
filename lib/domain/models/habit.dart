@@ -29,6 +29,8 @@ class Habit {
   final bool promptReflection;
   final HealthMetricType? healthMetric;
   final bool healthSyncEnabled;
+  final bool isNegative;
+  final DateTime? cleanSince;
   final bool isDeleted;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -58,6 +60,8 @@ class Habit {
     this.promptReflection = false,
     this.healthMetric,
     this.healthSyncEnabled = false,
+    this.isNegative = false,
+    this.cleanSince,
     this.isDeleted = false,
     required this.createdAt,
     required this.updatedAt,
@@ -88,6 +92,13 @@ class Habit {
     return HabitTier.none;
   }
 
+  Duration get elapsedCleanTime {
+    if (!isNegative) return Duration.zero;
+    final start = cleanSince ?? createdAt;
+    final now = DateTime.now();
+    return now.isAfter(start) ? now.difference(start) : Duration.zero;
+  }
+
   Habit copyWith({
     String? id,
     String? title,
@@ -115,6 +126,9 @@ class Habit {
     bool? promptReflection,
     HealthMetricType? healthMetric,
     bool? healthSyncEnabled,
+    bool? isNegative,
+    DateTime? cleanSince,
+    bool clearCleanSince = false,
     bool? isDeleted,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -146,6 +160,8 @@ class Habit {
       promptReflection: promptReflection ?? this.promptReflection,
       healthMetric: healthMetric ?? this.healthMetric,
       healthSyncEnabled: healthSyncEnabled ?? this.healthSyncEnabled,
+      isNegative: isNegative ?? this.isNegative,
+      cleanSince: clearCleanSince ? null : (cleanSince ?? this.cleanSince),
       isDeleted: isDeleted ?? this.isDeleted,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

@@ -27,6 +27,8 @@ class Habits extends Table {
   BoolColumn get promptReflection => boolean().withDefault(const Constant(false))();
   TextColumn get healthMetric => text().map(const HealthMetricTypeConverter()).nullable()();
   BoolColumn get healthSyncEnabled => boolean().withDefault(const Constant(false))();
+  BoolColumn get isNegative => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get cleanSince => dateTime().nullable()();
   BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();

@@ -414,6 +414,8 @@ void _assertHabit(Habit actual, Habit expected) {
   expect(actual.promptReflection, expected.promptReflection);
   expect(actual.healthMetric, expected.healthMetric);
   expect(actual.healthSyncEnabled, expected.healthSyncEnabled);
+  expect(actual.isNegative, expected.isNegative);
+  _assertUtc(actual.cleanSince, expected.cleanSince, name: 'habit.cleanSince');
   expect(actual.isDeleted, expected.isDeleted);
   _assertUtc(actual.createdAt, expected.createdAt, name: 'habit.createdAt');
   _assertUtc(actual.updatedAt, expected.updatedAt, name: 'habit.updatedAt');

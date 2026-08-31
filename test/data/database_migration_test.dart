@@ -17,6 +17,7 @@ import '../generated_migrations/schema.dart';
 import '../generated_migrations/schema_v6.dart' as v6;
 import '../generated_migrations/schema_v7.dart' as v7;
 import '../generated_migrations/schema_v8.dart' as v8;
+import '../generated_migrations/schema_v9.dart' as v9;
 
 void main() {
   late SchemaVerifier verifier;
@@ -25,10 +26,10 @@ void main() {
     verifier = SchemaVerifier(GeneratedHelper());
   });
 
-  test('current schema opens without migration (8 → 8)', () async {
-    final connection = await verifier.startAt(8);
+  test('current schema opens without migration (9 → 9)', () async {
+    final connection = await verifier.startAt(9);
     final db = AppDatabase.forSchemaVerification(connection);
-    await verifier.migrateAndValidate(db, 8);
+    await verifier.migrateAndValidate(db, 9);
     await db.close();
   });
 
@@ -68,10 +69,10 @@ void main() {
     await oldDb.close();
 
     final db = AppDatabase.forSchemaVerification(schema.newConnection());
-    await verifier.migrateAndValidate(db, 7);
+    await verifier.migrateAndValidate(db, 9);
     await db.close();
 
-    final migrated = v7.DatabaseAtV7(schema.newConnection());
+    final migrated = v9.DatabaseAtV9(schema.newConnection());
     final habit = await (migrated.select(migrated.habits)
           ..where((t) => t.id.equals('habit_mig_v6')))
         .getSingle();
@@ -80,6 +81,7 @@ void main() {
     expect(habit.healthMetric, 'steps');
     expect(habit.miniTargetValue, isNull);
     expect(habit.eliteTargetValue, isNull);
+    expect(habit.isNegative, 0);
 
     final log = await (migrated.select(migrated.habitLogs)
           ..where((t) => t.id.equals('log_mig_v6')))
@@ -87,24 +89,26 @@ void main() {
     expect(log.value, 5000.0);
     expect(log.targetTier, isNull);
 
-    // New v7 columns accept writes after upgrade.
+    // New v9 columns accept writes after upgrade.
     await (migrated.update(migrated.habits)
           ..where((t) => t.id.equals('habit_mig_v6')))
         .write(
-      const v7.HabitsCompanion(
+      const v9.HabitsCompanion(
         miniTargetValue: Value(2500.0),
         eliteTargetValue: Value(12000.0),
+        isNegative: Value(1),
       ),
     );
     await (migrated.update(migrated.habitLogs)
           ..where((t) => t.id.equals('log_mig_v6')))
-        .write(const v7.HabitLogsCompanion(targetTier: Value('mini')));
+        .write(const v9.HabitLogsCompanion(targetTier: Value('mini')));
 
     final updatedHabit = await (migrated.select(migrated.habits)
           ..where((t) => t.id.equals('habit_mig_v6')))
         .getSingle();
     expect(updatedHabit.miniTargetValue, 2500.0);
     expect(updatedHabit.eliteTargetValue, 12000.0);
+    expect(updatedHabit.isNegative, 1);
 
     final updatedLog = await (migrated.select(migrated.habitLogs)
           ..where((t) => t.id.equals('log_mig_v6')))
@@ -114,7 +118,7 @@ void main() {
     await migrated.close();
   });
 
-  test('upgrade from v7 to v8 adds habit_routines and routine_logs tables', () async {
+  test('upgrade from v7 to v9 adds habit_routines, routine_logs, is_negative, and clean_since', () async {
     final schema = await verifier.schemaAt(7);
     final createdAt = DateTime.utc(2026, 3, 15).millisecondsSinceEpoch;
     final updatedAt = DateTime.utc(2026, 3, 16).millisecondsSinceEpoch;
@@ -137,20 +141,21 @@ void main() {
     await oldDb.close();
 
     final db = AppDatabase.forSchemaVerification(schema.newConnection());
-    await verifier.migrateAndValidate(db, 8);
+    await verifier.migrateAndValidate(db, 9);
     await db.close();
 
-    final migrated = v8.DatabaseAtV8(schema.newConnection());
+    final migrated = v9.DatabaseAtV9(schema.newConnection());
     final habit = await (migrated.select(migrated.habits)
           ..where((t) => t.id.equals('habit_mig_v7')))
         .getSingle();
     expect(habit.title, 'Migration Walk v7');
     expect(habit.miniTargetValue, 2500.0);
     expect(habit.eliteTargetValue, 12000.0);
+    expect(habit.isNegative, 0);
 
-    // New v8 tables accept inserts
+    // New v9 tables accept inserts
     await migrated.into(migrated.habitRoutines).insert(
-          v8.HabitRoutinesCompanion.insert(
+          v9.HabitRoutinesCompanion.insert(
             id: 'routine_mig_v8',
             title: 'Morning Routine',
             color: '#3B82F6',
@@ -165,6 +170,58 @@ void main() {
         .getSingle();
     expect(routine.title, 'Morning Routine');
     expect(routine.bonusXp, 30);
+
+    await migrated.close();
+  });
+
+  test('upgrade from v8 to v9 adds is_negative and clean_since columns', () async {
+    final schema = await verifier.schemaAt(8);
+    final createdAt = DateTime.utc(2026, 3, 15).millisecondsSinceEpoch;
+    final updatedAt = DateTime.utc(2026, 3, 16).millisecondsSinceEpoch;
+
+    final oldDb = v8.DatabaseAtV8(schema.newConnection());
+    await oldDb.into(oldDb.habits).insert(
+          v8.HabitsCompanion.insert(
+            id: 'habit_mig_v8',
+            title: 'Migration Walk v8',
+            color: '#10B981',
+            frequencyType: 'daily',
+            targetType: 'numeric',
+            targetValue: const Value(8000.0),
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          ),
+        );
+    await oldDb.close();
+
+    final db = AppDatabase.forSchemaVerification(schema.newConnection());
+    await verifier.migrateAndValidate(db, 9);
+    await db.close();
+
+    final migrated = v9.DatabaseAtV9(schema.newConnection());
+    final habit = await (migrated.select(migrated.habits)
+          ..where((t) => t.id.equals('habit_mig_v8')))
+        .getSingle();
+    expect(habit.title, 'Migration Walk v8');
+    expect(habit.isNegative, 0);
+    expect(habit.cleanSince, isNull);
+
+    // New v9 columns accept writes after upgrade.
+    final cleanSinceEpoch = DateTime.utc(2026, 3, 20, 10, 0).millisecondsSinceEpoch;
+    await (migrated.update(migrated.habits)
+          ..where((t) => t.id.equals('habit_mig_v8')))
+        .write(
+      v9.HabitsCompanion(
+        isNegative: const Value(1),
+        cleanSince: Value(cleanSinceEpoch),
+      ),
+    );
+
+    final updatedHabit = await (migrated.select(migrated.habits)
+          ..where((t) => t.id.equals('habit_mig_v8')))
+        .getSingle();
+    expect(updatedHabit.isNegative, 1);
+    expect(updatedHabit.cleanSince, cleanSinceEpoch);
 
     await migrated.close();
   });

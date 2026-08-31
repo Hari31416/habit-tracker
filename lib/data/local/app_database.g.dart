@@ -264,6 +264,32 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _isNegativeMeta = const VerificationMeta(
+    'isNegative',
+  );
+  @override
+  late final GeneratedColumn<bool> isNegative = GeneratedColumn<bool>(
+    'is_negative',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_negative" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _cleanSinceMeta = const VerificationMeta(
+    'cleanSince',
+  );
+  @override
+  late final GeneratedColumn<DateTime> cleanSince = GeneratedColumn<DateTime>(
+    'clean_since',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _isDeletedMeta = const VerificationMeta(
     'isDeleted',
   );
@@ -327,6 +353,8 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
     promptReflection,
     healthMetric,
     healthSyncEnabled,
+    isNegative,
+    cleanSince,
     isDeleted,
     createdAt,
     updatedAt,
@@ -484,6 +512,18 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
         ),
       );
     }
+    if (data.containsKey('is_negative')) {
+      context.handle(
+        _isNegativeMeta,
+        isNegative.isAcceptableOrUnknown(data['is_negative']!, _isNegativeMeta),
+      );
+    }
+    if (data.containsKey('clean_since')) {
+      context.handle(
+        _cleanSinceMeta,
+        cleanSince.isAcceptableOrUnknown(data['clean_since']!, _cleanSinceMeta),
+      );
+    }
     if (data.containsKey('is_deleted')) {
       context.handle(
         _isDeletedMeta,
@@ -623,6 +663,14 @@ class $HabitsTable extends Habits with TableInfo<$HabitsTable, HabitRow> {
         DriftSqlType.bool,
         data['${effectivePrefix}health_sync_enabled'],
       )!,
+      isNegative: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_negative'],
+      )!,
+      cleanSince: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}clean_since'],
+      ),
       isDeleted: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_deleted'],
@@ -686,6 +734,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
   final bool promptReflection;
   final HealthMetricType? healthMetric;
   final bool healthSyncEnabled;
+  final bool isNegative;
+  final DateTime? cleanSince;
   final bool isDeleted;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -714,6 +764,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     required this.promptReflection,
     this.healthMetric,
     required this.healthSyncEnabled,
+    required this.isNegative,
+    this.cleanSince,
     required this.isDeleted,
     required this.createdAt,
     required this.updatedAt,
@@ -791,6 +843,10 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       );
     }
     map['health_sync_enabled'] = Variable<bool>(healthSyncEnabled);
+    map['is_negative'] = Variable<bool>(isNegative);
+    if (!nullToAbsent || cleanSince != null) {
+      map['clean_since'] = Variable<DateTime>(cleanSince);
+    }
     map['is_deleted'] = Variable<bool>(isDeleted);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -847,6 +903,10 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
           ? const Value.absent()
           : Value(healthMetric),
       healthSyncEnabled: Value(healthSyncEnabled),
+      isNegative: Value(isNegative),
+      cleanSince: cleanSince == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cleanSince),
       isDeleted: Value(isDeleted),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -889,6 +949,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
         json['healthMetric'],
       ),
       healthSyncEnabled: serializer.fromJson<bool>(json['healthSyncEnabled']),
+      isNegative: serializer.fromJson<bool>(json['isNegative']),
+      cleanSince: serializer.fromJson<DateTime?>(json['cleanSince']),
       isDeleted: serializer.fromJson<bool>(json['isDeleted']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -922,6 +984,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       'promptReflection': serializer.toJson<bool>(promptReflection),
       'healthMetric': serializer.toJson<HealthMetricType?>(healthMetric),
       'healthSyncEnabled': serializer.toJson<bool>(healthSyncEnabled),
+      'isNegative': serializer.toJson<bool>(isNegative),
+      'cleanSince': serializer.toJson<DateTime?>(cleanSince),
       'isDeleted': serializer.toJson<bool>(isDeleted),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -953,6 +1017,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     bool? promptReflection,
     Value<HealthMetricType?> healthMetric = const Value.absent(),
     bool? healthSyncEnabled,
+    bool? isNegative,
+    Value<DateTime?> cleanSince = const Value.absent(),
     bool? isDeleted,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -993,6 +1059,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     promptReflection: promptReflection ?? this.promptReflection,
     healthMetric: healthMetric.present ? healthMetric.value : this.healthMetric,
     healthSyncEnabled: healthSyncEnabled ?? this.healthSyncEnabled,
+    isNegative: isNegative ?? this.isNegative,
+    cleanSince: cleanSince.present ? cleanSince.value : this.cleanSince,
     isDeleted: isDeleted ?? this.isDeleted,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -1057,6 +1125,12 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
       healthSyncEnabled: data.healthSyncEnabled.present
           ? data.healthSyncEnabled.value
           : this.healthSyncEnabled,
+      isNegative: data.isNegative.present
+          ? data.isNegative.value
+          : this.isNegative,
+      cleanSince: data.cleanSince.present
+          ? data.cleanSince.value
+          : this.cleanSince,
       isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -1090,6 +1164,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
           ..write('promptReflection: $promptReflection, ')
           ..write('healthMetric: $healthMetric, ')
           ..write('healthSyncEnabled: $healthSyncEnabled, ')
+          ..write('isNegative: $isNegative, ')
+          ..write('cleanSince: $cleanSince, ')
           ..write('isDeleted: $isDeleted, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -1123,6 +1199,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
     promptReflection,
     healthMetric,
     healthSyncEnabled,
+    isNegative,
+    cleanSince,
     isDeleted,
     createdAt,
     updatedAt,
@@ -1155,6 +1233,8 @@ class HabitRow extends DataClass implements Insertable<HabitRow> {
           other.promptReflection == this.promptReflection &&
           other.healthMetric == this.healthMetric &&
           other.healthSyncEnabled == this.healthSyncEnabled &&
+          other.isNegative == this.isNegative &&
+          other.cleanSince == this.cleanSince &&
           other.isDeleted == this.isDeleted &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
@@ -1185,6 +1265,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
   final Value<bool> promptReflection;
   final Value<HealthMetricType?> healthMetric;
   final Value<bool> healthSyncEnabled;
+  final Value<bool> isNegative;
+  final Value<DateTime?> cleanSince;
   final Value<bool> isDeleted;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -1214,6 +1296,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     this.promptReflection = const Value.absent(),
     this.healthMetric = const Value.absent(),
     this.healthSyncEnabled = const Value.absent(),
+    this.isNegative = const Value.absent(),
+    this.cleanSince = const Value.absent(),
     this.isDeleted = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -1244,6 +1328,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     this.promptReflection = const Value.absent(),
     this.healthMetric = const Value.absent(),
     this.healthSyncEnabled = const Value.absent(),
+    this.isNegative = const Value.absent(),
+    this.cleanSince = const Value.absent(),
     this.isDeleted = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -1280,6 +1366,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     Expression<bool>? promptReflection,
     Expression<String>? healthMetric,
     Expression<bool>? healthSyncEnabled,
+    Expression<bool>? isNegative,
+    Expression<DateTime>? cleanSince,
     Expression<bool>? isDeleted,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -1311,6 +1399,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
       if (promptReflection != null) 'prompt_reflection': promptReflection,
       if (healthMetric != null) 'health_metric': healthMetric,
       if (healthSyncEnabled != null) 'health_sync_enabled': healthSyncEnabled,
+      if (isNegative != null) 'is_negative': isNegative,
+      if (cleanSince != null) 'clean_since': cleanSince,
       if (isDeleted != null) 'is_deleted': isDeleted,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -1343,6 +1433,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     Value<bool>? promptReflection,
     Value<HealthMetricType?>? healthMetric,
     Value<bool>? healthSyncEnabled,
+    Value<bool>? isNegative,
+    Value<DateTime?>? cleanSince,
     Value<bool>? isDeleted,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -1373,6 +1465,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
       promptReflection: promptReflection ?? this.promptReflection,
       healthMetric: healthMetric ?? this.healthMetric,
       healthSyncEnabled: healthSyncEnabled ?? this.healthSyncEnabled,
+      isNegative: isNegative ?? this.isNegative,
+      cleanSince: cleanSince ?? this.cleanSince,
       isDeleted: isDeleted ?? this.isDeleted,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -1467,6 +1561,12 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
     if (healthSyncEnabled.present) {
       map['health_sync_enabled'] = Variable<bool>(healthSyncEnabled.value);
     }
+    if (isNegative.present) {
+      map['is_negative'] = Variable<bool>(isNegative.value);
+    }
+    if (cleanSince.present) {
+      map['clean_since'] = Variable<DateTime>(cleanSince.value);
+    }
     if (isDeleted.present) {
       map['is_deleted'] = Variable<bool>(isDeleted.value);
     }
@@ -1509,6 +1609,8 @@ class HabitsCompanion extends UpdateCompanion<HabitRow> {
           ..write('promptReflection: $promptReflection, ')
           ..write('healthMetric: $healthMetric, ')
           ..write('healthSyncEnabled: $healthSyncEnabled, ')
+          ..write('isNegative: $isNegative, ')
+          ..write('cleanSince: $cleanSince, ')
           ..write('isDeleted: $isDeleted, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -5552,6 +5654,8 @@ typedef $$HabitsTableCreateCompanionBuilder = HabitsCompanion Function({
   Value<bool> promptReflection,
   Value<HealthMetricType?> healthMetric,
   Value<bool> healthSyncEnabled,
+  Value<bool> isNegative,
+  Value<DateTime?> cleanSince,
   Value<bool> isDeleted,
   required DateTime createdAt,
   required DateTime updatedAt,
@@ -5582,6 +5686,8 @@ typedef $$HabitsTableUpdateCompanionBuilder = HabitsCompanion Function({
   Value<bool> promptReflection,
   Value<HealthMetricType?> healthMetric,
   Value<bool> healthSyncEnabled,
+  Value<bool> isNegative,
+  Value<DateTime?> cleanSince,
   Value<bool> isDeleted,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
@@ -5761,6 +5867,16 @@ class $$HabitsTableFilterComposer
 
   ColumnFilters<bool> get healthSyncEnabled => $composableBuilder(
     column: $table.healthSyncEnabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isNegative => $composableBuilder(
+    column: $table.isNegative,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get cleanSince => $composableBuilder(
+    column: $table.cleanSince,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5959,6 +6075,16 @@ class $$HabitsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isNegative => $composableBuilder(
+    column: $table.isNegative,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get cleanSince => $composableBuilder(
+    column: $table.cleanSince,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isDeleted => $composableBuilder(
     column: $table.isDeleted,
     builder: (column) => ColumnOrderings(column),
@@ -6096,6 +6222,16 @@ class $$HabitsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<bool> get isNegative => $composableBuilder(
+    column: $table.isNegative,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get cleanSince => $composableBuilder(
+    column: $table.cleanSince,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<bool> get isDeleted =>
       $composableBuilder(column: $table.isDeleted, builder: (column) => column);
 
@@ -6208,6 +6344,8 @@ class $$HabitsTableTableManager
                 Value<bool> promptReflection = const Value.absent(),
                 Value<HealthMetricType?> healthMetric = const Value.absent(),
                 Value<bool> healthSyncEnabled = const Value.absent(),
+                Value<bool> isNegative = const Value.absent(),
+                Value<DateTime?> cleanSince = const Value.absent(),
                 Value<bool> isDeleted = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -6237,6 +6375,8 @@ class $$HabitsTableTableManager
                 promptReflection: promptReflection,
                 healthMetric: healthMetric,
                 healthSyncEnabled: healthSyncEnabled,
+                isNegative: isNegative,
+                cleanSince: cleanSince,
                 isDeleted: isDeleted,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -6268,6 +6408,8 @@ class $$HabitsTableTableManager
                 Value<bool> promptReflection = const Value.absent(),
                 Value<HealthMetricType?> healthMetric = const Value.absent(),
                 Value<bool> healthSyncEnabled = const Value.absent(),
+                Value<bool> isNegative = const Value.absent(),
+                Value<DateTime?> cleanSince = const Value.absent(),
                 Value<bool> isDeleted = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
@@ -6297,6 +6439,8 @@ class $$HabitsTableTableManager
                 promptReflection: promptReflection,
                 healthMetric: healthMetric,
                 healthSyncEnabled: healthSyncEnabled,
+                isNegative: isNegative,
+                cleanSince: cleanSince,
                 isDeleted: isDeleted,
                 createdAt: createdAt,
                 updatedAt: updatedAt,

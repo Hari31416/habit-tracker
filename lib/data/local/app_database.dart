@@ -87,7 +87,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   Future<void> _safeAddColumn(Migrator m, TableInfo table, GeneratedColumn column) async {
     try {
@@ -149,6 +149,10 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(routineLogs);
           } catch (_) {}
         }
+        if (from < 9) {
+          await _safeAddColumn(m, habits, habits.isNegative);
+          await _safeAddColumn(m, habits, habits.cleanSince);
+        }
       },
       beforeOpen: (details) async {
         await customStatement('PRAGMA journal_mode = WAL;');
@@ -176,6 +180,8 @@ class AppDatabase extends _$AppDatabase {
           'ALTER TABLE habits ADD COLUMN mini_target_value REAL;',
           'ALTER TABLE habits ADD COLUMN elite_target_value REAL;',
           'ALTER TABLE habit_logs ADD COLUMN target_tier TEXT;',
+          'ALTER TABLE habits ADD COLUMN is_negative INTEGER NOT NULL DEFAULT 0 CHECK (is_negative IN (0, 1));',
+          'ALTER TABLE habits ADD COLUMN clean_since INTEGER;',
         ];
 
         for (final stmt in columnFixes) {

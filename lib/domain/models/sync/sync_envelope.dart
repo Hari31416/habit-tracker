@@ -182,6 +182,8 @@ class SyncDataPayload {
         'promptReflection': h.promptReflection,
         'healthMetric': h.healthMetric?.id,
         'healthSyncEnabled': h.healthSyncEnabled,
+        'isNegative': h.isNegative,
+        'cleanSince': h.cleanSince?.toUtc().toIso8601String(),
         'isDeleted': h.isDeleted,
         'createdAt': h.createdAt.toUtc().toIso8601String(),
         'updatedAt': h.updatedAt.toUtc().toIso8601String(),
@@ -226,6 +228,10 @@ class SyncDataPayload {
       promptReflection: j['promptReflection'] as bool? ?? false,
       healthMetric: HealthMetricType.fromId(j['healthMetric'] as String?),
       healthSyncEnabled: j['healthSyncEnabled'] as bool? ?? false,
+      isNegative: j['isNegative'] as bool? ?? false,
+      cleanSince: j['cleanSince'] != null
+          ? DateTime.parse(j['cleanSince'] as String).toUtc()
+          : null,
       isDeleted: j['isDeleted'] as bool? ?? false,
       createdAt: j['createdAt'] != null
           ? DateTime.parse(j['createdAt'] as String).toUtc()

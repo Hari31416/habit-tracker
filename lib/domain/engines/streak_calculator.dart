@@ -65,6 +65,19 @@ class StreakCalculator {
   }
 
   static bool isHabitScheduledOnDate(Habit habit, DateTime date) {
+    if (habit.isNegative) {
+      final cleanStart = habit.cleanSince ?? habit.createdAt;
+      final cleanStartDate =
+          DateTime(cleanStart.year, cleanStart.month, cleanStart.day);
+      final evalDate = DateTime(date.year, date.month, date.day);
+      final now = DateTime.now();
+      final todayDate = DateTime(now.year, now.month, now.day);
+      if (evalDate.isBefore(cleanStartDate) || evalDate.isAfter(todayDate)) {
+        return false;
+      }
+      return true;
+    }
+
     switch (habit.frequencyType) {
       case HabitFrequencyType.daily:
         return true;
@@ -145,7 +158,29 @@ class StreakCalculator {
     }
   }
 
-  static bool isHabitCompletedOnDate(Habit habit, List<HabitLog> logs) {
+  static bool isHabitCompletedOnDate(
+    Habit habit,
+    List<HabitLog> logs, [
+    DateTime? date,
+  ]) {
+    if (habit.isNegative) {
+      if (date != null) {
+        final cleanStart = habit.cleanSince ?? habit.createdAt;
+        final cleanStartDate =
+            DateTime(cleanStart.year, cleanStart.month, cleanStart.day);
+        final evalDate = DateTime(date.year, date.month, date.day);
+        final now = DateTime.now();
+        final todayDate = DateTime(now.year, now.month, now.day);
+
+        // Days prior to sobriety start or in the future cannot be clean
+        if (evalDate.isBefore(cleanStartDate) || evalDate.isAfter(todayDate)) {
+          return false;
+        }
+      }
+      if (logs.any((l) => !l.completed)) return false;
+      return true;
+    }
+
     if (logs.isEmpty) return false;
 
     if (habit.hasElasticTiers) {
@@ -243,6 +278,10 @@ class StreakCalculator {
           shieldedDates.add(shield.date);
         }
       }
+    }
+
+    if (habit.isNegative) {
+      return calculateNegativeStreak(habit, logsByDate, refDate, shields);
     }
 
     if (habit.frequencyType == HabitFrequencyType.weekly) {
@@ -402,6 +441,75 @@ class StreakCalculator {
       completionRate30Days: completionRate30Days,
       totalCompletions: totalCompletions,
       totalShieldedDays: totalShieldedDays,
+    );
+  }
+
+  static StreakResult calculateNegativeStreak(
+    Habit habit,
+    Map<String, List<HabitLog>> logsByDate,
+    DateTime referenceDate, [
+    List<HabitShield>? shields,
+  ]) {
+    final cleanStart = habit.cleanSince ?? habit.createdAt;
+    final cleanStartDate =
+        DateTime(cleanStart.year, cleanStart.month, cleanStart.day);
+
+    var currentStreak = 0;
+    var bestStreak = 0;
+    var tempStreak = 0;
+    var totalCompletions = 0;
+    var totalRelapseDays30 = 0;
+
+    for (var i = 0; i < 30; i++) {
+      final checkDate = referenceDate.subtract(Duration(days: i));
+      if (checkDate.isBefore(cleanStartDate)) break;
+      final dateStr = formatIsoDate(checkDate);
+      final dayLogs = logsByDate[dateStr] ?? const [];
+      final hasRelapse = dayLogs.any((l) => !l.completed);
+      if (hasRelapse) {
+        totalRelapseDays30++;
+      }
+    }
+
+    final evaluatedDays30 =
+        min(30, max(1, referenceDate.difference(cleanStartDate).inDays + 1));
+    final completionRate30Days = evaluatedDays30 > 0
+        ? (((evaluatedDays30 - totalRelapseDays30) / evaluatedDays30) * 100)
+            .round()
+            .clamp(0, 100)
+        : 100;
+
+    var checkDate = referenceDate;
+    var isCurrentStreakChain = true;
+
+    for (var i = 0; i < 365; i++) {
+      if (checkDate.isBefore(cleanStartDate)) break;
+      final dateStr = formatIsoDate(checkDate);
+      final dayLogs = logsByDate[dateStr] ?? const [];
+      final hasRelapse = dayLogs.any((l) => !l.completed);
+
+      if (!hasRelapse) {
+        totalCompletions++;
+        tempStreak++;
+        if (isCurrentStreakChain) {
+          currentStreak++;
+        }
+        if (tempStreak > bestStreak) {
+          bestStreak = tempStreak;
+        }
+      } else {
+        isCurrentStreakChain = false;
+        tempStreak = 0;
+      }
+      checkDate = checkDate.subtract(const Duration(days: 1));
+    }
+
+    return StreakResult(
+      currentStreak: currentStreak,
+      bestStreak: max(bestStreak, currentStreak),
+      completionRate30Days: completionRate30Days,
+      totalCompletions: totalCompletions,
+      totalShieldedDays: 0,
     );
   }
 }
