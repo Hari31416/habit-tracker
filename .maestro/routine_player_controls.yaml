@@ -1,0 +1,121 @@
+# Routine Player Controls & Interactions journey:
+# 1. Load starter habits and routines
+# 2. Launch player mode on Morning Momentum
+# 3. Test step navigation (skip step, previous step)
+# 4. Complete step 1 (Hydration Intake) and advance
+# 5. Complete step 2 (Morning Meditation) and advance
+# 6. Test Numeric Goal Fill on Step 3 (Read 20 Pages)
+# 7. Test early exit confirmation dialog (Stay vs Exit)
+# 8. Verify partial progress saved and Resume state on Today dashboard
+
+appId: app.phial.habits
+tags:
+  - journey
+  - full
+  - routines
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "nav_today"
+    timeout: 30000
+
+# 1. Load starter demo habits and seeded routines
+- runFlow:
+    file: helpers/load_demo_habits.yaml
+- extendedWaitUntil:
+    visible:
+      id: "btn_start_routine_seed_routine_morning"
+    timeout: 10000
+
+- assertVisible:
+    id: "btn_start_routine_seed_routine_morning"
+
+# 2. Launch Routine Player for Morning Momentum
+- tapOn:
+    id: "btn_start_routine_seed_routine_morning"
+- extendedWaitUntil:
+    visible: "Step 1 of 3"
+    timeout: 10000
+
+- assertVisible: "Hydration Intake"
+- assertVisible: "Done & Next"
+
+# 3. Test Skip Step and Previous Step navigation
+- tapOn:
+    id: "btn_step_skip"
+- extendedWaitUntil:
+    visible: "Step 2 of 3"
+    timeout: 5000
+- assertVisible: "Morning Meditation"
+
+- tapOn:
+    id: "btn_step_previous"
+- extendedWaitUntil:
+    visible: "Step 1 of 3"
+    timeout: 5000
+- assertVisible: "Hydration Intake"
+
+# 4. Complete Step 1
+- tapOn:
+    id: "btn_step_complete"
+- extendedWaitUntil:
+    visible: "Step Complete!"
+    timeout: 5000
+
+- tapOn:
+    id: "btn_step_continue"
+- extendedWaitUntil:
+    visible: "Step 2 of 3"
+    timeout: 5000
+
+# 5. Complete Step 2 (Morning Meditation)
+- tapOn:
+    id: "btn_step_complete"
+- extendedWaitUntil:
+    visible: "Step Complete!"
+    timeout: 5000
+
+- tapOn:
+    id: "btn_step_continue"
+- extendedWaitUntil:
+    visible: "Step 3 of 3"
+    timeout: 5000
+
+- assertVisible: "Read 20 Pages"
+
+# 6. Test Numeric Goal Fill on Step 3 (Read 20 Pages)
+- tapOn:
+    id: "btn_numeric_fill"
+
+# 7. Test Early Exit confirmation dialog
+- tapOn:
+    id: "btn_player_close"
+- extendedWaitUntil:
+    visible: "Exit Routine Flow?"
+    timeout: 5000
+
+# Stay keeps player open
+- tapOn: "Stay"
+- extendedWaitUntil:
+    visible: "Step 3 of 3"
+    timeout: 5000
+
+# Exit returns to Today screen
+- tapOn:
+    id: "btn_player_close"
+- extendedWaitUntil:
+    visible: "Exit Routine Flow?"
+    timeout: 5000
+- tapOn: "Exit"
+- extendedWaitUntil:
+    visible:
+      id: "nav_today"
+    timeout: 10000
+
+# 8. Assert partial progress is reflected on dashboard
+- assertVisible:
+    id: "routine_progress_seed_routine_morning"
+- assertVisible:
+    id: "btn_start_routine_seed_routine_morning"

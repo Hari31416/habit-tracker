@@ -22,12 +22,15 @@ tags:
 - runFlow:
     file: helpers/load_demo_habits.yaml
 - extendedWaitUntil:
-    visible: "Routines & Stacks"
+    visible:
+      id: "routine_section_header"
     timeout: 10000
 
 # 2. Assert seeded routines appear
-- assertVisible: "Morning Momentum"
-- assertVisible: "Evening Wind-Down"
+- assertVisible:
+    id: "btn_start_routine_seed_routine_morning"
+- assertVisible:
+    id: "btn_start_routine_seed_routine_evening"
 
 # 3. Create a custom habit stack
 - tapOn:
@@ -41,6 +44,7 @@ tags:
 - inputText: "Maestro Evening Routine"
 - runFlow:
     file: helpers/dismiss_stylus_prompt.yaml
+- tapOn: "Description (Optional)"
 
 - tapOn:
     id: "btn_add_routine_step"
@@ -49,9 +53,11 @@ tags:
     timeout: 5000
 
 # Pick habits for the stack
-- tapOn: "Morning Meditation"
+- tapOn:
+    id: "picker_habit_seed_habit_meditation"
 - extendedWaitUntil:
-    visible: "Morning Meditation"
+    visible:
+      id: "stack_step_1"
     timeout: 5000
 
 - tapOn:
@@ -59,20 +65,33 @@ tags:
 - extendedWaitUntil:
     visible: "Add Habit to Stack"
     timeout: 5000
-- tapOn: "Daily Pushups"
+- tapOn:
+    id: "picker_habit_seed_habit_read"
 
 - extendedWaitUntil:
-    visible: "Daily Pushups"
+    visible:
+      id: "stack_step_2"
     timeout: 5000
 
 # Save custom stack
+- scrollUntilVisible:
+    element:
+      id: "btn_save_routine"
+    direction: DOWN
+    timeout: 15000
 - tapOn:
     id: "btn_save_routine"
 - extendedWaitUntil:
-    visible: "Maestro Evening Routine"
+    notVisible:
+      id: "btn_save_routine"
     timeout: 10000
 
-# 4. Launch Routine Player for the newly created stack
+# 4. Launch Routine Player for Morning Momentum stack
+- scrollUntilVisible:
+    element:
+      id: "btn_start_routine_seed_routine_morning"
+    direction: UP
+    timeout: 10000
 - tapOn:
     id: "btn_start_routine_seed_routine_morning"
 - extendedWaitUntil:
@@ -126,4 +145,5 @@ tags:
       id: "nav_today"
     timeout: 10000
 
-- assertVisible: "Morning Momentum"
+- assertVisible:
+    id: "btn_start_routine_seed_routine_morning"

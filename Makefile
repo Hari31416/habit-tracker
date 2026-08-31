@@ -231,7 +231,7 @@ maestro: ## Run full Maestro suite (or single flow with FLOW=path) on connected 
 		echo "=== $(FLOW) ==="; \
 		maestro test "$(FLOW)" || exit 1; \
 	else \
-		for flow in .maestro/smoke.yaml .maestro/create_and_check_in.yaml .maestro/archive_habit.yaml .maestro/numeric_habit.yaml .maestro/edit_habit.yaml .maestro/delete_habit.yaml .maestro/routine_stacks.yaml .maestro/settings_and_theme.yaml .maestro/gamification_xp.yaml .maestro/analytics_insights.yaml .maestro/backup_export.yaml; do \
+		for flow in .maestro/smoke.yaml .maestro/create_and_check_in.yaml .maestro/archive_habit.yaml .maestro/numeric_habit.yaml .maestro/edit_habit.yaml .maestro/delete_habit.yaml .maestro/routine_stacks.yaml .maestro/routine_player_controls.yaml .maestro/routine_edit_delete.yaml .maestro/settings_and_theme.yaml .maestro/gamification_xp.yaml .maestro/analytics_insights.yaml .maestro/backup_export.yaml; do \
 			echo ""; \
 			echo "=== $$flow ==="; \
 			maestro test "$$flow" || exit 1; \

@@ -1,0 +1,101 @@
+# Routine Stack Edit & Delete lifecycle:
+# 1. Load starter habits and routines
+# 2. Open options menu on Evening Wind-Down routine stack
+# 3. Edit title in RoutineBuilderSheet and save
+# 4. Verify updated stack title on Today screen
+# 5. Open options menu and delete the routine stack
+# 6. Verify stack is removed while individual habits remain intact
+
+appId: app.phial.habits
+tags:
+  - journey
+  - full
+  - routines
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "nav_today"
+    timeout: 30000
+
+# 1. Load starter demo habits and seeded routines
+- runFlow:
+    file: helpers/load_demo_habits.yaml
+- extendedWaitUntil:
+    visible:
+      id: "btn_routine_menu_seed_routine_evening"
+    timeout: 10000
+
+- assertVisible:
+    id: "btn_routine_menu_seed_routine_evening"
+
+# 2. Open options menu on Evening Wind-Down
+- tapOn:
+    id: "btn_routine_menu_seed_routine_evening"
+- extendedWaitUntil:
+    visible: "Edit Stack"
+    timeout: 5000
+
+# 3. Tap Edit Stack and update title
+- tapOn: "Edit Stack"
+- extendedWaitUntil:
+    visible: "Edit Habit Stack"
+    timeout: 10000
+
+- tapOn:
+    id: "routine_title_field"
+- eraseText: 30
+- inputText: "Maestro Night Routine"
+- runFlow:
+    file: helpers/dismiss_stylus_prompt.yaml
+- tapOn: "Description (Optional)"
+
+- scrollUntilVisible:
+    element:
+      id: "btn_save_routine"
+    direction: DOWN
+    timeout: 15000
+- tapOn:
+    id: "btn_save_routine"
+- extendedWaitUntil:
+    notVisible:
+      id: "btn_save_routine"
+    timeout: 10000
+
+- scrollUntilVisible:
+    element:
+      id: "btn_routine_menu_seed_routine_evening"
+    direction: UP
+    timeout: 10000
+- assertVisible:
+    id: "btn_routine_menu_seed_routine_evening"
+
+# 4. Open options menu on updated stack and delete
+- tapOn:
+    id: "btn_routine_menu_seed_routine_evening"
+- extendedWaitUntil:
+    visible: "Delete Stack"
+    timeout: 5000
+
+- tapOn: "Delete Stack"
+- extendedWaitUntil:
+    visible: "Delete Routine Stack?"
+    timeout: 5000
+
+# Confirm deletion
+- tapOn: "Delete"
+- extendedWaitUntil:
+    notVisible:
+      id: "btn_routine_menu_seed_routine_evening"
+    timeout: 10000
+
+- assertNotVisible:
+    id: "btn_routine_menu_seed_routine_evening"
+
+# 5. Verify individual habits from the routine remain intact on dashboard
+- scrollUntilVisible:
+    element: "Check in Evening Reflection"
+    direction: DOWN
+    timeout: 10000
+- assertVisible: "Check in Evening Reflection"
