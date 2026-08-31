@@ -149,9 +149,23 @@
       </div>
 
       <div class="features-grid">
-        <!-- Feature 1: Focus Timer -->
+        <!-- Feature 1: Habit Stacking & Routines -->
         <div class="feature-card">
           <div class="feature-icon primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+            </svg>
+          </div>
+          <h3>Habit Stacking Routines</h3>
+          <p>Group sequential habits into morning, workday, or evening flows. Guided full-screen player with live timers, cue prompts, and completion XP bonuses.</p>
+          <div class="feature-tag">Sequential Chains • Routine Player</div>
+        </div>
+
+        <!-- Feature 2: Focus Timer -->
+        <div class="feature-card">
+          <div class="feature-icon cyan">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
               stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"></circle>
@@ -164,7 +178,7 @@
           <div class="feature-tag">Zen Mode • Background Service</div>
         </div>
 
-        <!-- Feature 2: Habit Shields -->
+        <!-- Feature 3: Habit Shields -->
         <div class="feature-card">
           <div class="feature-icon cyan">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -178,7 +192,7 @@
           <div class="feature-tag">Streak Freeze • 14d Banking</div>
         </div>
 
-        <!-- Feature 3: Check-in Reflections -->
+        <!-- Feature 4: Check-in Reflections -->
         <div class="feature-card">
           <div class="feature-icon purple">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -194,7 +208,7 @@
           <div class="feature-tag">Energy Ratings • Mood Tags</div>
         </div>
 
-        <!-- Feature 4: Google Health Connect -->
+        <!-- Feature 5: Google Health Connect -->
         <div class="feature-card">
           <div class="feature-icon emerald">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -207,7 +221,7 @@
           <div class="feature-tag">Health Connect SDK • 7 Metrics</div>
         </div>
 
-        <!-- Feature 5: XP and Mastery -->
+        <!-- Feature 6: XP and Mastery -->
         <div class="feature-card">
           <div class="feature-icon amber">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -218,23 +232,8 @@
           </div>
           <h3>XP, Titles &amp; Mastery</h3>
           <p>Gamification designed to keep you motivated: level up from Novice to Grandmaster. Earn XP for every check-in, climb a
-            quadratic curve, and unlock 28 milestone badges.</p>
-          <div class="feature-tag">Quadratic XP • 28 Badges</div>
-        </div>
-
-        <!-- Feature 6: Local-First & Offline -->
-        <div class="feature-card">
-          <div class="feature-icon cyan">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-              stroke-linejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-            </svg>
-          </div>
-          <h3>100% Offline &amp; Private</h3>
-          <p>All habits, logs, reflections, and timer history remain securely on your device. Drift SQLite locally, no account,
-            zero telemetry, and zero-knowledge encrypted backups.</p>
-          <div class="feature-tag">Drift SQLite • Zero Telemetry</div>
+            quadratic curve, and unlock 33 milestone badges.</p>
+          <div class="feature-tag">Quadratic XP • 33 Badges</div>
         </div>
       </div>
     </div>
@@ -251,6 +250,7 @@
 
       <div class="tabs-nav">
         <button class="tab-btn active" data-tab="tab-today">Daily Tracker</button>
+        <button class="tab-btn" data-tab="tab-routines">Habit Stacking</button>
         <button class="tab-btn" data-tab="tab-elastic">Elastic Goals</button>
         <button class="tab-btn" data-tab="tab-matrix">Week Matrix</button>
         <button class="tab-btn" data-tab="tab-timer">Focus Timer</button>
@@ -294,6 +294,55 @@
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
                   <span><strong>Quick Focus:</strong> One-tap launch directly into deep work timer sessions.</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Habit Stacking Routines -->
+        <div id="tab-routines" class="tab-pane">
+          <div class="tab-content-grid extra-wide">
+            <div class="screenshots-trio">
+              <div class="guide-screenshot-wrap">
+                <img src="assets/img/screen_routines_today.png" alt="Routines &amp; Stacks on Daily Tracker">
+              </div>
+              <div class="guide-screenshot-wrap">
+                <img src="assets/img/screen_routine_builder.png" alt="Create Habit Stack Builder">
+              </div>
+              <div class="guide-screenshot-wrap">
+                <img src="assets/img/screen_routine_player.png" alt="Full-Screen Routine Player Flow">
+              </div>
+            </div>
+            <div class="tab-details">
+              <h4>Habit Stacking Routines &amp; Flow Execution</h4>
+              <p>
+                Chain atomic habits into automated sequences (Morning Momentum, Evening Wind-Down). Execute your routines with a full-screen guided player featuring live step timers, contextual prompts, and completion XP rewards.
+              </p>
+              <ul class="tab-feature-list">
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span><strong>Sequential Habits:</strong> Chain habits so completing one naturally cues the next step in flow.</span>
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span><strong>Reorderable Builder:</strong> Drag-and-drop steps, custom icons, color themes, and time windows (Morning, Afternoon, Evening, Anytime).</span>
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span><strong>Full-Screen Player:</strong> Guided step prompts (&ldquo;After X &rarr; Next: Y&rdquo;), animated countdown/stopwatch timers, skip controls, and celebration screen.</span>
+                </li>
+                <li>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span><strong>Stack Completion Bonus:</strong> Earn bonus XP (+30 XP) multiplied by your active streak tier upon finishing the chain.</span>
                 </li>
               </ul>
             </div>
@@ -628,7 +677,7 @@
               <h4>Mastery &amp; Badges</h4>
               <p>
                 Earn XP for daily check-ins, unlock titles from Novice to Grandmaster, boost rewards with streak multipliers, and
-                collect 28 milestone achievement badges.
+                collect 33 milestone achievement badges.
               </p>
               <ul class="tab-feature-list">
                 <li>
@@ -647,7 +696,7 @@
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  <span><strong>28 Milestone Badges:</strong> Filter by Streaks, Volume, Diversity, and Perfection.</span>
+                  <span><strong>33 Milestone Badges:</strong> Filter by Streaks, Volume, Diversity, Perfection, and Routines.</span>
                 </li>
               </ul>
             </div>

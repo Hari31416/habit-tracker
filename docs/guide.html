@@ -111,6 +111,7 @@
           <li><a href="#frequency-types">Recurrence Schedules</a></li>
           <li><a href="#target-types">Target Engines</a></li>
           <li><a href="#elastic-goals">Elastic Goals &amp; Bad-Day Mode</a></li>
+          <li><a href="#habit-stacking-routines">Habit Stacking Routines</a></li>
         </ul>
 
         <div class="toc-group-title">Reflections &amp; Mindfulness</div>
@@ -132,7 +133,7 @@
           <li><a href="#habit-shields">Habit Shields &amp; Banking</a></li>
           <li><a href="#rpg-gamification">XP, Titles &amp; Mastery</a></li>
           <li><a href="#streak-multipliers">Streak Multipliers</a></li>
-          <li><a href="#achievement-badges">28 Milestone Badges</a></li>
+          <li><a href="#achievement-badges">33 Milestone Badges</a></li>
         </ul>
 
         <div class="toc-group-title">Analytics &amp; Insights</div>
@@ -201,6 +202,7 @@
               <li><a href="#frequency-types">Recurrence Schedules</a></li>
               <li><a href="#target-types">Target Engines</a></li>
               <li><a href="#elastic-goals">Elastic Goals &amp; Bad-Day Mode</a></li>
+              <li><a href="#habit-stacking-routines">Habit Stacking Routines</a></li>
             </ul>
 
             <div class="toc-group-title">Reflections &amp; Mindfulness</div>
@@ -222,7 +224,7 @@
               <li><a href="#habit-shields">Habit Shields &amp; Banking</a></li>
               <li><a href="#rpg-gamification">XP, Titles &amp; Mastery</a></li>
               <li><a href="#streak-multipliers">Streak Multipliers</a></li>
-              <li><a href="#achievement-badges">28 Milestone Badges</a></li>
+              <li><a href="#achievement-badges">33 Milestone Badges</a></li>
             </ul>
 
             <div class="toc-group-title">Analytics &amp; Insights</div>
@@ -389,6 +391,69 @@
           </div>
         </section>
 
+        <!-- Section: Habit Stacking Routines & Flow Execution -->
+        <section id="habit-stacking-routines" class="guide-section">
+          <h2>Habit Stacking Routines &amp; Flow Execution</h2>
+          <p>
+            Habit Stacking leverages the established behavioral psychology formula: <em>&ldquo;After [Current Habit], I will [Next Habit]&rdquo;</em>. Instead of viewing daily habits as isolated tasks, Phial enables you to group habits into sequential chains (e.g. <strong>Morning Momentum</strong>, <strong>Workday Startup</strong>, <strong>Evening Wind-Down</strong>) and execute them through a guided, full-screen player.
+          </p>
+
+          <!-- Visual Card 1: Today Screen Routines Section -->
+          <div class="guide-visual-card">
+            <div class="guide-screenshot-wrap">
+              <img src="assets/img/screen_routines_today.png" alt="Routines and Habit Stacks on Daily Dashboard">
+            </div>
+            <div>
+              <h3>Routines &amp; Stacks on Daily Dashboard</h3>
+              <ul>
+                <li><strong>Dedicated Stacks Section:</strong> The Daily Tracker features an expandable <em>Routines &amp; Stacks</em> section displaying active daily routines alongside standard single-habit cards.</li>
+                <li><strong>Real-Time Step Breadcrumbs:</strong> Live visual step chips indicate completed habits (with strikethrough checkmarks) and the currently active target step in the flow.</li>
+                <li><strong>Quick Flow Actions:</strong> One-tap <em>Resume</em> button immediately jumps back into active routines, while <em>Replay</em> allows repeating routines anytime.</li>
+                <li><strong>Collapsible Hierarchy:</strong> Easily collapse or expand routines to maintain a clean, organized dashboard.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Visual Card 2: Create / Edit Routine Builder -->
+          <div class="guide-visual-card reverse" style="margin-top: 24px;">
+            <div>
+              <h3>Reorderable Routine Builder</h3>
+              <ul>
+                <li><strong>Reorderable Step Chain:</strong> Drag-and-drop handles allow you to rearrange habit steps effortlessly, with automatic step numbering and <em>First step</em> trigger indicators.</li>
+                <li><strong>Target Time Windows:</strong> Schedule routines for specific time windows: <em>Morning (06:00–10:00)</em>, <em>Afternoon (12:00–16:00)</em>, <em>Evening (18:00–22:00)</em>, or <em>Anytime</em>.</li>
+                <li><strong>Visual Customization:</strong> Assign custom color theme accents (Blue, Purple, Emerald, Amber, Red, Pink, Cyan, Violet) and expressive stack icons (Sun, Moon, Zap, Link, Activity).</li>
+                <li><strong>Stack Completion Bonus XP:</strong> Configure dedicated bonus rewards (e.g. <code>+30 XP</code>) awarded exclusively when completing the entire sequence in order.</li>
+                <li><strong>Scheduled Days &amp; Reminders:</strong> Configure custom active days of the week and routine reminder notification alarms.</li>
+              </ul>
+            </div>
+            <div class="guide-screenshot-wrap">
+              <img src="assets/img/screen_routine_builder.png" alt="Create and Edit Habit Stack Builder Sheet">
+            </div>
+          </div>
+
+          <!-- Visual Card 3: Full-Screen Routine Player -->
+          <div class="guide-visual-card" style="margin-top: 24px;">
+            <div class="guide-screenshot-wrap">
+              <img src="assets/img/screen_routine_player.png" alt="Full-Screen Routine Player Interface">
+            </div>
+            <div>
+              <h3>Full-Screen Guided Routine Player</h3>
+              <ul>
+                <li><strong>Contextual Step Prompts:</strong> Displays clear transition cues (e.g. <em>&ldquo;After Hydration Intake &rarr; Next: Read 20 Pages&rdquo;</em>) to eliminate decision fatigue.</li>
+                <li><strong>Integrated Timers &amp; Target Controls:</strong> Features animated circular countdown and stopwatch timers for duration-based habits, with step progress bars and target steppers.</li>
+                <li><strong>Step Advance &amp; Skip Controls:</strong> Tap <em>Done &amp; Next</em> to complete the current habit and smoothly advance, or tap <em>Skip Step</em> when life requires flexibility.</li>
+                <li><strong>Inline Reflection Notes:</strong> Optional 1-line micro-reflection input directly inside the active step flow without disrupting momentum.</li>
+                <li><strong>Haptic Feedback &amp; Celebration:</strong> System haptic feedback on step completion, culminating in a full-screen celebration screen awarding combined base habit XP and routine bonus XP.</li>
+              </ul>
+            </div>
+          </div>
+
+          <h3>Drift SQLite Persistence &amp; Sync Architecture</h3>
+          <p>
+            Routine configurations and execution histories are persisted locally in Drift SQLite via the <code>habit_routines</code> and <code>routine_logs</code> tables (schema version 8). All routine records include soft-deletion tombstone tracking and are fully serialized in AES-256 encrypted backups, Gzip archives, and deterministic 2-way sync envelopes.
+          </p>
+        </section>
+
         <!-- Section 3: Check-In Reflections & Mindfulness -->
         <section id="checkin-reflections" class="guide-section">
           <h2>3. Check-In Reflections &amp; Mindfulness</h2>
@@ -520,7 +585,7 @@
 
         <!-- Section 6: XP and titles -->
         <section id="rpg-gamification" class="guide-section">
-          <h2>6. XP, Titles &amp; 28 Badges</h2>
+          <h2>6. XP, Titles &amp; 33 Badges</h2>
           <p>
             Stay motivated with a rewarding progression system. Every completed check-in awards XP, raises
             your title from Novice toward Grandmaster, and unlocks milestone badges.
@@ -537,6 +602,7 @@
                 <li><strong>Focus Timer:</strong> <code>+1 XP per focused minute</code> (up to
                   <code>+45 Base XP</code> per session).
                 </li>
+                <li><strong>Routine Completion Bonus:</strong> Configurable stack bonus (e.g. <code>+30 XP</code>) on completing sequential chains.</li>
               </ul>
 
               <h3 id="streak-multipliers">Streak Multipliers</h3>
@@ -599,8 +665,8 @@
             <li><strong>Grandmaster (Level 25+):</strong> Unshakeable mastery over daily discipline.</li>
           </ul>
 
-          <h3 id="achievement-badges">28 Unlockable Achievement Badges</h3>
-          <p>Filter badges by category (Streaks, Volume, Diversity, Perfection) and inspect your unlocking journey:</p>
+          <h3 id="achievement-badges">33 Unlockable Achievement Badges</h3>
+          <p>Filter badges by category (Streaks, Volume, Diversity, Perfection, Routines) and inspect your unlocking journey:</p>
 
           <div class="guide-visual-card">
             <div class="guide-screenshot-wrap">
@@ -631,6 +697,11 @@
                         <td><strong>Category Diversity</strong></td>
                         <td>Balanced Life, Renaissance Soul, Polymath, Health Champion, Focus Titan, Mindful Master</td>
                         <td>2 cats (50 XP), 3 cats (150 XP), 5 cats (350 XP), 20 health (200 XP), 20 work (200 XP), 20 mind (200 XP)</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Routine Chains &amp; Stacking</strong></td>
+                        <td>Chain Reaction, Habit Stacker, Morning Virtuoso, Routine Virtuoso, Master of Flow</td>
+                        <td>1 routine (50 XP), 5 routines (100 XP), 7 morning (200 XP), 25 routines (300 XP), 100 routines (1000 XP)</td>
                       </tr>
                       <tr>
                         <td><strong>Perfect Days</strong></td>
