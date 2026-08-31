@@ -2,10 +2,12 @@ import 'package:habit_tracker/domain/models/habit.dart';
 import 'package:habit_tracker/domain/models/habit_category.dart';
 import 'package:habit_tracker/domain/models/habit_frequency_type.dart';
 import 'package:habit_tracker/domain/models/habit_log.dart';
+import 'package:habit_tracker/domain/models/habit_routine.dart';
 import 'package:habit_tracker/domain/models/habit_shield.dart';
 import 'package:habit_tracker/domain/models/habit_target_type.dart';
 import 'package:habit_tracker/domain/models/habit_tier.dart';
 import 'package:habit_tracker/domain/models/health/health_metric_type.dart';
+import 'package:habit_tracker/domain/models/routine_log.dart';
 import 'package:habit_tracker/domain/models/sync/sync_envelope.dart';
 import 'package:habit_tracker/domain/models/time_window.dart';
 
@@ -115,11 +117,39 @@ const List<String> kGamificationJsonKeys = [
   'updatedAt',
 ];
 
+const List<String> kRoutineJsonKeys = [
+  'id',
+  'title',
+  'description',
+  'color',
+  'icon',
+  'targetTimeWindow',
+  'habitIds',
+  'bonusXp',
+  'isDeleted',
+  'createdAt',
+  'updatedAt',
+];
+
+const List<String> kRoutineLogJsonKeys = [
+  'id',
+  'routineId',
+  'date',
+  'completedAt',
+  'completedHabitIds',
+  'xpEarned',
+  'isDeleted',
+  'createdAt',
+  'updatedAt',
+];
+
 class ContractFixtures {
   static const String habitId = 'habit_contract_full';
   static const String categoryId = 'cat_contract_health';
   static const String logId = 'log_contract_full';
   static const String shieldId = 'shield_contract_full';
+  static const String routineId = 'routine_contract_morning';
+  static const String routineLogId = 'routine_log_contract_full';
 
   /// Real definition id so merge can keep `notified`.
   static const String achievementId = 'vol_1';
@@ -204,4 +234,30 @@ class ContractFixtures {
   static const int lastCelebratedLevel = 4;
   static const int maxShieldsCapacity = 7;
   static const bool autoConsumeShields = false;
+
+  static HabitRoutine routine() => HabitRoutine(
+        id: routineId,
+        title: 'Contract Morning Stack',
+        description: 'Distinctive routine description',
+        color: '#7C2D12',
+        icon: 'sunrise',
+        targetTimeWindow: const TimeWindow(startTime: '06:00', endTime: '08:00'),
+        habitIds: const [habitId, 'habit_contract_secondary'],
+        bonusXp: 42,
+        isDeleted: false,
+        createdAt: kContractCreatedAt,
+        updatedAt: kContractUpdatedAt,
+      );
+
+  static RoutineLog routineLog() => RoutineLog(
+        id: routineLogId,
+        routineId: routineId,
+        date: '2026-03-20',
+        completedAt: kContractLogTimestamp,
+        completedHabitIds: const [habitId],
+        xpEarned: 42,
+        isDeleted: false,
+        createdAt: kContractCreatedAt,
+        updatedAt: kContractUpdatedAt,
+      );
 }

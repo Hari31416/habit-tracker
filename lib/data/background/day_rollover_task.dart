@@ -32,6 +32,7 @@ Future<bool> executeBackgroundDayRollover([DateTime? rolloverDate]) async {
       habitLogDao: db.habitLogDao,
       habitShieldDao: db.habitShieldDao,
       habitCategoryDao: db.habitCategoryDao,
+      routineDao: db.routineDao,
     );
     final widgetSync = WidgetSyncService(habitRepo, gamificationRepo);
     final prefs = await SharedPreferences.getInstance();

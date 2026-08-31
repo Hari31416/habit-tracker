@@ -158,10 +158,7 @@ class AchievementEvaluator {
       totalRoutineCompletions++;
       final routine = routinesMap[rLog.routineId];
       if (routine != null) {
-        final titleLower = routine.title.toLowerCase();
-        final isMorning = titleLower.contains('morning') ||
-            (routine.targetTimeWindow != null &&
-                routine.targetTimeWindow!.startTime.compareTo('12:00') < 0);
+        final isMorning = _isMorningRoutine(routine);
         if (isMorning) {
           morningRoutineCompletions++;
         }
@@ -260,5 +257,15 @@ class AchievementEvaluator {
         unlockedAt: context.storedUnlocks[def.id] ?? (isUnlocked ? DateTime.now() : null),
       );
     }).toList();
+  }
+
+  static bool _isMorningRoutine(HabitRoutine routine) {
+    // Prefer explicit time window when present; fall back to title heuristic.
+    if (routine.targetTimeWindow != null) {
+      final start = routine.targetTimeWindow!.startTime;
+      final hour = int.tryParse(start.split(':').first) ?? 12;
+      return hour < 12;
+    }
+    return routine.title.toLowerCase().contains('morning');
   }
 }

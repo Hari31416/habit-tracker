@@ -28,6 +28,7 @@ class JourneyHarness {
       habitShieldDao: db.habitShieldDao,
       habitCategoryDao: db.habitCategoryDao,
       gamificationDao: db.gamificationDao,
+      routineDao: db.routineDao,
     );
     backup = BackupRepositoryImpl(
       db: db,

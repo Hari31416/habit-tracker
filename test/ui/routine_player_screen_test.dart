@@ -168,8 +168,9 @@ void main() {
     await tester.tap(find.text('Complete Stack'));
     await tester.pumpAndSettle();
 
-    // Verify all 4 interval slots were logged in repository
-    final logs = await mockHabitRepo.getLogsForDateOnce(now);
+    // Verify all 4 interval slots were logged in repository (player uses DateTime.now)
+    final today = DateTime.now();
+    final logs = await mockHabitRepo.getLogsForDateOnce(today);
     final waterLogs = logs.where((l) => l.habitId == 'seed_habit_water').toList();
     expect(waterLogs.length, 4);
     expect(waterLogs.every((l) => l.completed), isTrue);

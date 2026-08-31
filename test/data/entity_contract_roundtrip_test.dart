@@ -5,6 +5,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:habit_tracker/data/local/app_database.dart';
+import 'package:habit_tracker/data/local/converters/entity_mappers.dart';
 import 'package:habit_tracker/data/preferences/theme_preferences.dart';
 import 'package:habit_tracker/data/repositories/backup_repository_impl.dart';
 import 'package:habit_tracker/data/repositories/gamification_repository_impl.dart';
@@ -13,7 +14,9 @@ import 'package:habit_tracker/data/schedulers/no_op_habit_reminder_scheduler.dar
 import 'package:habit_tracker/domain/models/habit.dart';
 import 'package:habit_tracker/domain/models/habit_category.dart';
 import 'package:habit_tracker/domain/models/habit_log.dart';
+import 'package:habit_tracker/domain/models/habit_routine.dart';
 import 'package:habit_tracker/domain/models/habit_shield.dart';
+import 'package:habit_tracker/domain/models/routine_log.dart';
 import 'package:habit_tracker/domain/repositories/backup_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -61,6 +64,7 @@ void main() {
       habitShieldDao: db.habitShieldDao,
       habitCategoryDao: db.habitCategoryDao,
       gamificationDao: db.gamificationDao,
+      routineDao: db.routineDao,
     );
   });
 
@@ -76,6 +80,8 @@ void main() {
     final expectedLog = ContractFixtures.log();
     final expectedCategory = ContractFixtures.category();
     final expectedShield = ContractFixtures.shield();
+    final expectedRoutine = ContractFixtures.routine();
+    final expectedRoutineLog = ContractFixtures.routineLog();
 
     final habitFromRepo =
         await habitRepository.getHabitByIdOnce(ContractFixtures.habitId);
@@ -97,6 +103,14 @@ void main() {
     expect(shields, hasLength(1));
     _assertShield(shields.single, expectedShield);
 
+    final routineRows = await db.routineDao.getAllRoutinesIncludingDeleted();
+    expect(routineRows, hasLength(1));
+    _assertRoutine(routineRows.single.toDomain(), expectedRoutine);
+
+    final routineLogRows = await db.routineDao.getAllRoutineLogsIncludingDeleted();
+    expect(routineLogRows, hasLength(1));
+    _assertRoutineLog(routineLogRows.single.toDomain(), expectedRoutineLog);
+
     final habitRows = await db.habitDao.getAllHabitsIncludingDeleted();
     final mappedHabit = gamificationRepository.habitFromRow(
       habitRows.firstWhere((r) => r.id == ContractFixtures.habitId),
@@ -108,6 +122,14 @@ void main() {
       logRows.firstWhere((r) => r.id == ContractFixtures.logId),
     );
     _assertLog(mappedLog, expectedLog);
+
+    // Verify companion roundtrip for new tables via entity_mappers
+    final routineCompanion = expectedRoutine.toCompanion();
+    expect(routineCompanion.id.value, expectedRoutine.id);
+    expect(routineCompanion.habitIds.value, expectedRoutine.habitIds);
+    final routineLogCompanion = expectedRoutineLog.toCompanion();
+    expect(routineLogCompanion.id.value, expectedRoutineLog.id);
+    expect(routineLogCompanion.xpEarned.value, expectedRoutineLog.xpEarned);
 
     final exported = await backupRepository.exportBackupJson(
       deviceId: kContractDeviceId,
@@ -146,6 +168,7 @@ void main() {
       habitShieldDao: restoreDb.habitShieldDao,
       habitCategoryDao: restoreDb.habitCategoryDao,
       gamificationDao: restoreDb.gamificationDao,
+      routineDao: restoreDb.routineDao,
     );
 
     await restoreBackup.executeImport(exported, mode: ImportMode.overwrite);
@@ -167,6 +190,14 @@ void main() {
     final restoredShields = await restoreHabits.getAllShieldsOnce();
     expect(restoredShields, hasLength(1));
     _assertShield(restoredShields.single, expectedShield);
+
+    final restoredRoutineRows = await restoreDb.routineDao.getAllRoutinesIncludingDeleted();
+    expect(restoredRoutineRows, hasLength(1));
+    _assertRoutine(restoredRoutineRows.single.toDomain(), expectedRoutine);
+
+    final restoredRoutineLogRows = await restoreDb.routineDao.getAllRoutineLogsIncludingDeleted();
+    expect(restoredRoutineLogRows, hasLength(1));
+    _assertRoutineLog(restoredRoutineLogRows.single.toDomain(), expectedRoutineLog);
 
     final restoredHabitRows =
         await restoreDb.habitDao.getAllHabitsIncludingDeleted();
@@ -199,6 +230,10 @@ Future<void> _seedContractState(
 ) async {
   await habitRepository.upsertCategory(ContractFixtures.category());
   await habitRepository.upsertHabit(ContractFixtures.habit());
+  final routine = ContractFixtures.routine();
+  await db.routineDao.upsertRoutine(routine.toCompanion());
+  final routineLog = ContractFixtures.routineLog();
+  await db.routineDao.upsertRoutineLog(routineLog.toCompanion());
 
   final log = ContractFixtures.log();
   await db.habitLogDao.upsertLog(
@@ -294,6 +329,14 @@ void _assertEnvelopeKeys(Map<String, dynamic> decoded) {
     (s) => s['id'] == ContractFixtures.shieldId,
   );
   expect(shieldJson.keys.toSet(), equals(kShieldJsonKeys.toSet()));
+
+  final routines = (data['routines'] as List).cast<Map<String, dynamic>>();
+  final routineJson = routines.firstWhere((r) => r['id'] == ContractFixtures.routineId);
+  expect(routineJson.keys.toSet(), equals(kRoutineJsonKeys.toSet()));
+  expect(routineJson['targetTimeWindow'], isA<Map<String, dynamic>>());
+  final routineLogs = (data['routineLogs'] as List).cast<Map<String, dynamic>>();
+  final routineLogJson = routineLogs.firstWhere((r) => r['id'] == ContractFixtures.routineLogId);
+  expect(routineLogJson.keys.toSet(), equals(kRoutineLogJsonKeys.toSet()));
 
   final gamification = data['gamification'] as Map<String, dynamic>;
   expect(gamification.keys.toSet(), equals(kGamificationJsonKeys.toSet()));
@@ -412,6 +455,32 @@ void _assertShield(HabitShield actual, HabitShield expected) {
   expect(actual.isDeleted, expected.isDeleted);
   _assertUtc(actual.createdAt, expected.createdAt, name: 'shield.createdAt');
   _assertUtc(actual.updatedAt, expected.updatedAt, name: 'shield.updatedAt');
+}
+
+void _assertRoutine(HabitRoutine actual, HabitRoutine expected) {
+  expect(actual.id, expected.id);
+  expect(actual.title, expected.title);
+  expect(actual.description, expected.description);
+  expect(actual.color, expected.color);
+  expect(actual.icon, expected.icon);
+  expect(actual.targetTimeWindow, expected.targetTimeWindow);
+  expect(actual.habitIds, expected.habitIds);
+  expect(actual.bonusXp, expected.bonusXp);
+  expect(actual.isDeleted, expected.isDeleted);
+  _assertUtc(actual.createdAt, expected.createdAt, name: 'routine.createdAt');
+  _assertUtc(actual.updatedAt, expected.updatedAt, name: 'routine.updatedAt');
+}
+
+void _assertRoutineLog(RoutineLog actual, RoutineLog expected) {
+  expect(actual.id, expected.id);
+  expect(actual.routineId, expected.routineId);
+  expect(actual.date, expected.date);
+  _assertUtc(actual.completedAt, expected.completedAt, name: 'routineLog.completedAt');
+  expect(actual.completedHabitIds, expected.completedHabitIds);
+  expect(actual.xpEarned, expected.xpEarned);
+  expect(actual.isDeleted, expected.isDeleted);
+  _assertUtc(actual.createdAt, expected.createdAt, name: 'routineLog.createdAt');
+  _assertUtc(actual.updatedAt, expected.updatedAt, name: 'routineLog.updatedAt');
 }
 
 void _assertUtc(DateTime? actual, DateTime? expected, {required String name}) {

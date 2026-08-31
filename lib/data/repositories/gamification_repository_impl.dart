@@ -42,7 +42,7 @@ class GamificationRepositoryImpl implements GamificationRepository {
   final HabitShieldDao habitShieldDao;
   final HabitCategoryDao habitCategoryDao;
   final GamificationDao gamificationDao;
-  final RoutineDao? routineDao;
+  final RoutineDao routineDao;
 
   GamificationRepositoryImpl({
     required this.habitDao,
@@ -50,7 +50,7 @@ class GamificationRepositoryImpl implements GamificationRepository {
     required this.habitShieldDao,
     required this.habitCategoryDao,
     required this.gamificationDao,
-    this.routineDao,
+    required this.routineDao,
   });
 
   @visibleForTesting
@@ -70,8 +70,8 @@ class GamificationRepositoryImpl implements GamificationRepository {
       List<HabitCategoryRow>? latestCategories;
       List<AchievementRow>? latestAchievements;
       UserGamificationRow? latestUserGamification;
-      List<HabitRoutineRow>? latestRoutines = routineDao == null ? [] : null;
-      List<RoutineLogRow>? latestRoutineLogs = routineDao == null ? [] : null;
+      List<HabitRoutineRow>? latestRoutines;
+      List<RoutineLogRow>? latestRoutineLogs;
       var hasUserGamificationEmitted = false;
 
       StreamSubscription? subHabits;
@@ -333,16 +333,14 @@ class GamificationRepositoryImpl implements GamificationRepository {
             hasUserGamificationEmitted = true;
             scheduleEvaluation();
           });
-          if (routineDao != null) {
-            subRoutines = routineDao!.watchActiveRoutines().listen((data) {
-              latestRoutines = data;
-              scheduleEvaluation();
-            });
-            subRoutineLogs = routineDao!.watchAllRoutineLogs().listen((data) {
-              latestRoutineLogs = data;
-              scheduleEvaluation();
-            });
-          }
+          subRoutines = routineDao.watchActiveRoutines().listen((data) {
+            latestRoutines = data;
+            scheduleEvaluation();
+          });
+          subRoutineLogs = routineDao.watchAllRoutineLogs().listen((data) {
+            latestRoutineLogs = data;
+            scheduleEvaluation();
+          });
         },
         onCancel: () {
           subHabits?.cancel();

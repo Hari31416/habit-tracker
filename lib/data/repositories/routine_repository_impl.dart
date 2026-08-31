@@ -164,7 +164,10 @@ class RoutineRepositoryImpl implements RoutineRepository {
     final routine = await getRoutineById(routineId);
     final baseXp = customBonusXp ?? routine?.bonusXp ?? GamificationEngine.baseRoutineCompletionBonusXp;
 
-    // Calculate active streak multiplier
+    // Calculate active streak multiplier — single source of truth for XP
+    // is the derived progression in GamificationRepository (habitCheckInXp
+    // + perfectDaysBonusXp + routineLogs.xpEarned). This method only
+    // computes the scaled bonus and persists it on the RoutineLog.
     final activeHabits = await habitDao.getActiveHabitsOnce();
     final allLogs = await habitLogDao.getAllLogsOnce();
     final logsByHabit = <String, List<HabitLogRow>>{};
@@ -182,27 +185,6 @@ class RoutineRepositoryImpl implements RoutineRepository {
 
     final multiplier = GamificationEngine.calculateStreakMultiplier(longestActiveStreak);
     final awardedXp = GamificationEngine.applyMultiplier(baseXp, multiplier);
-
-    // Award bonus XP to gamification progression
-    final currentGam = await gamificationDao.getUserGamificationOnce();
-    if (currentGam != null) {
-      final newTotalXp = currentGam.totalXp + awardedXp;
-      final progression = GamificationEngine.calculateProgression(
-        totalXp: newTotalXp,
-        longestActiveStreak: longestActiveStreak,
-      );
-      await gamificationDao.upsertUserGamification(
-        UserGamificationCompanion(
-          id: const Value('user_gamification'),
-          totalXp: Value(newTotalXp),
-          currentLevel: Value(progression.level),
-          lastCelebratedLevel: Value(currentGam.lastCelebratedLevel),
-          maxShieldsCapacity: Value(currentGam.maxShieldsCapacity),
-          autoConsumeShields: Value(currentGam.autoConsumeShields),
-          updatedAt: Value(now),
-        ),
-      );
-    }
 
     final logId = 'routine_log_${routineId}_$date';
     final routineLog = RoutineLog(

@@ -29,6 +29,7 @@ void main() {
       habitShieldDao: db.habitShieldDao,
       habitCategoryDao: db.habitCategoryDao,
       gamificationDao: db.gamificationDao,
+      routineDao: db.routineDao,
     );
   });
 
