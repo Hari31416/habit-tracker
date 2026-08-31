@@ -23,11 +23,11 @@ Strategic feature roadmap for the Habit Tracker application, ordered sequentiall
 - [x] **Momentum Preservation:** Completing a Mini target (e.g. 1 page read instead of 20) preserves streak continuity on difficult days.
 - [x] **Tiered XP Scaling:** Proportional XP rewards based on achieved tier (Mini: 5 XP, Base: 20 XP, Elite: 35 XP).
 
-## 4. Habit Stacking and Daily Routines
+## 4. Habit Stacking and Daily Routines (Completed)
 
-- [ ] **Sequential Routine Chains:** Group habits into structured morning, workday, or evening sequences ("After Habit A, do Habit B").
-- [ ] **Routine Player Mode:** Full-screen flow guiding users step-by-step through each habit in the stack with integrated timers and transition cues.
-- [ ] **Routine Completion Bonus:** Award bonus XP and specific badges when completing an entire routine in sequence.
+- [x] **Sequential Routine Chains:** Group habits into structured morning, workday, or evening sequences ("After Habit A, do Habit B").
+- [x] **Routine Player Mode:** Full-screen flow guiding users step-by-step through each habit in the stack with integrated timers and transition cues.
+- [x] **Routine Completion Bonus:** Award bonus XP and specific badges when completing an entire routine in sequence.
 
 ## 5. Google Health Connect Integration (Completed)
 

@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2026-08-31
+
+### Added
+
+- Habit Stacking Routines allowing users to group habits into sequential morning, workday, or evening flows with custom cues and target durations.
+- Routine Builder bottom sheet supporting reorderable habit steps, custom duration targets, reminder times, and scheduled days configuration.
+- Full-screen Routine Player Screen featuring automated countdown and stopwatch timers, step advance/skip controls, completion celebrations, and step transition sound cues.
+- Routine gamification rewards including bonus XP on routine completion, streak multipliers, and 3 unlockable achievement badges (Chain Starter, Routine Master, Iron Routine).
+- Drift SQLite schema version 8 migration introducing `habit_routines` and `routine_logs` tables with DAOs and reactive stream providers.
+- Extended backup export, encrypted restore, and 2-way sync envelope schemas to serialize habit routines and routine logs with tombstone tracking.
+
 ## [0.11.0] - 2026-08-21
 
 ### Added
