@@ -49,7 +49,8 @@ Detailed performance dossiers and visual plots for each tested platform:
 ### Prerequisites
 
 1. Connect target Android device via USB (or launch the Android emulator).
-2. Start the application in profile mode on the device:
+2. Ensure Maestro CLI is available (`which maestro` or installed under `~/.maestro/bin`).
+3. Start the application in profile mode on the device:
 
 ```bash
 # On physical device
@@ -64,14 +65,20 @@ make profile
 In a separate terminal window, execute:
 
 ```bash
-# Run benchmark on physical phone with custom tag
-make benchmark TAG=moto_g60
+# Run default benchmark on physical phone with Maestro driver
+make benchmark TAG=moto_g60 DRIVER=maestro
 
-# Run benchmark on emulator with custom tag
+# Run default benchmark on emulator
 make benchmark TAG=emulator DEVICE=emulator-5554
 
+# Run benchmark against a specific feature flow
+make benchmark TAG=analytics_test FLOW=.maestro/analytics_insights.yaml
+
+# Run with legacy ADB coordinate gestures fallback
+make benchmark TAG=emulator DRIVER=adb
+
 # Or run directly via uv
-uv run scripts/benchmark_runner.py --tag pixel8 --device <SERIAL>
+uv run scripts/benchmark_runner.py --tag pixel8 --device <SERIAL> --driver maestro --flow .maestro/benchmarks/benchmark_suite.yaml
 ```
 
 ### Exporting PDF Reports

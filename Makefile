@@ -277,5 +277,5 @@ adb-test: ## Optional ADB screenshot smoke (prefer make maestro)
 
 perf-test: benchmark ## Alias for benchmark
 
-benchmark: ## Run full Python benchmark runner with plots and Markdown report via uv (optional: TAG=moto_g60 DEVICE=ZD2224QRJY)
-	uv run scripts/benchmark_runner.py $(if $(TAG),--tag $(TAG),) $(if $(DEVICE),--device $(DEVICE),)
+benchmark: ## Run Python benchmark runner with Maestro/ADB driver, plots, and Markdown report (optional: TAG=emulator DEVICE=emulator-5554 DRIVER=maestro FLOW=path)
+	uv run scripts/benchmark_runner.py $(if $(TAG),--tag $(TAG),) $(if $(DEVICE),--device $(DEVICE),) $(if $(DRIVER),--driver $(DRIVER),) $(if $(FLOW),--flow $(FLOW),)

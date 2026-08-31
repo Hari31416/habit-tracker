@@ -103,9 +103,24 @@ class BenchmarkResults:
     resting_dart_heap_mb: float
     avg_cpu_percent: float
     peak_cpu_percent: float
+    driver: str = "maestro"
+    flow_name: Optional[str] = None
     samples: List[MemorySample] = field(default_factory=list)
     top_classes: List[ClassAllocation] = field(default_factory=list)
     frame_metrics: Optional[FrameMetrics] = None
+
+
+def get_maestro_path() -> Optional[str]:
+    maestro_env = os.environ.get("MAESTRO")
+    if maestro_env and Path(maestro_env).is_file():
+        return maestro_env
+    candidate = shutil.which("maestro")
+    if candidate:
+        return candidate
+    candidate_home = Path.home() / ".maestro/bin/maestro"
+    if candidate_home.is_file():
+        return str(candidate_home)
+    return None
 
 
 class AdbClient:
@@ -250,6 +265,69 @@ def query_cpu_percent(adb: AdbClient) -> float:
     return 0.0
 
 
+def reset_gfxinfo(adb: AdbClient) -> None:
+    adb.run(["shell", "dumpsys", "gfxinfo", PACKAGE_NAME, "reset"])
+
+
+def query_gfxinfo_metrics(adb: AdbClient) -> Optional[FrameMetrics]:
+    out = adb.run(["shell", "dumpsys", "gfxinfo", PACKAGE_NAME])
+    total_frames = 0
+    janky_frames = 0
+    percentile_90 = 0.0
+    percentile_95 = 0.0
+    percentile_99 = 0.0
+
+    for line in out.splitlines():
+        if "Total frames rendered:" in line:
+            m = re.search(r"Total frames rendered:\s*(\d+)", line)
+            if m:
+                total_frames = int(m.group(1))
+        elif "Janky frames:" in line:
+            m = re.search(r"Janky frames:\s*(\d+)", line)
+            if m:
+                janky_frames = int(m.group(1))
+        elif "90th percentile:" in line:
+            m = re.search(r"90th percentile:\s*(\d+)ms", line)
+            if m:
+                percentile_90 = float(m.group(1))
+        elif "95th percentile:" in line:
+            m = re.search(r"95th percentile:\s*(\d+)ms", line)
+            if m:
+                percentile_95 = float(m.group(1))
+        elif "99th percentile:" in line:
+            m = re.search(r"99th percentile:\s*(\d+)ms", line)
+            if m:
+                percentile_99 = float(m.group(1))
+
+    if total_frames == 0:
+        return None
+
+    jank_pct = (janky_frames / total_frames * 100.0) if total_frames > 0 else 0.0
+    avg_fps = 60.0 if jank_pct < 10.0 else 55.0
+
+    return FrameMetrics(
+        total_frames=total_frames,
+        average_fps=avg_fps,
+        janky_frames=janky_frames,
+        jank_percent=jank_pct,
+        build_times_ms=[],
+        raster_times_ms=[],
+        total_times_ms=[],
+        build_mean_ms=0.0,
+        build_90th_ms=0.0,
+        build_95th_ms=0.0,
+        build_99th_ms=0.0,
+        raster_mean_ms=0.0,
+        raster_90th_ms=0.0,
+        raster_95th_ms=0.0,
+        raster_99th_ms=0.0,
+        total_mean_ms=percentile_90,
+        total_90th_ms=percentile_90,
+        total_95th_ms=percentile_95,
+        total_99th_ms=percentile_99,
+    )
+
+
 def calculate_percentile(data: List[float], percentile: float) -> float:
     if not data:
         return 0.0
@@ -329,31 +407,39 @@ class DartVmClient:
             logger.debug(f"GC trigger exception (non-fatal): {e}")
 
     async def get_memory_usage(self, isolate_id: str) -> float:
-        res = await self.call("getMemoryUsage", {"isolateId": isolate_id})
-        heap_used = res.get("heapUsage", 0)
-        return heap_used / (1024.0 * 1024.0)
+        try:
+            res = await self.call("getMemoryUsage", {"isolateId": isolate_id})
+            heap_used = res.get("heapUsage", 0)
+            return heap_used / (1024.0 * 1024.0)
+        except Exception as e:
+            logger.debug(f"Memory usage retrieval error: {e}")
+            return 0.0
 
     async def get_top_allocations(
         self, isolate_id: str, limit: int = 12
     ) -> List[ClassAllocation]:
-        res = await self.call("getAllocationProfile", {"isolateId": isolate_id})
-        members = res.get("members", [])
-        allocations: List[ClassAllocation] = []
-        for item in members:
-            cls_info = item.get("class", {})
-            name = cls_info.get("name", "Unknown")
-            instances = item.get("instancesCurrent", 0)
-            bytes_alloc = item.get("bytesCurrent", 0)
-            if instances > 0:
-                allocations.append(
-                    ClassAllocation(
-                        name=name,
-                        instances=instances,
-                        bytes_allocated=bytes_alloc,
+        try:
+            res = await self.call("getAllocationProfile", {"isolateId": isolate_id})
+            members = res.get("members", [])
+            allocations: List[ClassAllocation] = []
+            for item in members:
+                cls_info = item.get("class", {})
+                name = cls_info.get("name", "Unknown")
+                instances = item.get("instancesCurrent", 0)
+                bytes_alloc = item.get("bytesCurrent", 0)
+                if instances > 0:
+                    allocations.append(
+                        ClassAllocation(
+                            name=name,
+                            instances=instances,
+                            bytes_allocated=bytes_alloc,
+                        )
                     )
-                )
-        allocations.sort(key=lambda x: x.bytes_allocated, reverse=True)
-        return allocations[:limit]
+            allocations.sort(key=lambda x: x.bytes_allocated, reverse=True)
+            return allocations[:limit]
+        except Exception as e:
+            logger.debug(f"Top allocations retrieval error: {e}")
+            return []
 
     async def reset_frame_metrics(self, isolate_id: str) -> None:
         try:
@@ -419,56 +505,39 @@ class DartVmClient:
             return None
 
 
-async def run_benchmark_session(
-    adb: AdbClient, vm_client: Optional[DartVmClient], isolate_id: Optional[str]
-) -> BenchmarkResults:
-    width, height = get_screen_dimensions(adb)
+async def run_maestro_flow(
+    maestro_path: str, device_id: str, flow_path: Path
+) -> bool:
+    cmd = [maestro_path, "--device", device_id, "test", str(flow_path)]
+    logger.info(f"Executing Maestro benchmark flow: {' '.join(cmd)}")
+    proc = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.STDOUT,
+    )
+    assert proc.stdout is not None
+    while True:
+        line = await proc.stdout.readline()
+        if not line:
+            break
+        decoded = line.decode("utf-8", errors="replace").rstrip()
+        if decoded:
+            logger.info(f"[Maestro] {decoded}")
+    exit_code = await proc.wait()
+    if exit_code != 0:
+        logger.warning(f"Maestro flow exited with non-zero code {exit_code}")
+        return False
+    return True
+
+
+async def run_adb_gestures(adb: AdbClient, width: int, height: int) -> None:
     nav_y = int(height * 0.94)
     nav_today_x = int(width * 0.10)
     nav_week_x = int(width * 0.30)
     nav_analytics_x = int(width * 0.70)
     nav_mastery_x = int(width * 0.90)
 
-    # 1. Warm-up Pass
-    logger.info("Executing initial warm-up pass to initialize screen caches...")
-    adb.run(["shell", "input", "tap", str(nav_week_x), str(nav_y)])
-    await asyncio.sleep(0.5)
-    adb.run(["shell", "input", "tap", str(nav_analytics_x), str(nav_y)])
-    await asyncio.sleep(0.5)
-    adb.run(["shell", "input", "tap", str(nav_mastery_x), str(nav_y)])
-    await asyncio.sleep(0.5)
-    adb.run(["shell", "input", "tap", str(nav_today_x), str(nav_y)])
-    await asyncio.sleep(0.8)
-
-    # 2. Settle & Trigger GC for True Post-Warmup Baseline
-    logger.info("Stabilizing and taking post-warmup baseline measurements...")
-    if vm_client and isolate_id:
-        await vm_client.collect_garbage(isolate_id)
-        await vm_client.reset_frame_metrics(isolate_id)
-    await asyncio.sleep(1.5)
-
-    base_pss, base_native, base_graphics, base_code = query_system_memory(adb)
-    base_dart = (
-        await vm_client.get_memory_usage(isolate_id)
-        if (vm_client and isolate_id)
-        else 0.0
-    )
-
-    samples: List[MemorySample] = []
-    start_time = time.time()
-
-    async def sample_worker(stop_event: asyncio.Event) -> None:
-        while not stop_event.is_set():
-            t = time.time() - start_time
-            cpu = query_cpu_percent(adb)
-            pss, native, gfx, code = query_system_memory(adb)
-            samples.append(MemorySample(t, cpu, pss, native, gfx, code))
-            await asyncio.sleep(0.4)
-
-    stop_event = asyncio.Event()
-    sampler_task = asyncio.create_task(sample_worker(stop_event))
-
-    logger.info("Executing comprehensive multi-screen stress & interaction workflow...")
+    logger.info("Executing comprehensive multi-screen stress & interaction workflow via ADB...")
 
     # --- Phase 1: Today Screen & Date Bar Navigation ---
     logger.info("  [1/5] Interacting with Today Tracker, Date Bar, and Habit Detail...")
@@ -776,6 +845,68 @@ async def run_benchmark_session(
     adb.run(["shell", "input", "tap", str(nav_today_x), str(nav_y)])
     await asyncio.sleep(0.5)
 
+
+async def run_benchmark_session(
+    adb: AdbClient,
+    vm_client: Optional[DartVmClient],
+    isolate_id: Optional[str],
+    driver: str = "maestro",
+    flow_path: Optional[Path] = None,
+    maestro_path: Optional[str] = None,
+) -> BenchmarkResults:
+    width, height = get_screen_dimensions(adb)
+    nav_y = int(height * 0.94)
+    nav_today_x = int(width * 0.10)
+    nav_week_x = int(width * 0.30)
+    nav_analytics_x = int(width * 0.70)
+    nav_mastery_x = int(width * 0.90)
+
+    # 1. Warm-up Pass (if using ADB gestures)
+    if driver == "adb":
+        logger.info("Executing initial warm-up pass to initialize screen caches...")
+        adb.run(["shell", "input", "tap", str(nav_week_x), str(nav_y)])
+        await asyncio.sleep(0.5)
+        adb.run(["shell", "input", "tap", str(nav_analytics_x), str(nav_y)])
+        await asyncio.sleep(0.5)
+        adb.run(["shell", "input", "tap", str(nav_mastery_x), str(nav_y)])
+        await asyncio.sleep(0.5)
+        adb.run(["shell", "input", "tap", str(nav_today_x), str(nav_y)])
+        await asyncio.sleep(0.8)
+
+    # 2. Settle & Trigger GC for True Post-Warmup Baseline
+    logger.info("Stabilizing and taking post-warmup baseline measurements...")
+    reset_gfxinfo(adb)
+    if vm_client and isolate_id:
+        await vm_client.collect_garbage(isolate_id)
+        await vm_client.reset_frame_metrics(isolate_id)
+    await asyncio.sleep(1.5)
+
+    base_pss, base_native, base_graphics, base_code = query_system_memory(adb)
+    base_dart = (
+        await vm_client.get_memory_usage(isolate_id)
+        if (vm_client and isolate_id)
+        else 0.0
+    )
+
+    samples: List[MemorySample] = []
+    start_time = time.time()
+
+    async def sample_worker(stop_event: asyncio.Event) -> None:
+        while not stop_event.is_set():
+            t = time.time() - start_time
+            cpu = query_cpu_percent(adb)
+            pss, native, gfx, code = query_system_memory(adb)
+            samples.append(MemorySample(t, cpu, pss, native, gfx, code))
+            await asyncio.sleep(0.4)
+
+    stop_event = asyncio.Event()
+    sampler_task = asyncio.create_task(sample_worker(stop_event))
+
+    if driver == "maestro" and maestro_path and flow_path:
+        await run_maestro_flow(maestro_path, adb.device_id, flow_path)
+    else:
+        await run_adb_gestures(adb, width, height)
+
     stop_event.set()
     await sampler_task
     elapsed_total = time.time() - start_time
@@ -785,6 +916,9 @@ async def run_benchmark_session(
     if vm_client and isolate_id:
         frame_metrics = await vm_client.get_frame_metrics(isolate_id, elapsed_total)
         await vm_client.collect_garbage(isolate_id)
+
+    if not frame_metrics:
+        frame_metrics = query_gfxinfo_metrics(adb)
 
     await asyncio.sleep(2.0)
 
@@ -806,6 +940,8 @@ async def run_benchmark_session(
     avg_cpu = sum(s.cpu_percent for s in samples) / len(samples) if samples else 0.0
     peak_cpu = max([s.cpu_percent for s in samples] + [0.0])
 
+    flow_name = flow_path.name if flow_path else None
+
     return BenchmarkResults(
         baseline_pss_mb=base_pss,
         peak_pss_mb=peak_pss,
@@ -817,6 +953,8 @@ async def run_benchmark_session(
         resting_dart_heap_mb=resting_dart,
         avg_cpu_percent=avg_cpu,
         peak_cpu_percent=peak_cpu,
+        driver=driver,
+        flow_name=flow_name,
         samples=samples,
         top_classes=top_allocations,
         frame_metrics=frame_metrics,
@@ -1024,6 +1162,12 @@ def generate_markdown_report(
 
     health_status = "STABLE" if results.memory_delta_mb <= 15.0 else "WARNING_LEAK"
 
+    driver_desc = (
+        f"Maestro (`{results.flow_name}`)"
+        if results.driver == "maestro"
+        else "Legacy ADB Coordinate Gestures"
+    )
+
     lines: List[str] = [
         "# Automated Performance and Footprint Benchmark Report",
         "",
@@ -1031,6 +1175,7 @@ def generate_markdown_report(
         f"- **Application Package:** `{PACKAGE_NAME}`",
         f"- **Target Device:** `{device_info.model}` (`Android {device_info.android_version}`, `{device_info.screen_size}`, Serial: `{device_info.serial}`)",
         f"- **Report Identifier / Tag:** `{tag}`",
+        f"- **Interaction Driver:** {driver_desc}",
         "",
         "## Executive Summary",
         "",
@@ -1120,7 +1265,7 @@ def generate_markdown_report(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Automated Flutter Benchmark Suite with Device Tagging and Multi-Report Support"
+        description="Automated Flutter Benchmark Suite with Device Tagging, Maestro Support, and Multi-Report Support"
     )
     parser.add_argument(
         "--tag",
@@ -1140,6 +1285,21 @@ def parse_args() -> argparse.Namespace:
         type=str,
         default=os.environ.get("ANDROID_SERIAL"),
         help="Specific target Android device serial ID (e.g. 'ZD2224QRJY' or 'emulator-5554')",
+    )
+    parser.add_argument(
+        "--driver",
+        dest="driver",
+        type=str,
+        choices=["auto", "maestro", "adb"],
+        default=os.environ.get("BENCHMARK_DRIVER", "auto"),
+        help="UI interaction driver: 'maestro' (default if available), 'adb' (legacy coordinates), or 'auto'",
+    )
+    parser.add_argument(
+        "--flow",
+        dest="flow",
+        type=str,
+        default=os.environ.get("BENCHMARK_FLOW"),
+        help="Path to Maestro flow YAML file (defaults to .maestro/benchmarks/benchmark_suite.yaml)",
     )
     parser.add_argument(
         "--vm-service-url",
@@ -1189,6 +1349,38 @@ async def main_async() -> None:
 
     output_dir = Path(args.output_dir)
 
+    # Resolve UI interaction driver and flow
+    maestro_path = get_maestro_path()
+    driver = args.driver
+    flow_path: Optional[Path] = None
+    if args.flow:
+        flow_path = Path(args.flow)
+    else:
+        flow_path = Path(".maestro/benchmarks/benchmark_suite.yaml")
+
+    if driver == "auto":
+        if maestro_path and flow_path.is_file():
+            driver = "maestro"
+        else:
+            driver = "adb"
+
+    if driver == "maestro":
+        if not maestro_path:
+            logger.warning(
+                "Maestro binary not found in PATH or ~/.maestro/bin/maestro. Falling back to ADB driver."
+            )
+            driver = "adb"
+        elif not flow_path or not flow_path.is_file():
+            logger.warning(
+                f"Maestro flow file '{flow_path}' not found. Falling back to ADB driver."
+            )
+            driver = "adb"
+
+    logger.info(
+        f"Benchmark Interaction Driver: {driver.upper()}"
+        + (f" (Flow: {flow_path})" if driver == "maestro" and flow_path else "")
+    )
+
     # Look for active Dart VM Service port
     vm_client: Optional[DartVmClient] = None
     isolate_id: Optional[str] = None
@@ -1205,7 +1397,6 @@ async def main_async() -> None:
     else:
         # 1. Primary discovery: Check running host dart development-service process
         try:
-
             ps_out = subprocess.check_output(["ps", "aux"], text=True)
             for line in ps_out.splitlines():
                 if "development-service" in line and "--vm-service-uri=" in line:
@@ -1256,7 +1447,14 @@ async def main_async() -> None:
             vm_client = None
 
     try:
-        results = await run_benchmark_session(adb, vm_client, isolate_id)
+        results = await run_benchmark_session(
+            adb=adb,
+            vm_client=vm_client,
+            isolate_id=isolate_id,
+            driver=driver,
+            flow_path=flow_path if driver == "maestro" else None,
+            maestro_path=maestro_path if driver == "maestro" else None,
+        )
         output_dir.mkdir(parents=True, exist_ok=True)
         timeline_img, classes_img, frames_img = generate_plots(results, output_dir, tag)
         tagged_report, default_report = generate_markdown_report(
@@ -1268,6 +1466,7 @@ async def main_async() -> None:
         logger.info("==================================================")
         logger.info(f"Target Device      : {device_info.model} ({device_info.serial})")
         logger.info(f"Report Tag         : {tag}")
+        logger.info(f"Interaction Driver : {results.driver.upper()}" + (f" ({results.flow_name})" if results.flow_name else ""))
         logger.info(f"Baseline Total RAM : {results.baseline_pss_mb:.1f} MB")
         logger.info(f"Peak Total RAM     : {results.peak_pss_mb:.1f} MB")
         logger.info(

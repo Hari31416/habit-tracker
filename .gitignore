@@ -71,3 +71,8 @@ secrets.xml
 devtools_options.yaml
 exports/
 coverage/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class

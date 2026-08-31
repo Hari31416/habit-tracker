@@ -1,0 +1,124 @@
+appId: app.phial.habits
+tags:
+  - benchmark
+  - performance
+---
+- extendedWaitUntil:
+    visible:
+      id: "nav_today"
+    timeout: 30000
+
+# Ensure demo habits are populated if empty
+- runFlow:
+    file: ../helpers/load_demo_habits.yaml
+
+# --- Phase 1: Today Screen & Habit Card Interactions ---
+- swipe:
+    direction: RIGHT
+    duration: 300
+- swipe:
+    direction: LEFT
+    duration: 300
+
+# Scroll down and up Today feed
+- scroll
+- swipe:
+    direction: DOWN
+    duration: 300
+
+# Interact with habits if seed habit is visible
+- runFlow:
+    when:
+      visible:
+        id: "habit_check_seed_habit_meditation"
+    commands:
+      - tapOn:
+          id: "habit_check_seed_habit_meditation"
+      - tapOn:
+          id: "habit_check_seed_habit_meditation"
+
+# Open habit detail if visible
+- runFlow:
+    when:
+      visible: "Daily Meditation"
+    commands:
+      - tapOn: "Daily Meditation"
+      - extendedWaitUntil:
+          visible: "Habit Details"
+          timeout: 10000
+      - scroll
+      - swipe:
+          direction: DOWN
+          duration: 300
+      - back
+
+# --- Phase 2: Week Matrix Tab & Grid Navigation ---
+- tapOn:
+    id: "nav_week"
+- extendedWaitUntil:
+    visible: "Week Matrix"
+    timeout: 15000
+- scroll
+- swipe:
+    direction: DOWN
+    duration: 300
+- swipe:
+    direction: LEFT
+    duration: 300
+- swipe:
+    direction: RIGHT
+    duration: 300
+
+# --- Phase 3: Analytics Tab & Charts Stress ---
+- tapOn:
+    id: "nav_analytics"
+- extendedWaitUntil:
+    visible:
+      id: "analytics_consistency_card"
+    timeout: 15000
+
+# Scroll through charts and heatmaps
+- scroll
+- scroll
+- swipe:
+    direction: DOWN
+    duration: 300
+- swipe:
+    direction: DOWN
+    duration: 300
+
+# --- Phase 4: Mastery & Badges Showcase ---
+- tapOn:
+    id: "nav_mastery"
+- runFlow:
+    when:
+      visible: "Claim & Continue"
+    commands:
+      - tapOn: "Claim & Continue"
+- extendedWaitUntil:
+    visible: "Mastery & Badges"
+    timeout: 15000
+- scroll
+- swipe:
+    direction: DOWN
+    duration: 300
+
+# --- Phase 5: Rapid Multi-Screen Switching Stress ---
+- repeat:
+    times: 3
+    commands:
+      - tapOn:
+          id: "nav_today"
+      - tapOn:
+          id: "nav_week"
+      - tapOn:
+          id: "nav_analytics"
+      - tapOn:
+          id: "nav_mastery"
+
+- tapOn:
+    id: "nav_today"
+- extendedWaitUntil:
+    visible:
+      id: "nav_today"
+    timeout: 10000
