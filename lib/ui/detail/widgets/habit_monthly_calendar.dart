@@ -77,12 +77,21 @@ class HabitMonthlyCalendar extends StatelessWidget {
     var bestStreakMonth = 0;
     var totalValue = 0.0;
 
+    final cleanStart = habit.cleanSince ?? habit.createdAt;
+    final cleanStartDate =
+        DateTime(cleanStart.year, cleanStart.month, cleanStart.day);
+    final now = DateTime.now();
+    final todayDate = DateTime(now.year, now.month, now.day);
+
     for (var day = 1; day <= daysInMonth; day++) {
       final d = DateTime(year, month, day);
       final dateStr = formatter.format(d);
-      final isScheduled = StreakCalculator.isHabitScheduledOnDate(habit, d);
+      final isScheduledRaw = StreakCalculator.isHabitScheduledOnDate(habit, d);
+      final isScheduled = isScheduledRaw &&
+          (!habit.isNegative || (!d.isBefore(cleanStartDate) && !d.isAfter(todayDate)));
       final dayLogs = logsByDate[dateStr] ?? const [];
-      final isCompleted = StreakCalculator.isHabitCompletedOnDate(habit, dayLogs);
+      final isCompleted =
+          StreakCalculator.isHabitCompletedOnDate(habit, dayLogs, d);
       final isShielded = shieldedDates.contains(dateStr);
 
       if (isScheduled) {
@@ -231,14 +240,18 @@ class HabitMonthlyCalendar extends StatelessWidget {
                       if (dayNumber >= 1 && dayNumber <= daysInMonth) {
                         final cellDate = DateTime(year, month, dayNumber);
                         final dateStr = formatter.format(cellDate);
-                        final isScheduled =
+                        final isScheduledRaw =
                             StreakCalculator.isHabitScheduledOnDate(
                                 habit, cellDate);
+                        final isScheduled = isScheduledRaw &&
+                            (!habit.isNegative ||
+                                (!cellDate.isBefore(cleanStartDate) &&
+                                    !cellDate.isAfter(todayDate)));
                         final dayLogs =
                             logsByDate[dateStr] ?? const [];
                         final isCompleted =
                             StreakCalculator.isHabitCompletedOnDate(
-                                habit, dayLogs);
+                                habit, dayLogs, cellDate);
                         final isShielded = shieldedDates.contains(dateStr);
 
                         final isSelected = selectedDate != null &&
@@ -363,21 +376,25 @@ class _CalendarDayCell extends StatelessWidget {
       true => Colors.white,
       false => isShielded
           ? theme.colorScheme.onPrimaryContainer
-          : !isScheduled
-              ? theme.colorScheme.outlineVariant
-              : isSelected
-                  ? theme.colorScheme.primary
-                  : isPast
-                      ? theme.colorScheme.onSurfaceVariant
-                      : theme.colorScheme.onSurface,
+          : isSelected
+              ? theme.colorScheme.primary
+              : isPast
+                  ? theme.colorScheme.onSurfaceVariant
+                  : isScheduled
+                      ? theme.colorScheme.onSurface
+                      : theme.colorScheme.onSurface.withValues(alpha: 0.45),
     };
 
     final Border? border = switch (isSelected) {
       true => Border.all(color: theme.colorScheme.primary, width: 2),
       false => isShielded
-          ? Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.6), width: 1.5)
+          ? Border.all(
+              color: theme.colorScheme.primary.withValues(alpha: 0.6),
+              width: 1.5)
           : (isScheduled && !isCompleted && isPast)
-              ? Border.all(color: theme.colorScheme.outlineVariant, width: 1)
+              ? Border.all(
+                  color: theme.colorScheme.outlineVariant.withValues(alpha: 0.8),
+                  width: 1)
               : null,
     };
 

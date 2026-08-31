@@ -308,7 +308,7 @@ class AnalyticsController extends StateNotifier<AnalyticsUiState> {
         if (StreakCalculator.isHabitScheduledOnDate(habit, checkDate)) {
           totalScheduled30d++;
           final dayLogs = logsByHabitDate[habit.id]?[dateStr] ?? const [];
-          if (StreakCalculator.isHabitCompletedOnDate(habit, dayLogs)) {
+          if (StreakCalculator.isHabitCompletedOnDate(habit, dayLogs, checkDate)) {
             totalCompleted30d++;
           }
         }
@@ -327,7 +327,7 @@ class AnalyticsController extends StateNotifier<AnalyticsUiState> {
         if (StreakCalculator.isHabitScheduledOnDate(habit, checkDate)) {
           totalScheduledPrev30d++;
           final dayLogs = logsByHabitDate[habit.id]?[dateStr] ?? const [];
-          if (StreakCalculator.isHabitCompletedOnDate(habit, dayLogs)) {
+          if (StreakCalculator.isHabitCompletedOnDate(habit, dayLogs, checkDate)) {
             totalCompletedPrev30d++;
           }
         }
@@ -338,7 +338,7 @@ class AnalyticsController extends StateNotifier<AnalyticsUiState> {
       if (StreakCalculator.isHabitScheduledOnDate(habit, today)) {
         scheduledToday++;
         final dayLogs = logsByHabitDate[habit.id]?[todayStr] ?? const [];
-        if (StreakCalculator.isHabitCompletedOnDate(habit, dayLogs)) {
+        if (StreakCalculator.isHabitCompletedOnDate(habit, dayLogs, today)) {
           completedToday++;
         }
       }
@@ -392,7 +392,7 @@ class AnalyticsController extends StateNotifier<AnalyticsUiState> {
         if (StreakCalculator.isHabitScheduledOnDate(habit, date)) {
           dayScheduled++;
           final dayLogs = logsByHabitDate[habit.id]?[dateStr] ?? const [];
-          if (StreakCalculator.isHabitCompletedOnDate(habit, dayLogs)) {
+          if (StreakCalculator.isHabitCompletedOnDate(habit, dayLogs, date)) {
             dayCompleted++;
           }
         }
@@ -432,7 +432,7 @@ class AnalyticsController extends StateNotifier<AnalyticsUiState> {
         if (StreakCalculator.isHabitScheduledOnDate(habit, date)) {
           dayScheduled++;
           final dayLogs = logsByHabitDate[habit.id]?[dateStr] ?? const [];
-          if (StreakCalculator.isHabitCompletedOnDate(habit, dayLogs)) {
+          if (StreakCalculator.isHabitCompletedOnDate(habit, dayLogs, date)) {
             dayCompleted++;
           }
         }

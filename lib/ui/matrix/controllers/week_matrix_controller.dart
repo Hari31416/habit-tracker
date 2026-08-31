@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -310,7 +311,7 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
         final dateStr = StreakCalculator.formatIsoDate(date);
         final dayLogs = logsByDate[dateStr] ?? const [];
         final isCompleted =
-            StreakCalculator.isHabitCompletedOnDate(habit, dayLogs);
+            StreakCalculator.isHabitCompletedOnDate(habit, dayLogs, date);
         final isShielded = shieldedDates.contains(dateStr);
 
         if (isCompleted) {
@@ -334,20 +335,27 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
       }).toList();
 
       final int targetCountThisWeek;
-      switch (habit.frequencyType) {
-        case HabitFrequencyType.daily:
-          targetCountThisWeek = 7;
-          break;
-        case HabitFrequencyType.weekly:
-          targetCountThisWeek = habit.targetCountPerWeek ?? 1;
-          break;
-        case HabitFrequencyType.customDays:
-          targetCountThisWeek = habit.targetDaysOfWeek?.length ?? 7;
-          break;
-        case HabitFrequencyType.subdayInterval:
-        case HabitFrequencyType.timesPerDay:
-          targetCountThisWeek = 7;
-          break;
+      if (habit.isNegative) {
+        final scheduledThisWeek = weekDays
+            .where((d) => StreakCalculator.isHabitScheduledOnDate(habit, d))
+            .length;
+        targetCountThisWeek = max(1, scheduledThisWeek);
+      } else {
+        switch (habit.frequencyType) {
+          case HabitFrequencyType.daily:
+            targetCountThisWeek = 7;
+            break;
+          case HabitFrequencyType.weekly:
+            targetCountThisWeek = habit.targetCountPerWeek ?? 1;
+            break;
+          case HabitFrequencyType.customDays:
+            targetCountThisWeek = habit.targetDaysOfWeek?.length ?? 7;
+            break;
+          case HabitFrequencyType.subdayInterval:
+          case HabitFrequencyType.timesPerDay:
+            targetCountThisWeek = 7;
+            break;
+        }
       }
 
       return MatrixRow(
@@ -382,7 +390,7 @@ class WeekMatrixController extends StateNotifier<WeekMatrixUiState> {
         if (isScheduled) {
           scheduled++;
           final dayLogs = logsByHabitDate[habit.id]?[dateStr] ?? const [];
-          if (StreakCalculator.isHabitCompletedOnDate(habit, dayLogs)) {
+          if (StreakCalculator.isHabitCompletedOnDate(habit, dayLogs, date)) {
             completed++;
           } else {
             if (shieldsByHabitDate[habit.id]?.contains(dateStr) == true) {
