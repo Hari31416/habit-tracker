@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.1] - 2026-08-31
+
+### Fixed
+
+- Category filter chip selection and reset: fixed issue where tapping "All" chip did not clear the active category filter.
+- Scheduled habit and XP count consistency: ensured total daily scheduled counts and earned XP remain consistent across category selections and search filtering.
+- Category chip badges: added scheduled habit counts to all category filter chips.
+- Empty category state: added contextual empty state messaging and quick action to create a habit or return to all habits when filtering an empty category.
+
+### Changed
+
+- Daily Progress Card: redesigned hero progress ring to 80x80 with prominent percentage and completion statistics.
+
 ## [0.12.0] - 2026-08-31
 
 ### Added
