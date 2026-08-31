@@ -108,10 +108,27 @@ void main() {
   test('Category selection filters and toggles correctly', () async {
     await Future.delayed(const Duration(milliseconds: 50));
 
+    // Initially total scheduled is 2, and cat-1 count is 1
+    expect(controller.state.totalScheduledForSelectedDate, 2);
+    expect(controller.state.categoryHabitCounts['cat-1'], 1);
+
     controller.selectCategory('cat-1');
     expect(controller.state.selectedCategoryId, 'cat-1');
     expect(controller.state.habits.length, 1);
     expect(controller.state.habits.first.habit.title, 'Drink Water');
+    // Total scheduled for the day remains 2 even when filtered
+    expect(controller.state.totalScheduledForSelectedDate, 2);
+    expect(controller.state.categoryHabitCounts['cat-1'], 1);
+
+    // Selecting null (All chip) resets category selection
+    controller.selectCategory(null);
+    expect(controller.state.selectedCategoryId, isNull);
+    expect(controller.state.habits.length, 2);
+    expect(controller.state.totalScheduledForSelectedDate, 2);
+
+    // Selecting category again
+    controller.selectCategory('cat-1');
+    expect(controller.state.selectedCategoryId, 'cat-1');
 
     // Selecting same category deselects it
     controller.selectCategory('cat-1');

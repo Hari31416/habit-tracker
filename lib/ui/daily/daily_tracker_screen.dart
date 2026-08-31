@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../data/preferences/theme_preferences.dart';
-import '../../domain/gamification/gamification_engine.dart';
 import '../../domain/models/habit.dart';
 import '../common/haptics_helper.dart';
 import '../form/habit_form_bottom_sheet.dart';
@@ -569,22 +568,11 @@ class _DailyProgressCard extends ConsumerWidget {
       dailyTrackerControllerProvider
           .select((s) => s.totalCompletedForSelectedDate),
     );
-    final habits = ref.watch(
-      dailyTrackerControllerProvider.select((s) => s.habits),
+    final earnedXp = ref.watch(
+      dailyTrackerControllerProvider
+          .select((s) => s.totalXpEarnedForSelectedDate),
     );
-
     final percent = total > 0 ? ((completed / total) * 100).toInt() : 0;
-    final earnedXp = habits.fold<int>(0, (sum, item) {
-      final baseXp = GamificationEngine.calculateHabitDayBaseXp(
-        item.habit,
-        item.logsForDate,
-        item.isCompletedOnDate,
-      );
-      final multiplier = GamificationEngine.calculateStreakMultiplier(
-        item.streak.currentStreak,
-      );
-      return sum + GamificationEngine.applyMultiplier(baseXp, multiplier);
-    });
     final progressFraction = total > 0 ? (completed / total).clamp(0.0, 1.0) : 0.0;
 
     return Padding(
@@ -694,6 +682,10 @@ class _DailyCategoryChipsRow extends ConsumerWidget {
       dailyTrackerControllerProvider
           .select((s) => s.totalScheduledForSelectedDate),
     );
+    final categoryCounts = ref.watch(
+      dailyTrackerControllerProvider
+          .select((s) => s.categoryHabitCounts),
+    );
     final controller = ref.read(dailyTrackerControllerProvider.notifier);
 
     if (categories.isEmpty) return const SizedBox.shrink();
@@ -717,11 +709,12 @@ class _DailyCategoryChipsRow extends ConsumerWidget {
           ),
           ...categories.map((cat) {
             final isSelected = selectedCategoryId == cat.id;
+            final count = categoryCounts[cat.id] ?? 0;
             return Padding(
               padding: const EdgeInsets.only(right: 8),
               child: FilterChip(
                 selected: isSelected,
-                label: Text(cat.name),
+                label: Text('${cat.name} ($count)'),
                 onSelected: (_) {
                   HapticsHelper.performLightHaptic();
                   controller.selectCategory(cat.id);
