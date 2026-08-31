@@ -134,8 +134,7 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
               children: [
                 // Integrated M3 Search Bar & Header
                 Padding(
-                  padding:
-                      const EdgeInsets.fromLTRB(16, 8, 16, 6),
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 2),
                   child: Container(
                     decoration: BoxDecoration(
                       color: theme.colorScheme.surfaceContainerHigh,
@@ -153,7 +152,7 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
                       ],
                     ),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 4),
+                        horizontal: 8, vertical: 2),
                     child: Row(
                       children: [
                         // Avatar (Leading action - Profile & Settings)
@@ -167,11 +166,12 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
                             button: true,
                             child: InkWell(
                               borderRadius: BorderRadius.circular(20),
-                              onTap: () => ProfileSettingsBottomSheet.show(context),
+                              onTap: () =>
+                                  ProfileSettingsBottomSheet.show(context),
                               child: Padding(
                                 padding: const EdgeInsets.all(2),
                                 child: CircleAvatar(
-                                  radius: 18,
+                                  radius: 16,
                                   backgroundColor:
                                       theme.colorScheme.primaryContainer,
                                   child: currentUserName.isNotEmpty
@@ -266,7 +266,7 @@ class _DailyTrackerScreenState extends ConsumerState<DailyTrackerScreen>
                 // Category Chips Row
                 const _DailyCategoryChipsRow(),
 
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
 
                 // Habits List
                 Expanded(
@@ -485,7 +485,7 @@ class _DailyDateSelector extends ConsumerWidget {
     final controller = ref.read(dailyTrackerControllerProvider.notifier);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -576,10 +576,10 @@ class _DailyProgressCard extends ConsumerWidget {
     final progressFraction = total > 0 ? (completed / total).clamp(0.0, 1.0) : 0.0;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Card(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(16),
           side: BorderSide(
             color: theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
           ),
@@ -587,38 +587,41 @@ class _DailyProgressCard extends ConsumerWidget {
         color: theme.colorScheme.surface,
         elevation: 1,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
             children: [
-              // Circular Progress Ring (90x90)
+              // Hero Circular Progress Ring (80x80)
               SizedBox(
-                width: 90,
-                height: 90,
+                width: 80,
+                height: 80,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
                     CustomPaint(
-                      size: const Size(86, 86),
+                      size: const Size(76, 76),
                       painter: ProgressRingPainter(
                         progress: progressFraction,
                         trackColor: theme.colorScheme.surfaceContainerHighest,
                         progressColor: theme.colorScheme.primary,
-                        strokeWidth: 8,
+                        strokeWidth: 7,
                       ),
                     ),
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          '$completed / $total',
+                          '$percent%',
                           style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 18,
                             color: theme.colorScheme.onSurface,
                           ),
                         ),
                         Text(
-                          'completed',
+                          '$completed / $total',
                           style: theme.textTheme.labelSmall?.copyWith(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
@@ -627,33 +630,60 @@ class _DailyProgressCard extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 18),
 
-              // Percentage & XP Text
+              // Progress Details & XP Chip
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      '$percent%',
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
+                      "Today's Progress",
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                         color: theme.colorScheme.onSurface,
                       ),
                     ),
+                    const SizedBox(height: 2),
                     Text(
-                      "Today's Progress",
-                      style: theme.textTheme.labelMedium?.copyWith(
+                      total == 0
+                          ? 'No habits scheduled'
+                          : (completed == total
+                              ? 'All habits completed!'
+                              : '$completed of $total habits completed'),
+                      style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '+$earnedXp XP earned',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.primary,
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer
+                            .withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.bolt,
+                            size: 14,
+                            color: theme.colorScheme.primary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '+$earnedXp XP earned',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -691,7 +721,7 @@ class _DailyCategoryChipsRow extends ConsumerWidget {
     if (categories.isEmpty) return const SizedBox.shrink();
 
     return SizedBox(
-      height: 40,
+      height: 36,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
