@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -173,7 +174,7 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
           onPressed: widget.onBack,
         ),
         actions: [
-          if (habit.healthSyncEnabled)
+          if (habit.healthSyncEnabled && !habit.archived)
             IconButton(
               icon: const Icon(Icons.sync),
               tooltip: 'Sync with Health Connect',
@@ -198,7 +199,7 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
                 }
               },
             ),
-          if (!habit.isNegative)
+          if (!habit.isNegative && !habit.archived)
             IconButton(
               icon: const Icon(Icons.shield_outlined),
               tooltip: 'Habit Shields Bank',
@@ -227,10 +228,42 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
                   );
                   break;
                 case 'pin':
-                  controller.setPinned(!habit.pinned);
+                  final willPin = !habit.pinned;
+                  controller.setPinned(willPin);
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      behavior: SnackBarBehavior.floating,
+                      content: Text(
+                        willPin
+                            ? '"${habit.title}" pinned'
+                            : '"${habit.title}" unpinned',
+                      ),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
                   break;
                 case 'archive':
-                  controller.setArchived(!habit.archived);
+                  final willArchive = !habit.archived;
+                  controller.setArchived(willArchive);
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      behavior: SnackBarBehavior.floating,
+                      content: Text(
+                        willArchive
+                            ? '"${habit.title}" archived'
+                            : '"${habit.title}" restored',
+                      ),
+                      duration: const Duration(seconds: 2),
+                      action: SnackBarAction(
+                        label: 'Undo',
+                        onPressed: () {
+                          controller.setArchived(!willArchive);
+                        },
+                      ),
+                    ),
+                  );
                   break;
                 case 'delete':
                   _showDeleteConfirmDialog(context, controller);
@@ -311,6 +344,56 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Column(
           children: [
+            // Archived Status Banner
+            if (habit.archived) ...[
+              Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: theme.colorScheme.outlineVariant
+                        .withValues(alpha: 0.5),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.archive_outlined,
+                      size: 20,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'This habit is archived and hidden from daily tracking.',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        HapticsHelper.performLightHaptic();
+                        controller.setArchived(false);
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            behavior: SnackBarBehavior.floating,
+                            content: Text('"${habit.title}" restored'),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                      child: const Text('Restore'),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
             // Sobriety Live Elapsed Counter (For Negative / Abstinence Habits)
             if (habit.isNegative) ...[
               SobrietyCounterCard(
@@ -390,8 +473,42 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
                           ),
                         ),
 
-                        // Mark as done check button (38x38) or Clean badge for negative habits
-                        if (habit.isNegative)
+                        // Mark as done check button (38x38) or Clean badge for negative habits or Archived badge
+                        if (habit.archived)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surfaceContainerHighest
+                                  .withValues(alpha: 0.6),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: theme.colorScheme.outlineVariant
+                                    .withValues(alpha: 0.5),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.archive_outlined,
+                                  size: 15,
+                                  color: theme.colorScheme.outline,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Archived',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: theme.colorScheme.outline,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else if (habit.isNegative)
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 12,
@@ -487,22 +604,58 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
                     // Partial progress controls
                     if (habit.targetType == HabitTargetType.numeric) ...[
                       const SizedBox(height: 10),
-                      NumericHabitControls(
-                        habit: habit,
-                        currentValue: uiState.currentValueOnSelectedDate,
-                        isCompleted: isCompleted,
-                        accentColor: accentColor,
-                        onValueChange: (val) {
-                          controller.updateNumericValue(val);
-                        },
-                        onDeltaAdd: (delta) {
-                          controller.addNumericDelta(delta);
-                        },
-                      ),
-                    ] else if (habit.frequencyType ==
+                      if (!habit.archived)
+                        NumericHabitControls(
+                          habit: habit,
+                          currentValue: uiState.currentValueOnSelectedDate,
+                          isCompleted: isCompleted,
+                          accentColor: accentColor,
+                          onValueChange: (val) {
+                            controller.updateNumericValue(val);
+                          },
+                          onDeltaAdd: (delta) {
+                            controller.addNumericDelta(delta);
+                          },
+                        )
+                      else ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '${uiState.currentValueOnSelectedDate.toInt()} / ${(habit.targetValue ?? 1.0).toInt()} ${habit.unit ?? ''}'.trim(),
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            Text(
+                              '${min(100, (((uiState.currentValueOnSelectedDate) / (habit.targetValue ?? 1.0)) * 100).toInt())}%',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: (habit.targetValue != null && habit.targetValue! > 0)
+                                ? (uiState.currentValueOnSelectedDate / habit.targetValue!).clamp(0.0, 1.0)
+                                : 0.0,
+                            minHeight: 6,
+                            backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                            valueColor: AlwaysStoppedAnimation<Color>(accentColor),
+                          ),
+                        ),
+                      ],
+                    ] else if ((habit.frequencyType ==
                             HabitFrequencyType.subdayInterval ||
                         habit.frequencyType ==
-                            HabitFrequencyType.timesPerDay) ...[
+                            HabitFrequencyType.timesPerDay) &&
+                        !habit.archived) ...[
                       const SizedBox(height: 10),
                       SlotHabitControls(
                         habit: habit,
@@ -515,7 +668,7 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
                     ],
 
                     // Health Connect Auto-Sync Status Tag
-                    if (habit.healthSyncEnabled && habit.healthMetric != null) ...[
+                    if (habit.healthSyncEnabled && habit.healthMetric != null && !habit.archived) ...[
                       const SizedBox(height: 10),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -566,7 +719,7 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
               ),
             ),
 
-            if (habit.hasElasticTiers) ...[
+            if (habit.hasElasticTiers && !habit.archived) ...[
               const SizedBox(height: 14),
               ElasticGoalsCard(
                 habit: habit,
@@ -581,7 +734,7 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
             const SizedBox(height: 14),
 
             // Shield Protection Status/Action Banner for selected date
-            if (!habit.isNegative) ...[
+            if (!habit.isNegative && !habit.archived) ...[
               if (isShielded) ...[
                 Card(
                   shape: RoundedRectangleBorder(
@@ -712,13 +865,15 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
               habit: habit,
               currentValue: uiState.currentValueOnSelectedDate,
               accentColor: accentColor,
-              onDotClick: (targetVal) {
-                controller.set10DotProgress(targetVal);
-              },
+              onDotClick: habit.archived
+                  ? null
+                  : (targetVal) {
+                      controller.set10DotProgress(targetVal);
+                    },
             ),
 
             // 4. Hero Focus Timer (for TIMER habits)
-            if (habit.targetType == HabitTargetType.timer) ...[
+            if (habit.targetType == HabitTargetType.timer && !habit.archived) ...[
               const SizedBox(height: 14),
               Card(
                 shape: RoundedRectangleBorder(
@@ -798,14 +953,18 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: theme.colorScheme.primaryContainer
-                                      .withValues(alpha: 0.5),
+                                  color: habit.archived
+                                      ? theme.colorScheme.surfaceContainerHighest
+                                      : theme.colorScheme.primaryContainer
+                                          .withValues(alpha: 0.5),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  'Active',
+                                  habit.archived ? 'Paused' : 'Active',
                                   style: theme.textTheme.labelSmall?.copyWith(
-                                    color: theme.colorScheme.primary,
+                                    color: habit.archived
+                                        ? theme.colorScheme.outline
+                                        : theme.colorScheme.primary,
                                   ),
                                 ),
                               ),

@@ -335,6 +335,7 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
   }
 
   Future<void> set10DotProgress(double targetValueForDot) async {
+    if (_currentHabit?.archived == true) return;
     await repository.updateNumericValue(
       habitId,
       state.selectedDate,
@@ -343,6 +344,7 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
   }
 
   Future<void> addNumericDelta(double delta) async {
+    if (_currentHabit?.archived == true) return;
     await repository.addNumericDelta(
       habitId,
       state.selectedDate,
@@ -351,6 +353,7 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
   }
 
   Future<void> updateNumericValue(double value) async {
+    if (_currentHabit?.archived == true) return;
     await repository.updateNumericValue(
       habitId,
       state.selectedDate,
@@ -359,6 +362,7 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
   }
 
   Future<void> toggleSlot(int slotIndex) async {
+    if (_currentHabit?.archived == true) return;
     await repository.toggleSlotCheckIn(
       habitId,
       state.selectedDate,
@@ -367,10 +371,12 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
   }
 
   Future<void> toggleCheckInForDate(DateTime date) async {
+    if (_currentHabit?.archived == true) return;
     await repository.toggleBooleanCheckIn(habitId, date);
   }
 
   Future<void> logTierForSelectedDate(HabitTier tier) async {
+    if (_currentHabit?.archived == true) return;
     await repository.logTierCheckIn(habitId, state.selectedDate, tier);
   }
 
@@ -380,6 +386,7 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
     String? mood,
     String? note,
   }) async {
+    if (_currentHabit?.archived == true) return;
     await repository.updateReflection(
       habitId: habitId,
       date: date,
@@ -390,10 +397,12 @@ class HabitDetailController extends StateNotifier<HabitDetailUiState> {
   }
 
   Future<bool> toggleShieldForSelectedDate() async {
+    if (_currentHabit?.archived == true) return false;
     return await repository.toggleShield(habitId, state.selectedDate);
   }
 
   Future<void> resetSobriety({String? note}) async {
+    if (_currentHabit?.archived == true) return;
     final habit = state.habit;
     if (habit == null) return;
     final now = DateTime.now();

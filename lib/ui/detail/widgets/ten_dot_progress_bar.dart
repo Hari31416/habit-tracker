@@ -12,14 +12,14 @@ class TenDotProgressBar extends StatelessWidget {
   final Habit habit;
   final double currentValue;
   final Color accentColor;
-  final ValueChanged<double> onDotClick;
+  final ValueChanged<double>? onDotClick;
 
   const TenDotProgressBar({
     super.key,
     required this.habit,
     required this.currentValue,
     required this.accentColor,
-    required this.onDotClick,
+    this.onDotClick,
   });
 
   @override
@@ -85,14 +85,16 @@ class TenDotProgressBar extends StatelessWidget {
                 ),
                 child: InkWell(
                   customBorder: const CircleBorder(),
-                  onTap: () {
-                    if (dotIndex == 10 || targetForDot >= targetValue) {
-                      HapticsHelper.performHeavyConfirmationHaptic();
-                    } else {
-                      HapticsHelper.performLightHaptic();
-                    }
-                    onDotClick(targetForDot);
-                  },
+                  onTap: onDotClick != null
+                      ? () {
+                          if (dotIndex == 10 || targetForDot >= targetValue) {
+                            HapticsHelper.performHeavyConfirmationHaptic();
+                          } else {
+                            HapticsHelper.performLightHaptic();
+                          }
+                          onDotClick!(targetForDot);
+                        }
+                      : null,
                   child: SizedBox(
                     width: 26,
                     height: 26,
