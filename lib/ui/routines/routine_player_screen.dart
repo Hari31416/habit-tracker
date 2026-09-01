@@ -5,8 +5,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../di/providers.dart';
+import '../../domain/engines/streak_calculator.dart';
 import '../../domain/models/habit.dart';
 import '../../domain/models/habit_frequency_type.dart';
+import '../../domain/models/habit_log.dart';
 import '../../domain/models/habit_routine.dart';
 import '../../domain/models/habit_target_type.dart';
 import '../../domain/models/routine_log.dart';
@@ -45,6 +47,7 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
   bool _isTimerRunning = false;
   int _timerRemainingSeconds = 0;
   int _timerTotalSeconds = 0;
+  String? _timerHabitId;
 
   // Transition overlay state
   bool _isTransitioning = false;
@@ -76,6 +79,7 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
   void _initTimerForHabit(Habit habit) {
     _stepTimer?.cancel();
     _isTimerRunning = false;
+    _timerHabitId = habit.id;
     final targetMins = (habit.targetValue ?? 25.0).toInt();
     _timerTotalSeconds = max(1, targetMins * 60);
     _timerRemainingSeconds = _timerSeconds[habit.id] ?? _timerTotalSeconds;
@@ -137,16 +141,30 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
         switch (habit.frequencyType) {
           case HabitFrequencyType.timesPerDay:
           case HabitFrequencyType.subdayInterval:
-            final slots = habit.timesPerDay ?? habit.targetValue?.toInt() ?? 1;
-            for (var i = 0; i < slots; i++) {
-              await habitRepo.logCheckIn(
-                habitId: habit.id,
-                date: effectiveDate,
-                completed: true,
-                intervalIndex: i,
-                note: i == 0 ? note : null,
-              );
+            final dateStr = DateFormat('yyyy-MM-dd').format(effectiveDate);
+            final allLogs = ref.read(allLogsStreamProvider).value ?? const [];
+            final habitLogs = allLogs.where((l) => l.habitId == habit.id && l.date == dateStr).toList();
+            final completedSlots = habitLogs
+                .where((l) => l.completed && l.intervalIndex != null)
+                .map((l) => l.intervalIndex!)
+                .toSet();
+            final totalSlots = habit.timesPerDay ?? habit.targetValue?.toInt() ?? 1;
+
+            var targetSlotIndex = 0;
+            for (var i = 0; i < totalSlots; i++) {
+              if (!completedSlots.contains(i)) {
+                targetSlotIndex = i;
+                break;
+              }
             }
+
+            await habitRepo.logCheckIn(
+              habitId: habit.id,
+              date: effectiveDate,
+              completed: true,
+              intervalIndex: targetSlotIndex,
+              note: note,
+            );
             break;
           default:
             await habitRepo.logCheckIn(
@@ -159,7 +177,13 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
         break;
 
       case HabitTargetType.numeric:
-        final numVal = _numericValues[habit.id] ?? habit.targetValue ?? 1.0;
+        final dateStr = DateFormat('yyyy-MM-dd').format(effectiveDate);
+        final allLogs = ref.read(allLogsStreamProvider).value ?? const [];
+        final habitLogs = allLogs.where((l) => l.habitId == habit.id && l.date == dateStr).toList();
+        final existingVal = habitLogs.fold<double>(0.0, (s, l) => s + (l.value ?? 0.0));
+        final target = habit.targetValue ?? 10.0;
+
+        final numVal = _numericValues[habit.id] ?? (existingVal > 0 ? existingVal : min(target, 5.0));
         await habitRepo.updateNumericValue(
           habit.id,
           effectiveDate,
@@ -304,6 +328,11 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
     final currentStep = _currentStepIndex.clamp(0, chainHabits.length - 1);
     final currentHabit = chainHabits[currentStep];
 
+    final logsAsync = ref.watch(allLogsStreamProvider);
+    final allLogs = logsAsync.value ?? const [];
+    final dateStr = DateFormat('yyyy-MM-dd').format(_effectiveDate);
+    final todayLogs = allLogs.where((l) => l.date == dateStr).toList();
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -328,7 +357,7 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
                         children: [
                           _buildStepContextCard(context, routine, chainHabits, currentStep, currentHabit),
                           const SizedBox(height: 24),
-                          _buildHabitInteractiveStage(context, currentHabit),
+                          _buildHabitInteractiveStage(context, currentHabit, todayLogs),
                           const SizedBox(height: 20),
                           _buildReflectionInput(context, currentHabit),
                         ],
@@ -521,20 +550,31 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
     );
   }
 
-  Widget _buildHabitInteractiveStage(BuildContext context, Habit habit) {
+  Widget _buildHabitInteractiveStage(
+    BuildContext context,
+    Habit habit,
+    List<HabitLog> todayLogs,
+  ) {
     switch (habit.targetType) {
       case HabitTargetType.timer:
         return _buildTimerHabitStage(context, habit);
       case HabitTargetType.numeric:
-        return _buildNumericHabitStage(context, habit);
+        return _buildNumericHabitStage(context, habit, todayLogs);
       case HabitTargetType.boolean:
-        return _buildBooleanHabitStage(context, habit);
+        return _buildBooleanHabitStage(context, habit, todayLogs);
     }
   }
 
   Widget _buildTimerHabitStage(BuildContext context, Habit habit) {
     final theme = Theme.of(context);
     final habitColor = ColorUtils.fromHex(habit.color);
+
+    if (_timerHabitId != habit.id || _timerTotalSeconds == 0) {
+      _timerHabitId = habit.id;
+      final targetMins = (habit.targetValue ?? 25.0).toInt();
+      _timerTotalSeconds = max(1, targetMins * 60);
+      _timerRemainingSeconds = _timerSeconds[habit.id] ?? _timerTotalSeconds;
+    }
 
     final mins = _timerRemainingSeconds ~/ 60;
     final secs = _timerRemainingSeconds % 60;
@@ -551,11 +591,13 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
           child: Stack(
             alignment: Alignment.center,
             children: [
-              CircularProgressIndicator(
-                value: progress,
-                strokeWidth: 10,
-                backgroundColor: habitColor.withValues(alpha: 0.15),
-                valueColor: AlwaysStoppedAnimation<Color>(habitColor),
+              Positioned.fill(
+                child: CircularProgressIndicator(
+                  value: progress,
+                  strokeWidth: 8,
+                  backgroundColor: habitColor.withValues(alpha: 0.15),
+                  valueColor: AlwaysStoppedAnimation<Color>(habitColor),
+                ),
               ),
               Column(
                 mainAxisSize: MainAxisSize.min,
@@ -582,10 +624,13 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         // Timer Controls
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Semantics(
               identifier: 'btn_timer_minus',
@@ -597,7 +642,6 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
                 tooltip: '-1 Minute',
               ),
             ),
-            const SizedBox(width: 8),
             Semantics(
               identifier: 'btn_timer_toggle',
               button: true,
@@ -615,7 +659,6 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
                 ),
               ),
             ),
-            const SizedBox(width: 8),
             Semantics(
               identifier: 'btn_timer_plus',
               button: true,
@@ -626,7 +669,6 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
                 tooltip: '+1 Minute',
               ),
             ),
-            const SizedBox(width: 8),
             Semantics(
               identifier: 'btn_timer_reset',
               button: true,
@@ -643,11 +685,18 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
     );
   }
 
-  Widget _buildNumericHabitStage(BuildContext context, Habit habit) {
+  Widget _buildNumericHabitStage(
+    BuildContext context,
+    Habit habit,
+    List<HabitLog> todayLogs,
+  ) {
     final theme = Theme.of(context);
     final habitColor = ColorUtils.fromHex(habit.color);
     final target = habit.targetValue ?? 10.0;
-    final currentVal = _numericValues[habit.id] ?? 0.0;
+    final habitLogs = todayLogs.where((l) => l.habitId == habit.id).toList();
+    final existingVal = habitLogs.fold<double>(0.0, (s, l) => s + (l.value ?? 0.0));
+    final defaultInitial = existingVal > 0 ? existingVal : min(target, 5.0);
+    final currentVal = _numericValues[habit.id] ?? defaultInitial;
     final unit = habit.unit ?? 'units';
     final progressFraction = target > 0 ? (currentVal / target).clamp(0.0, 1.0) : 1.0;
 
@@ -677,8 +726,11 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
                 minHeight: 8,
               ),
               const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   IconButton.filledTonal(
                     onPressed: () {
@@ -688,8 +740,24 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
                       });
                     },
                     icon: const Icon(Icons.remove),
+                    tooltip: '-1 $unit',
                   ),
-                  const SizedBox(width: 12),
+                  Semantics(
+                    identifier: 'btn_numeric_plus_5',
+                    button: true,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      ),
+                      onPressed: () {
+                        HapticsHelper.selectionClick();
+                        setState(() {
+                          _numericValues[habit.id] = currentVal + 5.0;
+                        });
+                      },
+                      child: const Text('+5'),
+                    ),
+                  ),
                   Semantics(
                     identifier: 'btn_numeric_fill',
                     button: true,
@@ -700,10 +768,9 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
                           _numericValues[habit.id] = target;
                         });
                       },
-                      child: Text('Fill Goal ($target)'),
+                      child: Text('Fill (${target.truncateToDouble() == target ? target.toInt() : target})'),
                     ),
                   ),
-                  const SizedBox(width: 12),
                   IconButton.filledTonal(
                     onPressed: () {
                       HapticsHelper.selectionClick();
@@ -712,6 +779,7 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
                       });
                     },
                     icon: const Icon(Icons.add),
+                    tooltip: '+1 $unit',
                   ),
                 ],
               ),
@@ -722,10 +790,35 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
     );
   }
 
-  Widget _buildBooleanHabitStage(BuildContext context, Habit habit) {
+  Widget _buildBooleanHabitStage(
+    BuildContext context,
+    Habit habit,
+    List<HabitLog> todayLogs,
+  ) {
     final theme = Theme.of(context);
     final habitColor = ColorUtils.fromHex(habit.color);
-    final isDone = _completedStepHabitIds.contains(habit.id);
+    final isMultiSlot = habit.frequencyType == HabitFrequencyType.timesPerDay ||
+        habit.frequencyType == HabitFrequencyType.subdayInterval;
+    final totalSlots = habit.timesPerDay ?? habit.targetValue?.toInt() ?? 1;
+
+    final habitLogs = todayLogs.where((l) => l.habitId == habit.id).toList();
+    final completedSlots = habitLogs
+        .where((l) => l.completed && l.intervalIndex != null)
+        .map((l) => l.intervalIndex!)
+        .toSet();
+
+    final isDone = _completedStepHabitIds.contains(habit.id) ||
+        StreakCalculator.isHabitStepSatisfiedForRoutine(habit, habitLogs);
+
+    var nextSlot = 0;
+    if (isMultiSlot) {
+      for (var i = 0; i < totalSlots; i++) {
+        if (!completedSlots.contains(i)) {
+          nextSlot = i;
+          break;
+        }
+      }
+    }
 
     return Column(
       children: [
@@ -756,7 +849,22 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
             color: isDone ? Colors.green : theme.colorScheme.onSurfaceVariant,
           ),
         ),
-        if (habit.frequencyType == HabitFrequencyType.timesPerDay && (habit.timesPerDay ?? 1) > 1) ...[
+        if (isMultiSlot && totalSlots > 1) ...[
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: habitColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              'Logging Check-in #${nextSlot + 1} of $totalSlots',
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: habitColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
           const SizedBox(height: 4),
           Text(
             'Daily Target: ${habit.timesPerDay} check-ins',
@@ -818,7 +926,15 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
                 tooltip: 'Previous Step',
                 onPressed: () {
                   HapticsHelper.selectionClick();
-                  setState(() => _currentStepIndex--);
+                  _stepTimer?.cancel();
+                  setState(() {
+                    _isTimerRunning = false;
+                    _currentStepIndex--;
+                    final prevHabit = chainHabits[_currentStepIndex];
+                    if (prevHabit.targetType == HabitTargetType.timer) {
+                      _initTimerForHabit(prevHabit);
+                    }
+                  });
                 },
               ),
             ),
@@ -828,8 +944,16 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
             child: TextButton(
               onPressed: () {
                 HapticsHelper.selectionClick();
+                _stepTimer?.cancel();
                 if (!isLastStep) {
-                  setState(() => _currentStepIndex++);
+                  setState(() {
+                    _isTimerRunning = false;
+                    _currentStepIndex++;
+                    final nextHabit = chainHabits[_currentStepIndex];
+                    if (nextHabit.targetType == HabitTargetType.timer) {
+                      _initTimerForHabit(nextHabit);
+                    }
+                  });
                 } else {
                   _finishRoutine(routine, chainHabits);
                 }

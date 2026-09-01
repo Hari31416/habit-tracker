@@ -163,18 +163,19 @@ void main() {
 
     expect(find.text('Hydration Intake'), findsOneWidget);
     expect(find.text('Daily Target: 4 check-ins'), findsOneWidget);
+    expect(find.text('Logging Check-in #1 of 4'), findsOneWidget);
 
     // Tap Complete Stack
     await tester.tap(find.text('Complete Stack'));
     await tester.pumpAndSettle();
 
-    // Verify all 4 interval slots were logged in repository (default uses DateTime.now)
+    // Verify only the next open slot was logged in repository
     final today = DateTime.now();
     final logs = await mockHabitRepo.getLogsForDateOnce(today);
     final waterLogs = logs.where((l) => l.habitId == 'seed_habit_water').toList();
-    expect(waterLogs.length, 4);
-    expect(waterLogs.every((l) => l.completed), isTrue);
-    expect(waterLogs.map((l) => l.intervalIndex).toSet(), {0, 1, 2, 3});
+    expect(waterLogs.length, 1);
+    expect(waterLogs.first.completed, isTrue);
+    expect(waterLogs.first.intervalIndex, 0);
   });
 
   testWidgets('RoutinePlayerScreen logs check-ins and routine completion for explicit targetDate', (tester) async {

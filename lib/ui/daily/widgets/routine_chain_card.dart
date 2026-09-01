@@ -47,7 +47,7 @@ class RoutineChainCard extends StatelessWidget {
     final stepStatus = <String, bool>{};
     for (final habit in chainHabits) {
       final logs = logsByHabit[habit.id] ?? const [];
-      final isDone = StreakCalculator.isHabitCompletedOnDate(habit, logs);
+      final isDone = StreakCalculator.isHabitStepSatisfiedForRoutine(habit, logs);
       stepStatus[habit.id] = isDone;
       if (isDone) completedCount++;
     }
