@@ -133,6 +133,27 @@ class HabitCard extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
+                            if (habit.archived) ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 5, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: theme
+                                      .colorScheme.surfaceContainerHighest,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  'Archived',
+                                  style:
+                                      theme.textTheme.labelSmall?.copyWith(
+                                    color: theme.colorScheme.outline,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
                             if (habit.pinned) ...[
                               const SizedBox(width: 4),
                               Icon(

@@ -163,4 +163,45 @@ void main() {
       isTrue,
     );
   });
+
+  test('Archived category filters and tracks archived habits correctly',
+      () async {
+    final archivedHabit = Habit(
+      id: 'h-archived',
+      title: 'Archived Habit',
+      color: '#64748B',
+      icon: 'archive',
+      archived: true,
+      frequencyType: HabitFrequencyType.daily,
+      targetType: HabitTargetType.boolean,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+
+    final repoWithArchived = FakeHabitRepository(
+      initialHabits: [habit1, habit2, archivedHabit],
+      initialCategories: [catHealth],
+    );
+    final customController = DailyTrackerController(repoWithArchived);
+    await Future.delayed(const Duration(milliseconds: 50));
+
+    // Active scheduled count is 2 (excluding archived)
+    expect(customController.state.totalScheduledForSelectedDate, 2);
+    expect(customController.state.archivedHabitsCount, 1);
+    expect(customController.state.habits.length, 2);
+
+    // Select archived category
+    customController.selectCategory(DailyTrackerController.archivedCategoryId);
+    expect(customController.state.selectedCategoryId,
+        DailyTrackerController.archivedCategoryId);
+    expect(customController.state.habits.length, 1);
+    expect(customController.state.habits.first.habit.id, 'h-archived');
+
+    // Deselect archived category
+    customController.selectCategory(null);
+    expect(customController.state.selectedCategoryId, isNull);
+    expect(customController.state.habits.length, 2);
+
+    customController.dispose();
+  });
 }

@@ -716,9 +716,13 @@ class _DailyCategoryChipsRow extends ConsumerWidget {
       dailyTrackerControllerProvider
           .select((s) => s.categoryHabitCounts),
     );
+    final archivedHabitsCount = ref.watch(
+      dailyTrackerControllerProvider
+          .select((s) => s.archivedHabitsCount),
+    );
     final controller = ref.read(dailyTrackerControllerProvider.notifier);
 
-    if (categories.isEmpty) return const SizedBox.shrink();
+    if (categories.isEmpty && archivedHabitsCount == 0) return const SizedBox.shrink();
 
     return SizedBox(
       height: 36,
@@ -752,6 +756,19 @@ class _DailyCategoryChipsRow extends ConsumerWidget {
               ),
             );
           }),
+          if (archivedHabitsCount > 0)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: FilterChip(
+                avatar: const Icon(Icons.archive_outlined, size: 16),
+                selected: selectedCategoryId == DailyTrackerController.archivedCategoryId,
+                label: Text('Archived ($archivedHabitsCount)'),
+                onSelected: (_) {
+                  HapticsHelper.performLightHaptic();
+                  controller.selectCategory(DailyTrackerController.archivedCategoryId);
+                },
+              ),
+            ),
         ],
       ),
     );
@@ -813,6 +830,10 @@ class _DailyHabitsList extends ConsumerWidget {
         emptyTitle = 'No matching habits found';
         emptySubtitle = 'Try searching for a different keyword';
         emptyIcon = Icons.search_off;
+      } else if (selectedCategoryId == DailyTrackerController.archivedCategoryId) {
+        emptyTitle = 'No archived habits';
+        emptySubtitle = 'Archived habits will appear here.';
+        emptyIcon = Icons.archive_outlined;
       } else if (selectedCategoryId != null) {
         emptyTitle = 'No habits in "$categoryName"';
         emptySubtitle = 'Create a habit in this category or view all habits.';
@@ -887,6 +908,15 @@ class _DailyHabitsList extends ConsumerWidget {
                           onPressed: () {
                             HapticsHelper.performLightHaptic();
                             controller.setSearchQuery('');
+                          },
+                        )
+                      else if (selectedCategoryId == DailyTrackerController.archivedCategoryId)
+                        OutlinedButton.icon(
+                          icon: const Icon(Icons.apps, size: 18),
+                          label: const Text('View All Habits'),
+                          onPressed: () {
+                            HapticsHelper.performLightHaptic();
+                            controller.selectCategory(null);
                           },
                         )
                       else if (selectedCategoryId != null) ...[

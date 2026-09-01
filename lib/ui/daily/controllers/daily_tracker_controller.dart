@@ -35,6 +35,7 @@ class DailyTrackerUiState {
   final bool showArchived;
   final List<HabitCategory> categories;
   final Map<String, int> categoryHabitCounts;
+  final int archivedHabitsCount;
   final List<HabitWithProgress> habits;
   final Map<DateTime, int> weekLogs;
   final int totalScheduledForSelectedDate;
@@ -52,6 +53,7 @@ class DailyTrackerUiState {
     this.showArchived = false,
     this.categories = const [],
     this.categoryHabitCounts = const {},
+    this.archivedHabitsCount = 0,
     this.habits = const [],
     this.weekLogs = const {},
     this.totalScheduledForSelectedDate = 0,
@@ -71,6 +73,7 @@ class DailyTrackerUiState {
     bool? showArchived,
     List<HabitCategory>? categories,
     Map<String, int>? categoryHabitCounts,
+    int? archivedHabitsCount,
     List<HabitWithProgress>? habits,
     Map<DateTime, int>? weekLogs,
     int? totalScheduledForSelectedDate,
@@ -90,6 +93,7 @@ class DailyTrackerUiState {
       showArchived: showArchived ?? this.showArchived,
       categories: categories ?? this.categories,
       categoryHabitCounts: categoryHabitCounts ?? this.categoryHabitCounts,
+      archivedHabitsCount: archivedHabitsCount ?? this.archivedHabitsCount,
       habits: habits ?? this.habits,
       weekLogs: weekLogs ?? this.weekLogs,
       totalScheduledForSelectedDate:
@@ -117,6 +121,7 @@ class DailyTrackerUiState {
           showArchived == other.showArchived &&
           listEquals(categories, other.categories) &&
           mapEquals(categoryHabitCounts, other.categoryHabitCounts) &&
+          archivedHabitsCount == other.archivedHabitsCount &&
           listEquals(habits, other.habits) &&
           mapEquals(weekLogs, other.weekLogs) &&
           totalScheduledForSelectedDate == other.totalScheduledForSelectedDate &&
@@ -135,6 +140,7 @@ class DailyTrackerUiState {
       showArchived.hashCode ^
       Object.hashAll(categories) ^
       categoryHabitCounts.hashCode ^
+      archivedHabitsCount.hashCode ^
       Object.hashAll(habits) ^
       totalScheduledForSelectedDate.hashCode ^
       totalCompletedForSelectedDate.hashCode ^
@@ -144,6 +150,8 @@ class DailyTrackerUiState {
 }
 
 class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
+  static const String archivedCategoryId = '__archived__';
+
   final HabitRepository _repository;
   final WidgetSyncService? _widgetSyncService;
   StreamSubscription<List<Habit>>? _habitsSubscription;
@@ -232,6 +240,7 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
     }
 
     final scheduledHabits = _allHabits.where((habit) {
+      if (habit.archived) return true;
       return StreakCalculator.isHabitScheduledOnDate(habit, date);
     }).toList();
 
@@ -325,25 +334,33 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
   }
 
   void _applyFilterAndSort() {
-    final activeScheduledHabits = _unfilteredHabitsWithProgress
-        .where((item) => state.showArchived ? true : !item.habit.archived)
+    final isArchivedCategory =
+        state.selectedCategoryId == DailyTrackerController.archivedCategoryId;
+
+    final activeHabitsForTotals = _unfilteredHabitsWithProgress
+        .where((item) =>
+            !item.habit.archived &&
+            StreakCalculator.isHabitScheduledOnDate(
+                item.habit, state.selectedDate))
         .toList();
 
-    final totalScheduled = activeScheduledHabits.length;
+    final totalScheduled = activeHabitsForTotals.length;
     final totalCompleted =
-        activeScheduledHabits.where((h) => h.isCompletedOnDate).length;
+        activeHabitsForTotals.where((h) => h.isCompletedOnDate).length;
     final totalShielded =
-        activeScheduledHabits.where((h) => h.isShieldedOnDate).length;
+        activeHabitsForTotals.where((h) => h.isShieldedOnDate).length;
 
     final categoryCounts = <String, int>{};
-    for (final item in activeScheduledHabits) {
+    for (final item in activeHabitsForTotals) {
       if (item.habit.categoryId != null) {
         categoryCounts[item.habit.categoryId!] =
             (categoryCounts[item.habit.categoryId!] ?? 0) + 1;
       }
     }
 
-    final totalXp = activeScheduledHabits.fold<int>(0, (sum, item) {
+    final archivedCount = _allHabits.where((h) => h.archived).length;
+
+    final totalXp = activeHabitsForTotals.fold<int>(0, (sum, item) {
       final baseXp = GamificationEngine.calculateHabitDayBaseXp(
         item.habit,
         item.logsForDate,
@@ -355,11 +372,21 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
       return sum + GamificationEngine.applyMultiplier(baseXp, multiplier);
     });
 
+    final habitsToFilter = isArchivedCategory
+        ? _unfilteredHabitsWithProgress
+            .where((item) => item.habit.archived)
+            .toList()
+        : (state.showArchived
+            ? _unfilteredHabitsWithProgress
+            : activeHabitsForTotals);
+
     final query = state.searchQuery.trim().toLowerCase();
-    final filteredHabits = activeScheduledHabits.where((item) {
+    final filteredHabits = habitsToFilter.where((item) {
       final habit = item.habit;
-      final matchCategory = state.selectedCategoryId == null ||
-          habit.categoryId == state.selectedCategoryId;
+      final matchCategory = isArchivedCategory
+          ? true
+          : (state.selectedCategoryId == null ||
+              habit.categoryId == state.selectedCategoryId);
       final matchSearch = query.isEmpty ||
           habit.title.toLowerCase().contains(query) ||
           (habit.description != null &&
@@ -402,6 +429,7 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
     state = state.copyWith(
       habits: filteredHabits,
       categoryHabitCounts: categoryCounts,
+      archivedHabitsCount: archivedCount,
       totalScheduledForSelectedDate: totalScheduled,
       totalCompletedForSelectedDate: totalCompleted,
       totalShieldedForSelectedDate: totalShielded,
