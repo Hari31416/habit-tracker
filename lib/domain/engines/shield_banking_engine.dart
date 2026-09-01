@@ -66,7 +66,8 @@ class ShieldBankingEngine {
     Map<String, StreakResult>? precomputedStreaks,
   }) {
     final ref = referenceDate ?? DateTime.now();
-    final activeHabits = habits.where((h) => !h.archived).toList();
+    final activeHabits =
+        habits.where((h) => !h.archived && !h.isNegative).toList();
 
     final logsByHabit = <String, List<HabitLog>>{};
     for (final log in logs) {

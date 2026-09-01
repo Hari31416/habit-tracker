@@ -198,14 +198,15 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
                 }
               },
             ),
-          IconButton(
-            icon: const Icon(Icons.shield_outlined),
-            tooltip: 'Habit Shields Bank',
-            onPressed: () {
-              HapticsHelper.performLightHaptic();
-              ShieldBankBottomSheet.show(context);
-            },
-          ),
+          if (!habit.isNegative)
+            IconButton(
+              icon: const Icon(Icons.shield_outlined),
+              tooltip: 'Habit Shields Bank',
+              onPressed: () {
+                HapticsHelper.performLightHaptic();
+                ShieldBankBottomSheet.show(context);
+              },
+            ),
           Semantics(
             identifier: 'habit_detail_menu',
             label: 'More Options',
@@ -580,119 +581,121 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
             const SizedBox(height: 14),
 
             // Shield Protection Status/Action Banner for selected date
-            if (isShielded) ...[
-              Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  side: BorderSide(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.5),
+            if (!habit.isNegative) ...[
+              if (isShielded) ...[
+                Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    side: BorderSide(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.5),
+                    ),
                   ),
-                ),
-                color: theme.colorScheme.primaryContainer.withValues(alpha: 0.35),
-                elevation: 0,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.shield,
-                        color: theme.colorScheme.primary,
-                        size: 24,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Streak Freeze Active',
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: theme.colorScheme.onSurface,
-                              ),
-                            ),
-                            Text(
-                              'This day is protected by a shield. Streak is safe!',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
+                  color: theme.colorScheme.primaryContainer.withValues(alpha: 0.35),
+                  elevation: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.shield,
+                          color: theme.colorScheme.primary,
+                          size: 24,
                         ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          HapticsHelper.performLightHaptic();
-                          controller.toggleShieldForSelectedDate();
-                        },
-                        child: const Text('Remove'),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-            ] else if (isPast && isScheduled && !isCompleted) ...[
-              Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  side: BorderSide(
-                    color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-                  ),
-                ),
-                color: theme.colorScheme.surface,
-                elevation: 0,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.shield_outlined,
-                        color: theme.colorScheme.primary,
-                        size: 24,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Missed Date (${DateFormat('MMM d').format(uiState.selectedDate)})',
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w600,
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Streak Freeze Active',
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: theme.colorScheme.onSurface,
+                                ),
                               ),
-                            ),
-                            Text(
-                              'Bank: ${uiState.shieldBank?.availableShields ?? 0}/${uiState.shieldBank?.maxCapacity ?? 3} shields available',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
+                              Text(
+                                'This day is protected by a shield. Streak is safe!',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.shield, size: 16),
-                        label: const Text('Protect'),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                        TextButton(
+                          onPressed: () {
+                            HapticsHelper.performLightHaptic();
+                            controller.toggleShieldForSelectedDate();
+                          },
+                          child: const Text('Remove'),
                         ),
-                        onPressed: (uiState.shieldBank?.availableShields ?? 0) > 0
-                            ? () {
-                                HapticsHelper.performHeavyConfirmationHaptic();
-                                controller.toggleShieldForSelectedDate();
-                              }
-                            : () {
-                                HapticsHelper.performLightHaptic();
-                                ShieldBankBottomSheet.show(context);
-                              },
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 14),
+                const SizedBox(height: 14),
+              ] else if (isPast && isScheduled && !isCompleted) ...[
+                Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    side: BorderSide(
+                      color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  color: theme.colorScheme.surface,
+                  elevation: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.shield_outlined,
+                          color: theme.colorScheme.primary,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Missed Date (${DateFormat('MMM d').format(uiState.selectedDate)})',
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                'Bank: ${uiState.shieldBank?.availableShields ?? 0}/${uiState.shieldBank?.maxCapacity ?? 3} shields available',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.shield, size: 16),
+                          label: const Text('Protect'),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                          ),
+                          onPressed: (uiState.shieldBank?.availableShields ?? 0) > 0
+                              ? () {
+                                  HapticsHelper.performHeavyConfirmationHaptic();
+                                  controller.toggleShieldForSelectedDate();
+                                }
+                              : () {
+                                  HapticsHelper.performLightHaptic();
+                                  ShieldBankBottomSheet.show(context);
+                                },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+              ],
             ],
 
             // 2. Compact 3-Metric Stats Strip

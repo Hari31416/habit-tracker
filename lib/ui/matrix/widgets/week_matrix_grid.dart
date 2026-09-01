@@ -253,6 +253,7 @@ class _MatrixRowWidget extends StatelessWidget {
                   cell: cell,
                   accentColor: accentColor,
                   onTap: () {
+                    if (habit.isNegative) return;
                     final isDone = cell.status == MatrixCellStatus.completed;
                     final isShielded = cell.status == MatrixCellStatus.shielded;
                     if (!isDone && !isShielded) {
@@ -263,6 +264,7 @@ class _MatrixRowWidget extends StatelessWidget {
                     onToggleCell(habit.id, cell.date);
                   },
                   onLongPress: () {
+                    if (habit.isNegative) return;
                     HapticsHelper.performLightHaptic();
                     onToggleShieldCell?.call(habit.id, cell.date);
                   },

@@ -92,7 +92,8 @@ class HabitMonthlyCalendar extends StatelessWidget {
       final dayLogs = logsByDate[dateStr] ?? const [];
       final isCompleted =
           StreakCalculator.isHabitCompletedOnDate(habit, dayLogs, d);
-      final isShielded = shieldedDates.contains(dateStr);
+      final isShielded =
+          !habit.isNegative && shieldedDates.contains(dateStr);
 
       if (isScheduled) {
         scheduledDays++;

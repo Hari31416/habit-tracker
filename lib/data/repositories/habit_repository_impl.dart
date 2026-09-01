@@ -580,6 +580,11 @@ class HabitRepositoryImpl implements HabitRepository {
       return false;
     }
 
+    final targetHabit = habits.where((h) => h.id == habitId).firstOrNull;
+    if (targetHabit == null || targetHabit.isNegative) {
+      return false;
+    }
+
     final dateStr = _dateFormatter.format(date);
     final now = DateTime.now().toUtc();
     final companion = HabitShieldsCompanion(
@@ -660,6 +665,7 @@ class HabitRepositoryImpl implements HabitRepository {
     final newShieldsToInsert = <HabitShieldsCompanion>[];
 
     for (final habit in habits) {
+      if (habit.isNegative) continue;
       if (availableShields <= 0) break;
 
       final isScheduled = StreakCalculator.isHabitScheduledOnDate(habit, targetDate);
