@@ -389,61 +389,97 @@ class _HabitDetailScreenState extends ConsumerState<HabitDetailScreen> {
                           ),
                         ),
 
-                        // Mark as done check button (38x38)
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          width: 38,
-                          height: 38,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: isCompleted
-                                ? accentColor
-                                : isShielded
-                                    ? theme.colorScheme.primaryContainer
-                                    : theme.colorScheme.surfaceContainerHighest,
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              customBorder: const CircleBorder(),
-                              onTap: () {
-                                if (!isCompleted) {
-                                  HapticsHelper.performHeavyConfirmationHaptic();
-                                  controller.toggleCheckInForDate(
-                                    uiState.selectedDate,
-                                  );
-                                  Future.delayed(const Duration(milliseconds: 300), () {
-                                    if (context.mounted) {
-                                      ReflectionBottomSheet.show(
-                                        context,
-                                        habit: habit,
-                                        date: uiState.selectedDate,
-                                      );
-                                    }
-                                  });
-                                } else {
-                                  HapticsHelper.performLightHaptic();
-                                  controller.toggleCheckInForDate(
-                                    uiState.selectedDate,
-                                  );
-                                }
-                              },
-                              child: Icon(
-                                isCompleted
-                                    ? Icons.check
-                                    : isShielded
-                                        ? Icons.shield
-                                        : Icons.check,
-                                size: 20,
-                                color: isCompleted
-                                    ? Colors.white
-                                    : isShielded
-                                        ? theme.colorScheme.primary
-                                        : theme.colorScheme.onSurfaceVariant,
+                        // Mark as done check button (38x38) or Clean badge for negative habits
+                        if (habit.isNegative)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: accentColor.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: accentColor.withValues(alpha: 0.35),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.shield_outlined,
+                                  size: 16,
+                                  color: accentColor,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Clean',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: accentColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            width: 38,
+                            height: 38,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isCompleted
+                                  ? accentColor
+                                  : isShielded
+                                      ? theme.colorScheme.primaryContainer
+                                      : theme.colorScheme.surfaceContainerHighest,
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                customBorder: const CircleBorder(),
+                                onTap: () {
+                                  if (!isCompleted) {
+                                    HapticsHelper.performHeavyConfirmationHaptic();
+                                    controller.toggleCheckInForDate(
+                                      uiState.selectedDate,
+                                    );
+                                    Future.delayed(
+                                      const Duration(milliseconds: 300),
+                                      () {
+                                        if (context.mounted) {
+                                          ReflectionBottomSheet.show(
+                                            context,
+                                            habit: habit,
+                                            date: uiState.selectedDate,
+                                          );
+                                        }
+                                      },
+                                    );
+                                  } else {
+                                    HapticsHelper.performLightHaptic();
+                                    controller.toggleCheckInForDate(
+                                      uiState.selectedDate,
+                                    );
+                                  }
+                                },
+                                child: Icon(
+                                  isCompleted
+                                      ? Icons.check
+                                      : isShielded
+                                          ? Icons.shield
+                                          : Icons.check,
+                                  size: 20,
+                                  color: isCompleted
+                                      ? Colors.white
+                                      : isShielded
+                                          ? theme.colorScheme.primary
+                                          : theme.colorScheme.onSurfaceVariant,
+                                ),
                               ),
                             ),
                           ),
-                        ),
                       ],
                     ),
 

@@ -384,6 +384,37 @@ class HabitCard extends StatelessWidget {
     bool isShielded,
     Color habitColor,
   ) {
+    if (habit.isNegative) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: habitColor.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: habitColor.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.shield_outlined,
+              size: 15,
+              color: habitColor,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              'Clean',
+              style: theme.textTheme.labelSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: habitColor,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     if (habit.targetType == HabitTargetType.timer && !isCompleted) {
       return Material(
         color: habitColor.withValues(alpha: 0.15),
