@@ -235,12 +235,21 @@ class _HabitTrackerAppState extends ConsumerState<HabitTrackerApp>
         }
 
         if (route.startsWith('routine_player/')) {
-          final routineId = route.replaceFirst('routine_player/', '');
+          final uri = Uri.tryParse(route);
+          final rawPath = uri?.path ?? route;
+          final routineId = rawPath.replaceFirst('routine_player/', '');
+          final queryDate = uri?.queryParameters['date'];
+          final parsedDate = queryDate != null ? DateTime.tryParse(queryDate) : null;
+          final targetDate = (settings.arguments is DateTime)
+              ? settings.arguments as DateTime
+              : parsedDate;
+
           if (routineId.isNotEmpty) {
             return MaterialPageRoute(
               settings: settings,
               builder: (ctx) => RoutinePlayerScreen(
                 routineId: routineId,
+                targetDate: targetDate,
                 onBack: () => Navigator.of(ctx).pop(),
               ),
             );

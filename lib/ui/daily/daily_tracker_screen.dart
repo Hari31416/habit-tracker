@@ -852,8 +852,10 @@ class _DailyHabitsList extends ConsumerWidget {
             RoutineSection(
               selectedDate: selectedDate,
               onStartRoutinePlayer: (routine) {
-                Navigator.of(context)
-                    .pushNamed(Screen.routinePlayerRoute(routine.id));
+                Navigator.of(context).pushNamed(
+                  Screen.routinePlayerRoute(routine.id, selectedDate),
+                  arguments: selectedDate,
+                );
               },
             ),
             const SizedBox(height: 12),
@@ -988,7 +990,10 @@ class _DailyHabitsList extends ConsumerWidget {
           return RoutineSection(
             selectedDate: selectedDate,
             onStartRoutinePlayer: (routine) {
-              Navigator.of(context).pushNamed(Screen.routinePlayerRoute(routine.id));
+              Navigator.of(context).pushNamed(
+                Screen.routinePlayerRoute(routine.id, selectedDate),
+                arguments: selectedDate,
+              );
             },
           );
         }

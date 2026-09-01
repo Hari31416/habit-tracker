@@ -16,11 +16,13 @@ import '../common/haptics_helper.dart';
 
 class RoutinePlayerScreen extends ConsumerStatefulWidget {
   final String routineId;
+  final DateTime? targetDate;
   final VoidCallback onBack;
 
   const RoutinePlayerScreen({
     super.key,
     required this.routineId,
+    this.targetDate,
     required this.onBack,
   });
 
@@ -35,6 +37,8 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
   final Map<String, double> _numericValues = {};
   final Map<String, int> _timerSeconds = {};
   final Map<String, String> _reflectionNotes = {};
+
+  DateTime get _effectiveDate => widget.targetDate ?? DateTime.now();
 
   // Timer state for timer-type habits
   Timer? _stepTimer;
@@ -126,7 +130,7 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
 
     final habitRepo = ref.read(habitRepositoryProvider);
     final note = _reflectionNotes[habit.id];
-    final today = DateTime.now();
+    final effectiveDate = _effectiveDate;
 
     switch (habit.targetType) {
       case HabitTargetType.boolean:
@@ -137,7 +141,7 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
             for (var i = 0; i < slots; i++) {
               await habitRepo.logCheckIn(
                 habitId: habit.id,
-                date: today,
+                date: effectiveDate,
                 completed: true,
                 intervalIndex: i,
                 note: i == 0 ? note : null,
@@ -147,7 +151,7 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
           default:
             await habitRepo.logCheckIn(
               habitId: habit.id,
-              date: today,
+              date: effectiveDate,
               completed: true,
               note: note,
             );
@@ -158,13 +162,13 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
         final numVal = _numericValues[habit.id] ?? habit.targetValue ?? 1.0;
         await habitRepo.updateNumericValue(
           habit.id,
-          today,
+          effectiveDate,
           numVal,
         );
         if (note != null && note.isNotEmpty) {
           await habitRepo.updateReflection(
             habitId: habit.id,
-            date: today,
+            date: effectiveDate,
             note: note,
           );
         }
@@ -176,7 +180,7 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
         final durationSecs = elapsed > 0 ? elapsed : (targetMin * 60).round();
         await habitRepo.logCheckIn(
           habitId: habit.id,
-          date: today,
+          date: effectiveDate,
           completed: true,
           durationSeconds: durationSecs,
           value: durationSecs / 60.0,
@@ -228,12 +232,12 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
   }
 
   Future<void> _finishRoutine(HabitRoutine routine, List<Habit> chainHabits) async {
-    final todayStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final targetDateStr = DateFormat('yyyy-MM-dd').format(_effectiveDate);
     final routineRepo = ref.read(routineRepositoryProvider);
 
     final routineLog = await routineRepo.completeRoutine(
       routineId: routine.id,
-      date: todayStr,
+      date: targetDateStr,
       completedHabitIds: _completedStepHabitIds.toList(),
     );
 
@@ -356,6 +360,15 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
     final theme = Theme.of(context);
     final routineColor = ColorUtils.fromHex(routine.color);
 
+    final effectiveDate = _effectiveDate;
+    final now = DateTime.now();
+    final isToday = effectiveDate.year == now.year &&
+        effectiveDate.month == now.month &&
+        effectiveDate.day == now.day;
+    final stepSubtitle = isToday
+        ? 'Step ${currentStep + 1} of ${chainHabits.length}'
+        : 'Step ${currentStep + 1} of ${chainHabits.length} • ${DateFormat('EEE, MMM d').format(effectiveDate)}';
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       child: Column(
@@ -385,7 +398,7 @@ class _RoutinePlayerScreenState extends ConsumerState<RoutinePlayerScreen>
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      'Step ${currentStep + 1} of ${chainHabits.length}',
+                      stepSubtitle,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),

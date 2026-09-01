@@ -168,12 +168,82 @@ void main() {
     await tester.tap(find.text('Complete Stack'));
     await tester.pumpAndSettle();
 
-    // Verify all 4 interval slots were logged in repository (player uses DateTime.now)
+    // Verify all 4 interval slots were logged in repository (default uses DateTime.now)
     final today = DateTime.now();
     final logs = await mockHabitRepo.getLogsForDateOnce(today);
     final waterLogs = logs.where((l) => l.habitId == 'seed_habit_water').toList();
     expect(waterLogs.length, 4);
     expect(waterLogs.every((l) => l.completed), isTrue);
     expect(waterLogs.map((l) => l.intervalIndex).toSet(), {0, 1, 2, 3});
+  });
+
+  testWidgets('RoutinePlayerScreen logs check-ins and routine completion for explicit targetDate', (tester) async {
+    final pastDate = DateTime.utc(2026, 8, 15);
+
+    final habit = Habit(
+      id: 'h_past',
+      title: 'Past Meditation',
+      color: '#8B5CF6',
+      frequencyType: HabitFrequencyType.daily,
+      targetType: HabitTargetType.boolean,
+      createdAt: pastDate,
+      updatedAt: pastDate,
+    );
+
+    final routine = HabitRoutine(
+      id: 'routine_past',
+      title: 'Mindfulness Stack',
+      color: '#8B5CF6',
+      habitIds: const ['h_past'],
+      bonusXp: 25,
+      createdAt: pastDate,
+      updatedAt: pastDate,
+    );
+
+    final mockHabitRepo = FakeHabitRepository(
+      initialHabits: [habit],
+    );
+    final mockRoutineRepo = MockRoutineRepository(
+      initialRoutines: [routine],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          habitRepositoryProvider.overrideWithValue(mockHabitRepo),
+          routineRepositoryProvider.overrideWithValue(mockRoutineRepo),
+          activeHabitsStreamProvider.overrideWith((ref) => Stream.value([habit])),
+          activeRoutinesStreamProvider.overrideWith((ref) => Stream.value([routine])),
+        ],
+        child: MaterialApp(
+          home: RoutinePlayerScreen(
+            routineId: 'routine_past',
+            targetDate: pastDate,
+            onBack: () {},
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('Past Meditation'), findsOneWidget);
+    // Header should reflect date when not today
+    expect(find.textContaining('Sat, Aug 15'), findsOneWidget);
+
+    // Complete routine
+    await tester.tap(find.text('Complete Stack'));
+    await tester.pumpAndSettle();
+
+    // Verify logs were written for pastDate, not DateTime.now()
+    final pastLogs = await mockHabitRepo.getLogsForDateOnce(pastDate);
+    expect(pastLogs.length, 1);
+    expect(pastLogs.first.habitId, 'h_past');
+    expect(pastLogs.first.completed, isTrue);
+
+    final pastRoutineLogs = await mockRoutineRepo.getRoutineLogsForDateOnce('2026-08-15');
+    expect(pastRoutineLogs.length, 1);
+    expect(pastRoutineLogs.first.routineId, 'routine_past');
+    expect(pastRoutineLogs.first.xpEarned, 25);
   });
 }

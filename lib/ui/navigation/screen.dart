@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 abstract class Screen {
   final String route;
   const Screen(this.route);
@@ -14,7 +16,13 @@ abstract class Screen {
 
   static String detailRoute(String habitId) => 'detail/$habitId';
   static String focusTimerRoute(String habitId) => 'focus_timer/$habitId';
-  static String routinePlayerRoute(String routineId) => 'routine_player/$routineId';
+  static String routinePlayerRoute(String routineId, [DateTime? date]) {
+    if (date != null) {
+      final dateStr = DateFormat('yyyy-MM-dd').format(date);
+      return 'routine_player/$routineId?date=$dateStr';
+    }
+    return 'routine_player/$routineId';
+  }
   static String editHabitRoute(String habitId) => 'edit_habit/$habitId';
 
   /// Parses a deep-link URI or named route string into a valid route name.
