@@ -1,0 +1,106 @@
+# Routine Partial & Incremental Progress journey:
+# 1. Load starter habits and routines (Morning Momentum stack)
+# 2. Assert initial routine state shows start button
+# 3. Launch Routine Player mode for Morning Momentum
+# 4. Step 1 (Hydration Intake - 4x/day):
+#    - Verify "Logging Check-in #1 of 4" is displayed
+#    - Complete Step 1 -> Logs single open slot (check-in #1)
+# 5. Step 2 (Morning Meditation):
+#    - Complete Step 2
+# 6. Step 3 (Read 20 Pages - numeric):
+#    - Verify incremental adjustment (+5)
+#    - Tap +5 to set partial reading progress
+#    - Complete Stack
+# 7. Verify Celebration Screen (+30 XP Bonus) and return to Dashboard
+# 8. Verify Dashboard State:
+#    - Morning Momentum routine displays "Stack Complete!" and "Replay"
+
+appId: app.phial.habits
+tags:
+  - journey
+  - full
+  - routines
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "nav_today"
+    timeout: 30000
+
+# 1. Load starter demo habits and seeded routines
+- runFlow:
+    file: helpers/load_demo_habits.yaml
+- extendedWaitUntil:
+    visible:
+      id: "btn_start_routine_seed_routine_morning"
+    timeout: 10000
+
+# 2. Assert initial routine state
+- assertVisible:
+    id: "btn_start_routine_seed_routine_morning"
+
+# 3. Launch Routine Player for Morning Momentum
+- tapOn:
+    id: "btn_start_routine_seed_routine_morning"
+- extendedWaitUntil:
+    visible: "Step 1 of 3"
+    timeout: 10000
+
+- assertVisible: "Hydration Intake"
+- assertVisible: "Logging Check-in #1 of 4"
+- assertVisible: "Daily Target: 4 check-ins"
+
+# 4. Complete Step 1 (Hydration Intake - logs single slot)
+- tapOn:
+    id: "btn_step_complete"
+- extendedWaitUntil:
+    visible: "Step Complete!"
+    timeout: 5000
+
+- tapOn:
+    id: "btn_step_continue"
+- extendedWaitUntil:
+    visible: "Step 2 of 3"
+    timeout: 5000
+
+# 5. Complete Step 2 (Morning Meditation)
+- assertVisible: "Morning Meditation"
+- tapOn:
+    id: "btn_step_complete"
+- extendedWaitUntil:
+    visible: "Step Complete!"
+    timeout: 5000
+
+- tapOn:
+    id: "btn_step_continue"
+- extendedWaitUntil:
+    visible: "Step 3 of 3"
+    timeout: 5000
+
+# 6. Step 3 (Read 20 Pages - partial increment +5)
+- assertVisible: "Read 20 Pages"
+- assertVisible:
+    id: "btn_numeric_plus_5"
+- tapOn:
+    id: "btn_numeric_plus_5"
+
+- tapOn:
+    id: "btn_step_complete"
+- extendedWaitUntil:
+    visible: "Stack Completed!"
+    timeout: 10000
+
+- assertVisible: "Routine Completion Bonus"
+
+# 7. Return to Dashboard
+- tapOn:
+    id: "btn_routine_finish"
+- extendedWaitUntil:
+    visible:
+      id: "nav_today"
+    timeout: 10000
+
+# 8. Assert Routine Stack is Complete with partial progress
+- assertVisible: "Stack Complete!"
+- assertVisible: "Replay"
