@@ -229,6 +229,47 @@ class StreakCalculator {
     }
   }
 
+  /// Evaluates whether a habit step within a routine/stack has received progress on the date.
+  /// In habit stacking, a routine step is satisfied if any valid increment, slot check-in,
+  /// or timer session has been logged, without requiring full whole-day quota completion.
+  static bool isHabitStepSatisfiedForRoutine(
+    Habit habit,
+    List<HabitLog> logs, [
+    DateTime? date,
+  ]) {
+    if (habit.isNegative) {
+      return isHabitCompletedOnDate(habit, logs, date);
+    }
+
+    if (logs.isEmpty) return false;
+
+    switch (habit.targetType) {
+      case HabitTargetType.boolean:
+        return logs.any((l) => l.completed);
+
+      case HabitTargetType.numeric:
+        final totalValue = logs.fold<double>(
+          0.0,
+          (sum, log) => sum + (log.value ?? (log.completed ? (habit.targetValue ?? 1.0) : 0.0)),
+        );
+        return totalValue > 0 || logs.any((l) => l.completed);
+
+      case HabitTargetType.timer:
+        final totalSeconds = logs.fold<int>(
+          0,
+          (sum, log) =>
+              sum +
+              (log.durationSeconds ??
+                  (log.completed ? ((habit.targetValue ?? 25.0) * 60).round() : 0)),
+        );
+        final totalMinutes = logs.fold<double>(
+          0.0,
+          (sum, log) => sum + (log.value ?? 0.0),
+        );
+        return totalSeconds > 0 || totalMinutes > 0 || logs.any((l) => l.completed);
+    }
+  }
+
   static bool isBaseCompletedOnDate(Habit habit, List<HabitLog> logs) {
     return resolveAchievedTier(habit, logs).isAtLeast(HabitTier.base);
   }
