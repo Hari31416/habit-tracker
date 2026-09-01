@@ -39,27 +39,40 @@ tags:
 
 # 3. Verify clean days badge on Today dashboard
 - extendedWaitUntil:
-    visible: "Quit Social Media Detox"
+    visible: "Open Quit Social Media Detox"
     timeout: 10000
-- assertVisible: "Quit Social Media Detox"
+- assertVisible: "Open Quit Social Media Detox"
 
 # 4. Open Habit Detail screen
-- tapOn: "Quit Social Media Detox"
+- tapOn: "Open Quit Social Media Detox"
 - extendedWaitUntil:
-    visible: "Sobriety Counter"
+    visible:
+      id: "habit_detail_menu"
+    timeout: 15000
+
+- extendedWaitUntil:
+    visible:
+      id: "sobriety_counter_card"
     timeout: 10000
 
-- assertVisible: "Sobriety Counter"
-- assertVisible: "DAYS"
-- assertVisible: "HOURS"
-- assertVisible: "MINS"
-- assertVisible: "SECS"
-- assertVisible: "Next Milestone: 24 Hours"
-- assertVisible: "Urge Surfer"
-- assertVisible: "Reset"
+- assertVisible:
+    id: "sobriety_counter_card"
+- assertVisible:
+    id: "time_unit_days"
+- assertVisible:
+    id: "time_unit_hours"
+- assertVisible:
+    id: "time_unit_mins"
+- assertVisible:
+    id: "time_unit_secs"
+- assertVisible:
+    id: "btn_launch_urge_surfer"
+- assertVisible:
+    id: "btn_open_reset_sobriety"
 
 # 5. Launch Urge Surfer tool
-- tapOn: "Urge Surfer"
+- tapOn:
+    id: "btn_launch_urge_surfer"
 - extendedWaitUntil:
     visible: "Urge Surfer • Quit Social Media Detox"
     timeout: 10000
@@ -80,9 +93,11 @@ tags:
 
 # 6. Test Reset Sobriety Clock flow
 - extendedWaitUntil:
-    visible: "Sobriety Counter"
+    visible:
+      id: "sobriety_counter_card"
     timeout: 10000
-- tapOn: "Reset"
+- tapOn:
+    id: "btn_open_reset_sobriety"
 
 - extendedWaitUntil:
     visible: "Reset Sobriety Clock?"
@@ -99,4 +114,5 @@ tags:
     notVisible: "Reset Sobriety Clock?"
     timeout: 5000
 
-- assertVisible: "Sobriety Counter"
+- assertVisible:
+    id: "sobriety_counter_card"

@@ -159,163 +159,178 @@ class _SobrietyCounterCardState extends State<SobrietyCounterCard> {
     final milestoneProgress = ((days - prevDays) / (targetDays - prevDays))
         .clamp(0.0, 1.0);
 
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-        side: BorderSide(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.6),
+    return Semantics(
+      identifier: 'sobriety_counter_card',
+      container: true,
+      child: Card(
+        key: const Key('sobriety_counter_card'),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.6),
+          ),
         ),
-      ),
-      color: theme.colorScheme.surfaceContainerLow,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Top Row: Title + Clean Since
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.shield_outlined,
-                      size: 20,
-                      color: habitColor,
+        color: theme.colorScheme.surfaceContainerLow,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Top Row: Title + Clean Since
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.shield_outlined,
+                        size: 20,
+                        color: habitColor,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Sobriety Counter',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    'Since ${DateFormat('MMM d, yyyy').format(_cleanSince)}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
-                    const SizedBox(width: 8),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+
+              // Live Time Blocks
+              Row(
+                children: [
+                  _buildTimeUnit(
+                    context,
+                    '$days',
+                    'DAYS',
+                    habitColor,
+                    isPrimary: true,
+                  ),
+                  const SizedBox(width: 8),
+                  _buildTimeUnit(
+                    context,
+                    hours.toString().padLeft(2, '0'),
+                    'HOURS',
+                    habitColor,
+                  ),
+                  const SizedBox(width: 8),
+                  _buildTimeUnit(
+                    context,
+                    minutes.toString().padLeft(2, '0'),
+                    'MINS',
+                    habitColor,
+                  ),
+                  const SizedBox(width: 8),
+                  _buildTimeUnit(
+                    context,
+                    seconds.toString().padLeft(2, '0'),
+                    'SECS',
+                    habitColor,
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // Milestone Bar
+              if (nextMilestone != null) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
                     Text(
-                      'Sobriety Counter',
-                      style: theme.textTheme.titleMedium?.copyWith(
+                      'Next Milestone: ${nextMilestone.label}',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    Text(
+                      '$days of ${nextMilestone.days} days (${(milestoneProgress * 100).toInt()}%)',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: habitColor,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
-                Text(
-                  'Since ${DateFormat('MMM d, yyyy').format(_cleanSince)}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                const SizedBox(height: 6),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: LinearProgressIndicator(
+                    value: milestoneProgress,
+                    minHeight: 6,
+                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                    valueColor: AlwaysStoppedAnimation<Color>(habitColor),
                   ),
                 ),
+                const SizedBox(height: 20),
               ],
-            ),
-            const SizedBox(height: 18),
 
-            // Live Time Blocks
-            Row(
-              children: [
-                _buildTimeUnit(
-                  context,
-                  '$days',
-                  'DAYS',
-                  habitColor,
-                  isPrimary: true,
-                ),
-                const SizedBox(width: 8),
-                _buildTimeUnit(
-                  context,
-                  hours.toString().padLeft(2, '0'),
-                  'HOURS',
-                  habitColor,
-                ),
-                const SizedBox(width: 8),
-                _buildTimeUnit(
-                  context,
-                  minutes.toString().padLeft(2, '0'),
-                  'MINS',
-                  habitColor,
-                ),
-                const SizedBox(width: 8),
-                _buildTimeUnit(
-                  context,
-                  seconds.toString().padLeft(2, '0'),
-                  'SECS',
-                  habitColor,
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-
-            // Milestone Bar
-            if (nextMilestone != null) ...[
+              // Action Buttons: Urge Surfer + Reset
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Next Milestone: ${nextMilestone.label}',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.onSurface,
+                  Expanded(
+                    flex: 3,
+                    child: Semantics(
+                      identifier: 'btn_launch_urge_surfer',
+                      button: true,
+                      label: 'Urge Surfer',
+                      child: FilledButton.icon(
+                        key: const Key('btn_launch_urge_surfer'),
+                        onPressed: widget.onLaunchUrgeSurfer,
+                        icon: const Icon(Icons.surfing, size: 18),
+                        label: const Text('Urge Surfer'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: habitColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                  Text(
-                    '$days of ${nextMilestone.days} days (${(milestoneProgress * 100).toInt()}%)',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: habitColor,
-                      fontWeight: FontWeight.bold,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: Semantics(
+                      identifier: 'btn_open_reset_sobriety',
+                      button: true,
+                      label: 'Reset',
+                      child: OutlinedButton.icon(
+                        key: const Key('btn_open_reset_sobriety'),
+                        onPressed: () => _showResetConfirmDialog(context),
+                        icon: const Icon(Icons.restart_alt, size: 18),
+                        label: const Text('Reset'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: theme.colorScheme.error,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          side: BorderSide(
+                            color: theme.colorScheme.error.withValues(alpha: 0.5),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 6),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: LinearProgressIndicator(
-                  value: milestoneProgress,
-                  minHeight: 6,
-                  backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                  valueColor: AlwaysStoppedAnimation<Color>(habitColor),
-                ),
-              ),
-              const SizedBox(height: 20),
             ],
-
-            // Action Buttons: Urge Surfer + Reset
-            Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: FilledButton.icon(
-                    key: const Key('btn_launch_urge_surfer'),
-                    onPressed: widget.onLaunchUrgeSurfer,
-                    icon: const Icon(Icons.surfing, size: 18),
-                    label: const Text('Urge Surfer'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: habitColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 2,
-                  child: OutlinedButton.icon(
-                    key: const Key('btn_open_reset_sobriety'),
-                    onPressed: () => _showResetConfirmDialog(context),
-                    icon: const Icon(Icons.restart_alt, size: 18),
-                    label: const Text('Reset'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: theme.colorScheme.error,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      side: BorderSide(
-                        color: theme.colorScheme.error.withValues(alpha: 0.5),
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -330,42 +345,46 @@ class _SobrietyCounterCardState extends State<SobrietyCounterCard> {
   }) {
     final theme = Theme.of(context);
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: isPrimary
-              ? accentColor.withValues(alpha: 0.12)
-              : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
+      child: Semantics(
+        identifier: 'time_unit_${label.toLowerCase()}',
+        label: '$value $label',
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
             color: isPrimary
-                ? accentColor.withValues(alpha: 0.3)
-                : Colors.transparent,
+                ? accentColor.withValues(alpha: 0.12)
+                : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isPrimary
+                  ? accentColor.withValues(alpha: 0.3)
+                  : Colors.transparent,
+            ),
           ),
-        ),
-        child: Column(
-          children: [
-            Text(
-              value,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: isPrimary ? accentColor : theme.colorScheme.onSurface,
-                fontFeatures: const [FontFeature.tabularFigures()],
+          child: Column(
+            children: [
+              Text(
+                value,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: isPrimary ? accentColor : theme.colorScheme.onSurface,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: theme.textTheme.labelSmall?.copyWith(
-                fontSize: 10,
-                letterSpacing: 0.8,
-                color: isPrimary
-                    ? accentColor
-                    : theme.colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w600,
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  fontSize: 10,
+                  letterSpacing: 0.8,
+                  color: isPrimary
+                      ? accentColor
+                      : theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
