@@ -334,9 +334,6 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
   }
 
   void _applyFilterAndSort() {
-    final isArchivedCategory =
-        state.selectedCategoryId == DailyTrackerController.archivedCategoryId;
-
     final activeHabitsForTotals = _unfilteredHabitsWithProgress
         .where((item) =>
             !item.habit.archived &&
@@ -359,6 +356,14 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
     }
 
     final archivedCount = _allHabits.where((h) => h.archived).length;
+    final isArchivedCategory =
+        state.selectedCategoryId == DailyTrackerController.archivedCategoryId;
+    final effectiveSelectedCategoryId =
+        (isArchivedCategory && archivedCount == 0)
+            ? null
+            : state.selectedCategoryId;
+    final effectiveIsArchived =
+        effectiveSelectedCategoryId == DailyTrackerController.archivedCategoryId;
 
     final totalXp = activeHabitsForTotals.fold<int>(0, (sum, item) {
       final baseXp = GamificationEngine.calculateHabitDayBaseXp(
@@ -372,7 +377,7 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
       return sum + GamificationEngine.applyMultiplier(baseXp, multiplier);
     });
 
-    final habitsToFilter = isArchivedCategory
+    final habitsToFilter = effectiveIsArchived
         ? _unfilteredHabitsWithProgress
             .where((item) => item.habit.archived)
             .toList()
@@ -383,10 +388,10 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
     final query = state.searchQuery.trim().toLowerCase();
     final filteredHabits = habitsToFilter.where((item) {
       final habit = item.habit;
-      final matchCategory = isArchivedCategory
+      final matchCategory = effectiveIsArchived
           ? true
-          : (state.selectedCategoryId == null ||
-              habit.categoryId == state.selectedCategoryId);
+          : (effectiveSelectedCategoryId == null ||
+              habit.categoryId == effectiveSelectedCategoryId);
       final matchSearch = query.isEmpty ||
           habit.title.toLowerCase().contains(query) ||
           (habit.description != null &&
@@ -427,6 +432,8 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
     });
 
     state = state.copyWith(
+      selectedCategoryId: effectiveSelectedCategoryId,
+      clearSelectedCategory: effectiveSelectedCategoryId == null && state.selectedCategoryId != null,
       habits: filteredHabits,
       categoryHabitCounts: categoryCounts,
       archivedHabitsCount: archivedCount,
@@ -482,32 +489,42 @@ class DailyTrackerController extends StateNotifier<DailyTrackerUiState> {
 
 
   Future<void> toggleCheckIn(Habit habit) async {
+    if (habit.archived) return;
     await _repository.toggleBooleanCheckIn(habit.id, state.selectedDate);
     _widgetSyncService?.syncAllWidgets(state.selectedDate);
   }
 
   Future<void> logTier(String habitId, HabitTier tier) async {
+    final habit = _allHabits.where((h) => h.id == habitId).firstOrNull;
+    if (habit?.archived == true) return;
     await _repository.logTierCheckIn(habitId, state.selectedDate, tier);
     _widgetSyncService?.syncAllWidgets(state.selectedDate);
   }
 
   Future<bool> toggleShield(Habit habit) async {
+    if (habit.archived) return false;
     final success = await _repository.toggleShield(habit.id, state.selectedDate);
     _widgetSyncService?.syncAllWidgets(state.selectedDate);
     return success;
   }
 
   Future<void> updateNumericValue(String habitId, double value) async {
+    final habit = _allHabits.where((h) => h.id == habitId).firstOrNull;
+    if (habit?.archived == true) return;
     await _repository.updateNumericValue(habitId, state.selectedDate, value);
     _widgetSyncService?.syncAllWidgets(state.selectedDate);
   }
 
   Future<void> addNumericDelta(String habitId, double delta) async {
+    final habit = _allHabits.where((h) => h.id == habitId).firstOrNull;
+    if (habit?.archived == true) return;
     await _repository.addNumericDelta(habitId, state.selectedDate, delta);
     _widgetSyncService?.syncAllWidgets(state.selectedDate);
   }
 
   Future<void> toggleSlot(String habitId, int slotIndex) async {
+    final habit = _allHabits.where((h) => h.id == habitId).firstOrNull;
+    if (habit?.archived == true) return;
     await _repository.toggleSlotCheckIn(habitId, state.selectedDate, slotIndex);
     _widgetSyncService?.syncAllWidgets(state.selectedDate);
   }

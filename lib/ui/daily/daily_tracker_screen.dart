@@ -760,7 +760,6 @@ class _DailyCategoryChipsRow extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: FilterChip(
-                avatar: const Icon(Icons.archive_outlined, size: 16),
                 selected: selectedCategoryId == DailyTrackerController.archivedCategoryId,
                 label: Text('Archived ($archivedHabitsCount)'),
                 onSelected: (_) {

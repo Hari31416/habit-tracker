@@ -190,42 +190,44 @@ class HabitCard extends StatelessWidget {
                 ],
               ),
 
-              // Elastic Goals ProgressBar / Auxiliary controls
-              if (habit.hasElasticTiers) ...[
-                const SizedBox(height: 8),
-                ElasticTierProgressBar(
-                  habit: habit,
-                  currentValue: habitWithProgress.currentValueOnDate,
-                  achievedTier: habitWithProgress.achievedTier,
-                  accentColor: habitColor,
-                  onSelectTier: (tier) {
-                    if (onSelectTier != null) {
-                      onSelectTier!(tier);
-                    } else {
-                      onToggleCheckIn();
-                    }
-                  },
-                ),
-              ] else if (habit.targetType == HabitTargetType.numeric && !isCompleted) ...[
-                const SizedBox(height: 8),
-                NumericHabitControls(
-                  habit: habit,
-                  currentValue: habitWithProgress.currentValueOnDate,
-                  isCompleted: isCompleted,
-                  accentColor: habitColor,
-                  onValueChange: (newVal) => onValueChange?.call(newVal),
-                  onDeltaAdd: (delta) => onDeltaAdd?.call(delta),
-                ),
-              ] else if ((habit.frequencyType == HabitFrequencyType.subdayInterval ||
-                      habit.frequencyType == HabitFrequencyType.timesPerDay) &&
-                  !isCompleted) ...[
-                const SizedBox(height: 8),
-                SlotHabitControls(
-                  habit: habit,
-                  logsForDate: habitWithProgress.logsForDate,
-                  accentColor: habitColor,
-                  onToggleSlot: (slotIdx) => onToggleSlot?.call(slotIdx),
-                ),
+              // Elastic Goals ProgressBar / Auxiliary controls (hidden if archived)
+              if (!habit.archived) ...[
+                if (habit.hasElasticTiers) ...[
+                  const SizedBox(height: 8),
+                  ElasticTierProgressBar(
+                    habit: habit,
+                    currentValue: habitWithProgress.currentValueOnDate,
+                    achievedTier: habitWithProgress.achievedTier,
+                    accentColor: habitColor,
+                    onSelectTier: (tier) {
+                      if (onSelectTier != null) {
+                        onSelectTier!(tier);
+                      } else {
+                        onToggleCheckIn();
+                      }
+                    },
+                  ),
+                ] else if (habit.targetType == HabitTargetType.numeric && !isCompleted) ...[
+                  const SizedBox(height: 8),
+                  NumericHabitControls(
+                    habit: habit,
+                    currentValue: habitWithProgress.currentValueOnDate,
+                    isCompleted: isCompleted,
+                    accentColor: habitColor,
+                    onValueChange: (newVal) => onValueChange?.call(newVal),
+                    onDeltaAdd: (delta) => onDeltaAdd?.call(delta),
+                  ),
+                ] else if ((habit.frequencyType == HabitFrequencyType.subdayInterval ||
+                        habit.frequencyType == HabitFrequencyType.timesPerDay) &&
+                    !isCompleted) ...[
+                  const SizedBox(height: 8),
+                  SlotHabitControls(
+                    habit: habit,
+                    logsForDate: habitWithProgress.logsForDate,
+                    accentColor: habitColor,
+                    onToggleSlot: (slotIdx) => onToggleSlot?.call(slotIdx),
+                  ),
+                ],
               ],
             ],
           ),
@@ -405,6 +407,37 @@ class HabitCard extends StatelessWidget {
     bool isShielded,
     Color habitColor,
   ) {
+    if (habit.archived) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.archive_outlined,
+              size: 15,
+              color: theme.colorScheme.outline,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              'Archived',
+              style: theme.textTheme.labelSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: theme.colorScheme.outline,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     if (habit.isNegative) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
