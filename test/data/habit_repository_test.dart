@@ -265,4 +265,33 @@ void main() {
     expect(autoApplied, greaterThan(0));
     expect(await repository.isDateShielded(habit.id, today), isTrue);
   });
+
+  test('autoProtectMissedDays does not protect archived habits', () async {
+    final now = DateTime.now().toUtc();
+    final habit = Habit(
+      id: 'archived-auto-protect-habit',
+      title: 'Archived Habit',
+      color: '#10B981',
+      frequencyType: HabitFrequencyType.daily,
+      targetType: HabitTargetType.boolean,
+      archived: true,
+      createdAt: now,
+      updatedAt: now,
+    );
+    await repository.upsertHabit(habit);
+
+    // Give habit a completion yesterday
+    final yesterday = DateTime(2026, 8, 17);
+    final today = DateTime(2026, 8, 18);
+    await repository.logCheckIn(
+      habitId: habit.id,
+      date: yesterday,
+      completed: true,
+    );
+
+    // Auto protect for today
+    final autoApplied = await repository.autoProtectMissedDays(today);
+    expect(autoApplied, equals(0));
+    expect(await repository.isDateShielded(habit.id, today), isFalse);
+  });
 }
