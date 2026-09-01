@@ -112,10 +112,13 @@
           <li><a href="#target-types">Target Engines</a></li>
           <li><a href="#elastic-goals">Elastic Goals &amp; Bad-Day Mode</a></li>
           <li><a href="#habit-stacking-routines">Habit Stacking Routines</a></li>
+          <li><a href="#abstinence-tracking">Abstinence &amp; Sobriety</a></li>
+          <li><a href="#archived-habits">Archived Habits Management</a></li>
         </ul>
 
         <div class="toc-group-title">Reflections &amp; Mindfulness</div>
         <ul class="toc-list">
+          <li><a href="#urge-surfer">Urge Surfer Box Breathing</a></li>
           <li><a href="#checkin-reflections">Check-In Reflections</a></li>
           <li><a href="#energy-mood-tracking">Energy &amp; Mood Logging</a></li>
           <li><a href="#wellbeing-correlation">Wellbeing Correlation</a></li>
@@ -203,10 +206,13 @@
               <li><a href="#target-types">Target Engines</a></li>
               <li><a href="#elastic-goals">Elastic Goals &amp; Bad-Day Mode</a></li>
               <li><a href="#habit-stacking-routines">Habit Stacking Routines</a></li>
+              <li><a href="#abstinence-tracking">Abstinence &amp; Sobriety</a></li>
+              <li><a href="#archived-habits">Archived Habits Management</a></li>
             </ul>
 
             <div class="toc-group-title">Reflections &amp; Mindfulness</div>
             <ul class="toc-list">
+              <li><a href="#urge-surfer">Urge Surfer Box Breathing</a></li>
               <li><a href="#checkin-reflections">Check-In Reflections</a></li>
               <li><a href="#energy-mood-tracking">Energy &amp; Mood Logging</a></li>
               <li><a href="#wellbeing-correlation">Wellbeing Correlation</a></li>
@@ -348,6 +354,26 @@
               <img src="assets/img/screen_create_habit.png" alt="Create Habit Screen">
             </div>
           </div>
+
+          <h3 id="archived-habits">Archived Habits &amp; Lifecycle Management</h3>
+          <p>
+            When a habit is paused or no longer part of your active routine, archiving preserves all your historic completion records, reflections, and streak statistics without cluttering your daily dashboard.
+          </p>
+
+          <div class="guide-visual-card">
+            <div class="guide-screenshot-wrap">
+              <img src="assets/img/screen_archived_filter.png" alt="Archived Habits Filter on Daily Tracker">
+            </div>
+            <div>
+              <ul>
+                <li><strong>Dedicated Category Chip:</strong> The Daily Tracker provides an &ldquo;Archived&rdquo; filter chip displaying the live count of archived habits.</li>
+                <li><strong>Read-Only Safeguards:</strong> Archived habits render with static &ldquo;Archived&rdquo; tags on cards and in the Habit Detail view. Interactive check-ins, numeric steppers, and focus timer actions are disabled to prevent accidental mutations.</li>
+                <li><strong>Paused Notifications:</strong> Scheduled reminders and alarms for archived habits are automatically paused in the background.</li>
+                <li><strong>Exclusion from Rollover:</strong> Archived habits are excluded from midnight rollover missed-day calculations and do not consume Habit Shields.</li>
+                <li><strong>Instant Restoration:</strong> Reactivate any archived habit with one tap from the Habit Detail menu, restoring active tracking and reminders seamlessly.</li>
+              </ul>
+            </div>
+          </div>
         </section>
 
         <!-- Section: Elastic Goals & Bad-Day Mode -->
@@ -450,8 +476,70 @@
 
           <h3>Drift SQLite Persistence &amp; Sync Architecture</h3>
           <p>
-            Routine configurations and execution histories are persisted locally in Drift SQLite via the <code>habit_routines</code> and <code>routine_logs</code> tables (schema version 8). All routine records include soft-deletion tombstone tracking and are fully serialized in AES-256 encrypted backups, Gzip archives, and deterministic 2-way sync envelopes.
+            Routine configurations, habit schemas, and execution histories are persisted locally in Drift SQLite via the <code>habits</code>, <code>habit_routines</code>, and <code>routine_logs</code> tables (schema version 9). All records include soft-deletion tombstone tracking and are fully serialized in AES-256 encrypted backups, Gzip archives, and deterministic 2-way sync envelopes.
           </p>
+        </section>
+
+        <!-- Section: Abstinence & Sobriety Tracking -->
+        <section id="abstinence-tracking" class="guide-section">
+          <h2>Abstinence Tracking &amp; Sobriety Mode</h2>
+          <p>
+            Not all habits are about doing more; breaking destructive patterns (such as smoking, doomscrolling, alcohol, or junk food) requires tracking continuous abstinence. Phial provides dedicated sobriety tools tailored to breaking bad habits.
+          </p>
+
+          <div class="guide-visual-card">
+            <div class="guide-screenshot-wrap">
+              <img src="assets/img/screen_habit_form_negative.png" alt="Abstinence and Sobriety Habit Configuration">
+            </div>
+            <div>
+              <h3>Creating an Abstinence Habit</h3>
+              <ul>
+                <li><strong>Quit / Sobriety Goal Type:</strong> Switch the habit goal type from &ldquo;Build Habit&rdquo; to &ldquo;Quit / Sobriety&rdquo; in the creation sheet.</li>
+                <li><strong>Clean Start Date:</strong> Set your exact sobriety or clean timestamp (defaults to today, customizable to any past date).</li>
+                <li><strong>Passive Clean Tracking:</strong> Unlike positive habits that require manual check-ins, abstinence streaks increment automatically for every clean day lived. Cards display a green &ldquo;Clean&rdquo; badge on the Daily Tracker.</li>
+                <li><strong>Streamlined Configuration:</strong> Irrelevant target inputs (e.g. numeric targets, frequency schedules) are automatically hidden for clean simplicity.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="guide-visual-card reverse" style="margin-top: 24px;">
+            <div>
+              <h3>Live Sobriety Clock &amp; Milestone Progression</h3>
+              <ul>
+                <li><strong>High-Precision Counter:</strong> The Habit Detail screen features a real-time counter tracking elapsed <strong>Days, Hours, Minutes, and Seconds</strong> of continuous abstinence.</li>
+                <li><strong>Milestone Hierarchy:</strong> Progress toward celebrated milestones: <em>24 Hours, 3 Days, 1 Week, 1 Month, 3 Months, 6 Months, and 1 Year</em> with dynamic percentage progress bars.</li>
+                <li><strong>Compassionate Relapse Reset:</strong> If a slip occurs, tapping &ldquo;Reset Clock&rdquo; opens a compassionate dialog encouraging reflection without guilt. You can optionally log what triggered the slip to identify behavioral patterns.</li>
+                <li><strong>Streak &amp; Shield Decoupling:</strong> Abstinence streaks measure continuous clean days; Habit Shields and freezes are decoupled to reflect authentic clean duration.</li>
+              </ul>
+            </div>
+            <div class="guide-screenshot-wrap">
+              <img src="assets/img/screen_sobriety_detail.png" alt="Live Sobriety Counter and Reset Clock Dialog">
+            </div>
+          </div>
+        </section>
+
+        <!-- Section: Urge Surfer Mindfulness Tool -->
+        <section id="urge-surfer" class="guide-section">
+          <h2>Urge Surfer Mindfulness Tool</h2>
+          <p>
+            Cravings and impulses typically peak within 2 to 3 minutes before naturally subsiding like ocean waves. The <strong>Urge Surfer</strong> tool equips you with a science-backed box breathing exercise to ride out acute cravings.
+          </p>
+
+          <div class="guide-visual-card">
+            <div class="guide-screenshot-wrap">
+              <img src="assets/img/screen_urge_surfer.png" alt="Urge Surfer Box Breathing Mindfulness Interface">
+            </div>
+            <div>
+              <h3>4-4-4-4 Box Breathing Technique</h3>
+              <ul>
+                <li><strong>Visual Guidance Ring:</strong> A smooth expanding and contracting circular breathing animation guides your breathing rhythm across 4 distinct phases: <em>Inhale (4s) &rarr; Hold (4s) &rarr; Exhale (4s) &rarr; Hold (4s)</em>.</li>
+                <li><strong>Ambient Audio Chime Cues:</strong> Optional acoustic singing bowl chimes gently signal phase transitions without needing to stare at the screen.</li>
+                <li><strong>Sensory Haptic Prompts:</strong> Gentle system haptics accompany each breathing stage for tactile grounding.</li>
+                <li><strong>Session Timer &amp; Controls:</strong> A dedicated 2-minute countdown timer with intuitive Pause and Restart controls.</li>
+                <li><strong>Emergency Craving Grounding:</strong> Dynamic psychological affirmations and coping tips (&ldquo;Urges are like ocean waves &mdash; they rise, peak, and naturally fade away&rdquo;) help de-escalate acute tension.</li>
+              </ul>
+            </div>
+          </div>
         </section>
 
         <!-- Section 3: Check-In Reflections & Mindfulness -->
@@ -579,6 +667,9 @@
             <p>
               When a day is shielded, the streak engine preserves your unbroken chain. For example, logging Monday,
               shielding Tuesday, and logging Wednesday yields an unbroken 3-day active streak.
+            </p>
+            <p style="margin-top: 8px;">
+              <strong>Scope &amp; Decoupling:</strong> Habit Shields apply strictly to active positive habits. Abstinence/sobriety habits operate on continuous clean durations without consuming shields, and archived habits are skipped during rollover.
             </p>
           </div>
         </section>
