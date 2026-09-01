@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.0] - 2026-09-01
+
+### Added
+
+- Abstinence and negative habit tracking: support for breaking bad habits with custom clean dates, live sobriety duration counters, and progressive milestone celebrations.
+- Urge Surfer mindfulness tool: 2-minute box breathing exercise with visual expansion animations, ambient chime audio cues, and emergency grounding support.
+- Archived habits category filter: dedicated category chip to filter, view, and restore archived habits with badge counts.
+- Partial routine progress support: step satisfaction evaluation for multi-slot boolean, numeric, and timer habits across daily tracker cards and routine player.
+- Routine date targeting: support for executing and logging habit routines for non-today target dates.
+- Drift SQLite schema version 9 migration adding `isNegative` and `cleanSince` columns to `habits` table with automated data migration and sync envelope serialization.
+- Maestro automated end-to-end test flows for negative habit sobriety tracking and incremental routine progress.
+
+### Changed
+
+- Decoupled streak shield banking and auto-protection mechanisms from negative habits to reflect passive clean-day tracking.
+- Enforced read-only state for archived habits in habit detail view and daily tracker, disabling active check-in mutations while preserving historic logs.
+- Dynamic habit form section visibility when toggling between standard and sobriety habit modes.
+
+### Fixed
+
+- Monthly calendar and weekly matrix negative habit status evaluation across custom dates.
+- Day number text contrast in monthly calendar view.
+- Routine player countdown timer ring layout sizing and initialization.
+
 ## [0.12.1] - 2026-08-31
 
 ### Fixed
