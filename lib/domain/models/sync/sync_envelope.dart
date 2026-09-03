@@ -11,11 +11,71 @@ import '../health/health_metric_type.dart';
 import '../routine_log.dart';
 import '../time_window.dart';
 
+DateTime? _parseDateTime(dynamic raw, String field) {
+  if (raw == null) return null;
+  if (raw is! String) {
+    throw FormatException('Invalid backup: bad date for $field');
+  }
+  final parsed = DateTime.tryParse(raw);
+  if (parsed == null) {
+    throw FormatException('Invalid backup: bad date for $field');
+  }
+  return parsed.toUtc();
+}
+
+DateTime _parseDateTimeOrNow(dynamic raw, String field) {
+  final parsed = _parseDateTime(raw, field);
+  return parsed ?? DateTime.now().toUtc();
+}
+
+String _requireId(Map<String, dynamic> j, String field) {
+  final v = j[field];
+  if (v is! String ||
+      v.isEmpty ||
+      v.length > SyncEnvelope.maxIdLength) {
+    throw FormatException('Invalid backup record: bad $field');
+  }
+  return v;
+}
+
+String _requireString(Map<String, dynamic> j, String field) {
+  final v = j[field];
+  if (v is! String || v.isEmpty) {
+    throw FormatException('Invalid backup record: bad $field');
+  }
+  return v;
+}
+
+List<dynamic> _requireRecordList(Map<String, dynamic> json, String field) {
+  final raw = json[field];
+  if (raw == null) return const [];
+  if (raw is! List) {
+    throw FormatException('Invalid backup: $field must be a list');
+  }
+  if (raw.length > SyncEnvelope.maxRecordsPerList) {
+    throw FormatException('Invalid backup: $field exceeds record limit');
+  }
+  return raw;
+}
+
+Map<String, dynamic> _asRecord(dynamic raw, String field) {
+  if (raw is! Map<String, dynamic>) {
+    throw FormatException('Invalid backup: bad record in $field');
+  }
+  return raw;
+}
+
 /// Top-level envelope for local backups and cloud sync snapshots.
 class SyncEnvelope {
   static const int currentSchemaVersion = 1;
   static const String defaultAppVersion =
       String.fromEnvironment('APP_VERSION', defaultValue: '1.0.0');
+
+  /// Upper bound on records per list to bound memory on crafted imports.
+  static const int maxRecordsPerList = 100000;
+
+  /// Upper bound on id / deviceId string lengths.
+  static const int maxIdLength = 128;
 
   final int schemaVersion;
   final String appVersion;
@@ -40,16 +100,32 @@ class SyncEnvelope {
       };
 
   factory SyncEnvelope.fromJson(Map<String, dynamic> json) {
+    final schemaVersion = json['schemaVersion'];
+    if (schemaVersion != currentSchemaVersion) {
+      throw FormatException(
+        'Unsupported backup schemaVersion: $schemaVersion '
+        '(expected $currentSchemaVersion)',
+      );
+    }
+    final deviceId = json['deviceId'];
+    if (deviceId is! String || deviceId.isEmpty || deviceId.length > maxIdLength) {
+      throw const FormatException('Invalid backup: missing or invalid deviceId');
+    }
+    final exportedAtRaw = json['exportedAt'];
+    final exportedAt = _parseDateTime(exportedAtRaw, 'exportedAt');
+    if (exportedAt == null) {
+      throw const FormatException('Invalid backup: missing exportedAt');
+    }
+    final dataRaw = json['data'];
+    if (dataRaw is! Map<String, dynamic>) {
+      throw const FormatException('Invalid backup: missing data payload');
+    }
     return SyncEnvelope(
-      schemaVersion: json['schemaVersion'] as int? ?? 1,
+      schemaVersion: currentSchemaVersion,
       appVersion: json['appVersion'] as String? ?? defaultAppVersion,
-      exportedAt: json['exportedAt'] != null
-          ? DateTime.parse(json['exportedAt'] as String).toUtc()
-          : DateTime.now().toUtc(),
-      deviceId: json['deviceId'] as String? ?? 'unknown',
-      data: SyncDataPayload.fromJson(
-        (json['data'] as Map<String, dynamic>?) ?? {},
-      ),
+      exportedAt: exportedAt.toUtc(),
+      deviceId: deviceId,
+      data: SyncDataPayload.fromJson(dataRaw),
     );
   }
 
@@ -93,39 +169,39 @@ class SyncDataPayload {
       };
 
   factory SyncDataPayload.fromJson(Map<String, dynamic> json) {
-    final rawCats = (json['categories'] as List<dynamic>?) ?? [];
-    final rawHabits = (json['habits'] as List<dynamic>?) ?? [];
-    final rawLogs = (json['logs'] as List<dynamic>?) ?? [];
-    final rawShields = (json['shields'] as List<dynamic>?) ?? [];
-    final rawRoutines = (json['routines'] as List<dynamic>?) ?? [];
-    final rawRoutineLogs = (json['routineLogs'] as List<dynamic>?) ?? [];
-    final rawAch = (json['achievements'] as List<dynamic>?) ?? [];
+    final rawCats = _requireRecordList(json, 'categories');
+    final rawHabits = _requireRecordList(json, 'habits');
+    final rawLogs = _requireRecordList(json, 'logs');
+    final rawShields = _requireRecordList(json, 'shields');
+    final rawRoutines = _requireRecordList(json, 'routines');
+    final rawRoutineLogs = _requireRecordList(json, 'routineLogs');
+    final rawAch = _requireRecordList(json, 'achievements');
 
     return SyncDataPayload(
       categories: rawCats
-          .map((c) => _categoryFromJson(c as Map<String, dynamic>))
+          .map((c) => _categoryFromJson(_asRecord(c, 'categories')))
           .toList(),
       habits: rawHabits
-          .map((h) => _habitFromJson(h as Map<String, dynamic>))
+          .map((h) => _habitFromJson(_asRecord(h, 'habits')))
           .toList(),
       logs: rawLogs
-          .map((l) => _logFromJson(l as Map<String, dynamic>))
+          .map((l) => _logFromJson(_asRecord(l, 'logs')))
           .toList(),
       shields: rawShields
-          .map((s) => _shieldFromJson(s as Map<String, dynamic>))
+          .map((s) => _shieldFromJson(_asRecord(s, 'shields')))
           .toList(),
       routines: rawRoutines
-          .map((r) => _routineFromJson(r as Map<String, dynamic>))
+          .map((r) => _routineFromJson(_asRecord(r, 'routines')))
           .toList(),
       routineLogs: rawRoutineLogs
-          .map((rl) => _routineLogFromJson(rl as Map<String, dynamic>))
+          .map((rl) => _routineLogFromJson(_asRecord(rl, 'routineLogs')))
           .toList(),
       gamification: json['gamification'] != null
           ? SyncUserGamification.fromJson(
-              json['gamification'] as Map<String, dynamic>)
+              _asRecord(json['gamification'], 'gamification'))
           : const SyncUserGamification(),
       achievements: rawAch
-          .map((a) => SyncAchievement.fromJson(a as Map<String, dynamic>))
+          .map((a) => SyncAchievement.fromJson(_asRecord(a, 'achievements')))
           .toList(),
       preferences: (json['preferences'] as Map<String, dynamic>?) ?? {},
     );
@@ -142,17 +218,13 @@ class SyncDataPayload {
       };
 
   static HabitCategory _categoryFromJson(Map<String, dynamic> j) => HabitCategory(
-        id: j['id'] as String,
-        name: j['name'] as String,
-        color: j['color'] as String,
+        id: _requireId(j, 'id'),
+        name: _requireString(j, 'name'),
+        color: _requireString(j, 'color'),
         icon: j['icon'] as String?,
         isDeleted: j['isDeleted'] as bool? ?? false,
-        createdAt: j['createdAt'] != null
-            ? DateTime.parse(j['createdAt'] as String).toUtc()
-            : null,
-        updatedAt: j['updatedAt'] != null
-            ? DateTime.parse(j['updatedAt'] as String).toUtc()
-            : null,
+        createdAt: _parseDateTime(j['createdAt'], 'createdAt'),
+        updatedAt: _parseDateTime(j['updatedAt'], 'updatedAt'),
       );
 
   static Map<String, dynamic> _habitToJson(Habit h) => {
@@ -191,10 +263,10 @@ class SyncDataPayload {
 
   static Habit _habitFromJson(Map<String, dynamic> j) {
     return Habit(
-      id: j['id'] as String,
-      title: j['title'] as String,
+      id: _requireId(j, 'id'),
+      title: _requireString(j, 'title'),
       description: j['description'] as String?,
-      color: j['color'] as String,
+      color: _requireString(j, 'color'),
       icon: j['icon'] as String?,
       categoryId: j['categoryId'] as String?,
       frequencyType: HabitFrequencyType.values.firstWhere(
@@ -229,16 +301,10 @@ class SyncDataPayload {
       healthMetric: HealthMetricType.fromId(j['healthMetric'] as String?),
       healthSyncEnabled: j['healthSyncEnabled'] as bool? ?? false,
       isNegative: j['isNegative'] as bool? ?? false,
-      cleanSince: j['cleanSince'] != null
-          ? DateTime.parse(j['cleanSince'] as String).toUtc()
-          : null,
+      cleanSince: _parseDateTime(j['cleanSince'], 'cleanSince'),
       isDeleted: j['isDeleted'] as bool? ?? false,
-      createdAt: j['createdAt'] != null
-          ? DateTime.parse(j['createdAt'] as String).toUtc()
-          : DateTime.now().toUtc(),
-      updatedAt: j['updatedAt'] != null
-          ? DateTime.parse(j['updatedAt'] as String).toUtc()
-          : DateTime.now().toUtc(),
+      createdAt: _parseDateTimeOrNow(j['createdAt'], 'createdAt'),
+      updatedAt: _parseDateTimeOrNow(j['updatedAt'], 'updatedAt'),
     );
   }
 
@@ -262,12 +328,10 @@ class SyncDataPayload {
 
   static HabitLog _logFromJson(Map<String, dynamic> j) {
     return HabitLog(
-      id: j['id'] as String,
-      habitId: j['habitId'] as String,
-      date: j['date'] as String,
-      timestamp: j['timestamp'] != null
-          ? DateTime.parse(j['timestamp'] as String).toUtc()
-          : DateTime.now().toUtc(),
+      id: _requireId(j, 'id'),
+      habitId: _requireId(j, 'habitId'),
+      date: _requireString(j, 'date'),
+      timestamp: _parseDateTimeOrNow(j['timestamp'], 'timestamp'),
       intervalIndex: j['intervalIndex'] as int?,
       completed: j['completed'] as bool? ?? false,
       value: (j['value'] as num?)?.toDouble(),
@@ -279,12 +343,8 @@ class SyncDataPayload {
       energyLevel: j['energyLevel'] as int?,
       mood: j['mood'] as String?,
       isDeleted: j['isDeleted'] as bool? ?? false,
-      createdAt: j['createdAt'] != null
-          ? DateTime.parse(j['createdAt'] as String).toUtc()
-          : DateTime.now().toUtc(),
-      updatedAt: j['updatedAt'] != null
-          ? DateTime.parse(j['updatedAt'] as String).toUtc()
-          : DateTime.now().toUtc(),
+      createdAt: _parseDateTimeOrNow(j['createdAt'], 'createdAt'),
+      updatedAt: _parseDateTimeOrNow(j['updatedAt'], 'updatedAt'),
     );
   }
 
@@ -300,17 +360,13 @@ class SyncDataPayload {
 
   static HabitShield _shieldFromJson(Map<String, dynamic> j) {
     return HabitShield(
-      id: j['id'] as String,
-      habitId: j['habitId'] as String,
-      date: j['date'] as String,
+      id: _requireId(j, 'id'),
+      habitId: _requireId(j, 'habitId'),
+      date: _requireString(j, 'date'),
       autoApplied: j['autoApplied'] as bool? ?? false,
       isDeleted: j['isDeleted'] as bool? ?? false,
-      createdAt: j['createdAt'] != null
-          ? DateTime.parse(j['createdAt'] as String).toUtc()
-          : DateTime.now().toUtc(),
-      updatedAt: j['updatedAt'] != null
-          ? DateTime.parse(j['updatedAt'] as String).toUtc()
-          : DateTime.now().toUtc(),
+      createdAt: _parseDateTimeOrNow(j['createdAt'], 'createdAt'),
+      updatedAt: _parseDateTimeOrNow(j['updatedAt'], 'updatedAt'),
     );
   }
 
@@ -336,28 +392,26 @@ class SyncDataPayload {
   static HabitRoutine _routineFromJson(Map<String, dynamic> j) {
     TimeWindow? tw;
     if (j['targetTimeWindow'] != null) {
-      final twMap = j['targetTimeWindow'] as Map<String, dynamic>;
-      tw = TimeWindow(
-        startTime: twMap['startTime'] as String,
-        endTime: twMap['endTime'] as String,
-      );
+      final twMap = _asRecord(j['targetTimeWindow'], 'targetTimeWindow');
+      final start = twMap['startTime'];
+      final end = twMap['endTime'];
+      if (start is! String || end is! String) {
+        throw const FormatException('Invalid backup record: bad targetTimeWindow');
+      }
+      tw = TimeWindow(startTime: start, endTime: end);
     }
     return HabitRoutine(
-      id: j['id'] as String,
-      title: j['title'] as String,
+      id: _requireId(j, 'id'),
+      title: _requireString(j, 'title'),
       description: j['description'] as String?,
-      color: j['color'] as String,
+      color: _requireString(j, 'color'),
       icon: j['icon'] as String?,
       targetTimeWindow: tw,
       habitIds: (j['habitIds'] as List<dynamic>?)?.cast<String>() ?? const [],
       bonusXp: j['bonusXp'] as int? ?? 30,
       isDeleted: j['isDeleted'] as bool? ?? false,
-      createdAt: j['createdAt'] != null
-          ? DateTime.parse(j['createdAt'] as String).toUtc()
-          : DateTime.now().toUtc(),
-      updatedAt: j['updatedAt'] != null
-          ? DateTime.parse(j['updatedAt'] as String).toUtc()
-          : DateTime.now().toUtc(),
+      createdAt: _parseDateTimeOrNow(j['createdAt'], 'createdAt'),
+      updatedAt: _parseDateTimeOrNow(j['updatedAt'], 'updatedAt'),
     );
   }
 
@@ -375,22 +429,16 @@ class SyncDataPayload {
 
   static RoutineLog _routineLogFromJson(Map<String, dynamic> j) {
     return RoutineLog(
-      id: j['id'] as String,
-      routineId: j['routineId'] as String,
-      date: j['date'] as String,
-      completedAt: j['completedAt'] != null
-          ? DateTime.parse(j['completedAt'] as String).toUtc()
-          : DateTime.now().toUtc(),
+      id: _requireId(j, 'id'),
+      routineId: _requireId(j, 'routineId'),
+      date: _requireString(j, 'date'),
+      completedAt: _parseDateTimeOrNow(j['completedAt'], 'completedAt'),
       completedHabitIds:
           (j['completedHabitIds'] as List<dynamic>?)?.cast<String>() ?? const [],
       xpEarned: j['xpEarned'] as int? ?? 0,
       isDeleted: j['isDeleted'] as bool? ?? false,
-      createdAt: j['createdAt'] != null
-          ? DateTime.parse(j['createdAt'] as String).toUtc()
-          : DateTime.now().toUtc(),
-      updatedAt: j['updatedAt'] != null
-          ? DateTime.parse(j['updatedAt'] as String).toUtc()
-          : DateTime.now().toUtc(),
+      createdAt: _parseDateTimeOrNow(j['createdAt'], 'createdAt'),
+      updatedAt: _parseDateTimeOrNow(j['updatedAt'], 'updatedAt'),
     );
   }
 }
@@ -428,9 +476,7 @@ class SyncUserGamification {
         lastCelebratedLevel: j['lastCelebratedLevel'] as int? ?? 1,
         maxShieldsCapacity: j['maxShieldsCapacity'] as int? ?? 3,
         autoConsumeShields: j['autoConsumeShields'] as bool? ?? true,
-        updatedAt: j['updatedAt'] != null
-            ? DateTime.parse(j['updatedAt'] as String).toUtc()
-            : null,
+        updatedAt: _parseDateTime(j['updatedAt'], 'updatedAt'),
       );
 }
 
@@ -461,17 +507,11 @@ class SyncAchievement {
       };
 
   factory SyncAchievement.fromJson(Map<String, dynamic> j) => SyncAchievement(
-        id: j['id'] as String,
-        unlockedAt: j['unlockedAt'] != null
-            ? DateTime.parse(j['unlockedAt'] as String).toUtc()
-            : DateTime.now().toUtc(),
+        id: _requireId(j, 'id'),
+        unlockedAt: _parseDateTimeOrNow(j['unlockedAt'], 'unlockedAt'),
         progress: j['progress'] as int? ?? 0,
         notified: j['notified'] as bool? ?? false,
-        createdAt: j['createdAt'] != null
-            ? DateTime.parse(j['createdAt'] as String).toUtc()
-            : null,
-        updatedAt: j['updatedAt'] != null
-            ? DateTime.parse(j['updatedAt'] as String).toUtc()
-            : null,
+        createdAt: _parseDateTime(j['createdAt'], 'createdAt'),
+        updatedAt: _parseDateTime(j['updatedAt'], 'updatedAt'),
       );
 }
