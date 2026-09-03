@@ -15,6 +15,10 @@ import '../../domain/sync/sync_merge_engine.dart';
 class BackupService {
   final BackupRepository backupRepository;
 
+  /// Security caps to prevent OOM / zip-bomb via crafted backup files.
+  static const int maxBackupFileBytes = 25 * 1024 * 1024;
+  static const int maxDecompressedBytes = 50 * 1024 * 1024;
+
   BackupService({required this.backupRepository});
 
   /// Exports full JSON backup and opens native OS Share Sheet.
@@ -198,13 +202,26 @@ class BackupService {
 
       if (result != null && result.files.single.path != null) {
         final file = File(result.files.single.path!);
+        final fileLength = await file.length();
+        if (fileLength > maxBackupFileBytes) {
+          return null;
+        }
         final bytes = await file.readAsBytes();
+        if (bytes.length > maxBackupFileBytes) {
+          return null;
+        }
 
         // Check if gzip compressed (magic bytes 0x1F, 0x8B)
         if (bytes.length >= 2 && bytes[0] == 0x1F && bytes[1] == 0x8B) {
           final decompressedBytes = gzip.decode(bytes);
+          if (decompressedBytes.length > maxDecompressedBytes) {
+            return null;
+          }
           return utf8.decode(decompressedBytes);
         } else {
+          if (bytes.length > maxDecompressedBytes) {
+            return null;
+          }
           return utf8.decode(bytes);
         }
       }

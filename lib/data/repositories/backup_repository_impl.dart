@@ -43,6 +43,15 @@ class BackupRepositoryImpl implements BackupRepository {
 
   DateTime get _now => (clock != null ? clock!() : DateTime.now()).toUtc();
 
+  /// Security cap to prevent OOM via crafted backup JSON strings.
+  static const int maxBackupJsonChars = 50 * 1024 * 1024;
+
+  static void _checkBackupSize(String jsonString) {
+    if (jsonString.length > maxBackupJsonChars) {
+      throw const FormatException('Backup file is too large');
+    }
+  }
+
   Future<SyncDataPayload> _extractLocalPayload() async {
     final catRows = await habitCategoryDao.getAllCategoriesIncludingDeleted();
     final habitRows = await habitDao.getAllHabitsIncludingDeleted();
@@ -138,6 +147,7 @@ class BackupRepositoryImpl implements BackupRepository {
 
   @override
   Future<MergeResult> previewImport(String jsonString) async {
+    _checkBackupSize(jsonString);
     final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
     final envelope = SyncEnvelope.fromJson(jsonMap);
     final local = await _extractLocalPayload();
@@ -173,6 +183,7 @@ class BackupRepositoryImpl implements BackupRepository {
 
   @override
   Future<MergeStats> executeImport(String jsonString, {required ImportMode mode}) async {
+    _checkBackupSize(jsonString);
     final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
     final envelope = SyncEnvelope.fromJson(jsonMap);
 
