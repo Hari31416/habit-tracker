@@ -49,6 +49,26 @@ class MergeResult {
 
 /// Pure deterministic two-way state merging engine.
 class SyncMergeEngine {
+  /// Clock-skew tolerance for remote timestamps. Remote `updatedAt` values
+  /// further in the future than this are treated as suspicious (crafted
+  /// backup with future timestamps to force LWW overwrite) and lose
+  /// conflict resolution against local state.
+  static const Duration futureTimestampTolerance = Duration(minutes: 5);
+
+  /// Remote preference keys allowed to merge. Unknown keys from imported
+  /// files are dropped instead of blindly overriding local state.
+  static const Set<String> allowedPreferenceKeys = {
+    'userName',
+    'themeMode',
+    'focusDndEnabled',
+    'ambientSoundType',
+    'ambientSoundVolume',
+  };
+
+  static bool _isSuspiciouslyFuture(DateTime? dt, DateTime now) {
+    if (dt == null) return false;
+    return dt.toUtc().isAfter(now.add(futureTimestampTolerance));
+  }
   /// Natural key generator for HabitLog slots.
   static String logNaturalKey(HabitLog log) =>
       '${log.habitId}_${log.date}_${log.intervalIndex ?? -1}';
@@ -87,7 +107,8 @@ class SyncMergeEngine {
         final locUpdated = loc.updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
         final remUpdated = rem.updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
 
-        if (remUpdated.isAfter(locUpdated)) {
+        if (remUpdated.isAfter(locUpdated) &&
+            !_isSuspiciouslyFuture(remUpdated, now)) {
           mergedCategoriesMap[id] = rem;
           categoriesUpdated++;
         } else {
@@ -120,7 +141,8 @@ class SyncMergeEngine {
       } else if (loc != null && rem == null) {
         mergedHabitsMap[id] = loc;
       } else if (loc != null && rem != null) {
-        if (rem.updatedAt.toUtc().isAfter(loc.updatedAt.toUtc())) {
+        if (rem.updatedAt.toUtc().isAfter(loc.updatedAt.toUtc()) &&
+            !_isSuspiciouslyFuture(rem.updatedAt, now)) {
           mergedHabitsMap[id] = rem;
           if (rem.isDeleted && !loc.isDeleted) {
             habitsDeleted++;
@@ -151,7 +173,8 @@ class SyncMergeEngine {
       } else if (loc != null && rem == null) {
         mergedLogsMap[key] = loc;
       } else if (loc != null && rem != null) {
-        if (rem.updatedAt.toUtc().isAfter(loc.updatedAt.toUtc())) {
+        if (rem.updatedAt.toUtc().isAfter(loc.updatedAt.toUtc()) &&
+            !_isSuspiciouslyFuture(rem.updatedAt, now)) {
           mergedLogsMap[key] = rem;
           logsMerged++;
         } else {
@@ -178,7 +201,8 @@ class SyncMergeEngine {
       } else if (loc != null && rem == null) {
         mergedShieldsMap[key] = loc;
       } else if (loc != null && rem != null) {
-        if (rem.updatedAt.toUtc().isAfter(loc.updatedAt.toUtc())) {
+        if (rem.updatedAt.toUtc().isAfter(loc.updatedAt.toUtc()) &&
+            !_isSuspiciouslyFuture(rem.updatedAt, now)) {
           mergedShieldsMap[key] = rem;
           shieldsMerged++;
         } else {
@@ -303,7 +327,8 @@ class SyncMergeEngine {
       } else if (loc != null && rem == null) {
         mergedRoutinesMap[id] = loc;
       } else if (loc != null && rem != null) {
-        if (rem.updatedAt.isAfter(loc.updatedAt)) {
+        if (rem.updatedAt.isAfter(loc.updatedAt) &&
+            !_isSuspiciouslyFuture(rem.updatedAt, now)) {
           mergedRoutinesMap[id] = rem;
         } else {
           mergedRoutinesMap[id] = loc;
@@ -325,7 +350,8 @@ class SyncMergeEngine {
       } else if (loc != null && rem == null) {
         mergedRoutineLogsMap[id] = loc;
       } else if (loc != null && rem != null) {
-        if (rem.updatedAt.isAfter(loc.updatedAt)) {
+        if (rem.updatedAt.isAfter(loc.updatedAt) &&
+            !_isSuspiciouslyFuture(rem.updatedAt, now)) {
           mergedRoutineLogsMap[id] = rem;
         } else {
           mergedRoutineLogsMap[id] = loc;
@@ -424,10 +450,16 @@ class SyncMergeEngine {
       );
     }).toList();
 
-    // 6. Preferences (LWW)
+    // 6. Preferences (LWW, allowlisted keys only)
+    final filteredRemotePrefs = <String, dynamic>{};
+    for (final entry in remote.preferences.entries) {
+      if (allowedPreferenceKeys.contains(entry.key)) {
+        filteredRemotePrefs[entry.key] = entry.value;
+      }
+    }
     final mergedPreferences = <String, dynamic>{
       ...local.preferences,
-      ...remote.preferences,
+      ...filteredRemotePrefs,
     };
 
     final mergedPayload = SyncDataPayload(
