@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.1] - 2026-09-03
+
+### Fixed
+
+- Backup import hardening: reject picked files over 25MB and decompressed payloads over 50MB to prevent OOM and gzip-bomb denial of service.
+- Sync envelope validation: reject unsupported schema versions, missing device and payload fields, malformed record ids and dates, and oversized record lists on import.
+- Backup encryption pinning: enforce exact KDF iteration count, AES-256-GCM and PBKDF2-HMAC-SHA256 identifiers, salt and nonce lengths, and ciphertext size caps on decrypt.
+- Sync merge protection: quarantine remote timestamps more than 5 minutes in the future so crafted backups cannot force last-write-wins overwrites; merge only allowlisted preference keys.
+- Sobriety streak time-bomb: made future-date completion checks clock-injectable so tests no longer depend on wall-clock time.
+- Maestro workflow execution reliability.
+
 ## [0.13.0] - 2026-09-01
 
 ### Added

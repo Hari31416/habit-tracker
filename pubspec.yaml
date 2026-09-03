@@ -2,7 +2,7 @@ name: habit_tracker
 description: "Phial: Habit Tracker & Focus - Fully offline habit tracker & focus companion."
 publish_to: 'none'
 
-version: 0.13.0+16
+version: 0.13.1+17
 
 environment:
   sdk: ^3.13.0
