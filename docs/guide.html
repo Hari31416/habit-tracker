@@ -1,111 +1,112 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Phial User Guide — Habit Tracker &amp; Focus</title>
-  <meta name="description"
-    content="How Phial works: daily habits, focus timer, streak shields, check-in reflections, XP from Novice to Grandmaster, widgets, and reminders. Offline. No account.">
+  <meta name="description" content="How Phial works: daily habits, focus timer, streak shields, check-in reflections, XP from Novice to Grandmaster, widgets, and reminders. Offline. No account.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="assets/img/app_icon.png">
   <link rel="apple-touch-icon" href="assets/img/app_icon.png">
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
-
 <body>
-
-  <!-- Site Navigation Header -->
   <header class="site-header">
-    <div class="container nav-wrap">
-      <a href="index.html" class="brand">
-        <img src="assets/img/app_icon.png" alt="Phial" class="brand-icon-img">
-        <span>Phial Docs</span>
-      </a>
-
-      <ul class="nav-links">
-        <li><a href="index.html">Home</a></li>
-        <li><a href="index.html#features">Features</a></li>
-        <li><a href="index.html#showcase">Showcase</a></li>
-        <li><a href="guide.html" class="active">User Guide</a></li>
-      </ul>
-
-      <div class="nav-actions">
-        <button id="theme-toggle-btn" class="btn-icon" aria-label="Toggle Dark or Light Mode">
-          <span id="theme-toggle-icon"></span>
-        </button>
-        <a href="https://github.com/Hari31416/habit-tracker/releases/latest" target="_blank" rel="noopener noreferrer"
-          class="btn btn-primary">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-          </svg>
-          Download APK
-        </a>
-        <a href="https://github.com/Hari31416/habit-tracker" target="_blank" rel="noopener noreferrer"
-          class="btn btn-secondary">
-          GitHub
-        </a>
-        <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Toggle Mobile Navigation Menu">
-          <span id="mobile-menu-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="3" y1="12" x2="21" y2="12"></line>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
-          </span>
-        </button>
+    <div class="container">
+      <div class="header-inner">
+        <div class="nav-wrap">
+          <a href="index.html" class="brand">
+            <img src="assets/img/app_icon.png" alt="Phial" class="brand-icon-img">
+            <span>Phial</span>
+            <small>Offline-first</small>
+          </a>
+          <ul class="nav-links">
+            <li><a href="index.html#features">Features</a></li>
+            <li><a href="index.html#how">How it works</a></li>
+            <li><a href="index.html#showcase">Showcase</a></li>
+            <li><a href="guide.html" class="active">User Guide</a></li>
+          </ul>
+          <div class="nav-actions">
+            <button id="theme-toggle-btn" class="btn-icon" aria-label="Toggle Dark or Light Mode"><span id="theme-toggle-icon"></span></button>
+            <a href="guide.html" class="btn btn-secondary">Documentation</a>
+            <a href="https://github.com/Hari31416/habit-tracker/releases/latest" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Download APK
+            </a>
+            <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Toggle Mobile Navigation Menu">
+              <span id="mobile-menu-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></span>
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
-
-    <!-- Mobile Navigation Drawer -->
-    <div id="mobile-nav-drawer" class="mobile-nav-drawer">
-      <ul class="mobile-nav-list">
-        <li><a href="index.html">Home</a></li>
-        <li><a href="index.html#features">Features</a></li>
-        <li><a href="index.html#showcase">Showcase</a></li>
-        <li><a href="guide.html" class="active">User Guide</a></li>
-        <li><a href="https://github.com/Hari31416/habit-tracker" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
-      </ul>
-      <div class="mobile-nav-actions">
-        <a href="https://github.com/Hari31416/habit-tracker/releases/latest" target="_blank" rel="noopener noreferrer"
-          class="btn btn-primary">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-          </svg>
-          Download Latest APK
-        </a>
+      <div id="mobile-nav-drawer" class="mobile-nav-drawer">
+        <ul class="mobile-nav-list">
+          <li><a href="index.html#features">Features</a></li>
+          <li><a href="index.html#how">How it works</a></li>
+          <li><a href="index.html#showcase">Showcase</a></li>
+          <li><a href="guide.html" class="active">User Guide</a></li>
+          <li><a href="https://github.com/Hari31416/habit-tracker" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
+        </ul>
+        <div class="mobile-nav-actions">
+          <a href="https://github.com/Hari31416/habit-tracker/releases/latest" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Download Latest APK</a>
+        </div>
       </div>
     </div>
   </header>
 
-  <!-- Guide Layout -->
+  <div class="guide-hero">
+    <div class="container guide-hero-inner">
+      <div class="crumbs"><a href="index.html">Home</a><span>›</span><span>User Guide</span><span>›</span><span style="color:var(--primary)">v1 · offline-first</span></div>
+      <h1>Phial user <em>guide</em></h1>
+      <p class="sub">Everything from your first check-in to shields, XP multipliers, Health Connect, and encrypted backups — all stored locally in Drift SQLite. Search below or jump straight in.</p>
+      <div class="guide-hero-row">
+        <label class="guide-search-hero">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" class="guide-search-input" placeholder="Search the guide — try &quot;shield&quot;, &quot;focus&quot;, &quot;backup&quot;…">
+          <kbd>/ to search</kbd>
+        </label>
+        <a href="index.html#showcase" class="btn btn-secondary">App tour</a>
+        <a href="https://github.com/Hari31416/habit-tracker/releases/latest" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Download APK</a>
+      </div>
+      <div class="jump-chips">
+        <a href="#core-tracking">Daily logging</a>
+        <a href="#elastic-goals">Bad-day mode</a>
+        <a href="#habit-stacking-routines">Routines</a>
+        <a href="#focus-timer-guide">Focus timer</a>
+        <a href="#habit-shields">Shields</a>
+        <a href="#rpg-gamification">XP &amp; badges</a>
+        <a href="#health-connect-sync">Health sync</a>
+        <a href="#data-backup-hub">Backups</a>
+      </div>
+    </div>
+  </div>
+
   <div class="container">
     <div class="guide-layout">
-
-      <!-- Sticky Sidebar (Desktop) -->
-      <aside class="guide-sidebar">
-        <div class="guide-search-box">
-          <span class="guide-search-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-          </span>
-          <input type="text" class="guide-search-input" placeholder="Search documentation...">
+      <aside class="guide-sidebar" id="guide-sidebar" aria-label="Guide contents">
+        <div class="toc-progress" aria-hidden="true"><span id="toc-progress-bar"></span></div>
+        <div class="toc-head">
+          <div>
+            <p class="toc-eyebrow">On this page</p>
+            <p class="toc-count"><span id="toc-visible-count">33</span> sections</p>
+          </div>
+          <button id="toc-collapse-all" class="toc-mini-btn" type="button">Collapse all</button>
         </div>
-
-        <div class="toc-group-title">Getting Started</div>
-        <ul class="toc-list">
+        <div class="guide-search-box">
+          <span class="guide-search-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
+          <input type="text" class="guide-search-input" placeholder="Filter sections…" aria-label="Filter sections">
+          <button class="toc-clear" type="button" aria-label="Clear filter" hidden>×</button>
+        </div>
+        <div id="toc-empty" class="toc-empty" hidden>
+          <p>No sections match “<span id="toc-empty-query"></span>”.</p>
+          <button id="toc-empty-clear" class="toc-mini-btn" type="button">Clear filter</button>
+        </div>
+        <nav id="toc-nav" aria-label="Guide sections">
+        <details class="toc-group" open data-group="start">
+          <summary><span class="toc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path></svg></span><span class="toc-title">Getting started</span><span class="toc-badge">8</span><svg class="toc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+          <ul class="toc-list">
           <li><a href="#architecture" class="active">Architecture &amp; Privacy</a></li>
           <li><a href="#core-tracking">Daily Dashboard &amp; Logging</a></li>
           <li><a href="#frequency-types">Recurrence Schedules</a></li>
@@ -113,164 +114,91 @@
           <li><a href="#elastic-goals">Elastic Goals &amp; Bad-Day Mode</a></li>
           <li><a href="#habit-stacking-routines">Habit Stacking Routines</a></li>
           <li><a href="#abstinence-tracking">Abstinence &amp; Sobriety</a></li>
-          <li><a href="#archived-habits">Archived Habits Management</a></li>
-        </ul>
-
-        <div class="toc-group-title">Reflections &amp; Mindfulness</div>
-        <ul class="toc-list">
-          <li><a href="#urge-surfer">Urge Surfer Box Breathing</a></li>
+          <li><a href="#archived-habits">Archived Habits</a></li>
+          </ul>
+        </details>
+        <details class="toc-group" open data-group="reflect">
+          <summary><span class="toc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></span><span class="toc-title">Reflections &amp; mindfulness</span><span class="toc-badge">4</span><svg class="toc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+          <ul class="toc-list">
+          <li><a href="#urge-surfer">Urge Surfer Breathing</a></li>
           <li><a href="#checkin-reflections">Check-In Reflections</a></li>
-          <li><a href="#energy-mood-tracking">Energy &amp; Mood Logging</a></li>
+          <li><a href="#energy-mood-tracking">Energy &amp; Mood</a></li>
           <li><a href="#wellbeing-correlation">Wellbeing Correlation</a></li>
-        </ul>
-        
-        <div class="toc-group-title">Focus &amp; Productivity</div>
-        <ul class="toc-list">
+          </ul>
+        </details>
+        <details class="toc-group" open data-group="focus">
+          <summary><span class="toc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span><span class="toc-title">Focus &amp; productivity</span><span class="toc-badge">3</span><svg class="toc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+          <ul class="toc-list">
           <li><a href="#focus-timer-guide">Circular Focus Timer</a></li>
           <li><a href="#ambient-audio">Ambient Soundscapes</a></li>
-          <li><a href="#dnd-automation">Do Not Disturb Automation</a></li>
-        </ul>
-
-        <div class="toc-group-title">Resilience &amp; Gamification</div>
-        <ul class="toc-list">
-          <li><a href="#habit-shields">Habit Shields &amp; Banking</a></li>
+          <li><a href="#dnd-automation">DND Automation</a></li>
+          </ul>
+        </details>
+        <details class="toc-group" open data-group="play">
+          <summary><span class="toc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></span><span class="toc-title">Resilience &amp; play</span><span class="toc-badge">4</span><svg class="toc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+          <ul class="toc-list">
+          <li><a href="#habit-shields">Shields &amp; Banking</a></li>
           <li><a href="#rpg-gamification">XP, Titles &amp; Mastery</a></li>
           <li><a href="#streak-multipliers">Streak Multipliers</a></li>
           <li><a href="#achievement-badges">33 Milestone Badges</a></li>
-        </ul>
-
-        <div class="toc-group-title">Analytics &amp; Insights</div>
-        <ul class="toc-list">
+          </ul>
+        </details>
+        <details class="toc-group" open data-group="analytics">
+          <summary><span class="toc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg></span><span class="toc-title">Analytics &amp; insights</span><span class="toc-badge">3</span><svg class="toc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+          <ul class="toc-list">
           <li><a href="#week-matrix">7-Day Week Matrix</a></li>
-          <li><a href="#habit-detail-analytics">Habit Detail &amp; Streak Freezes</a></li>
-          <li><a href="#adherence-analytics">Analytics, Curves &amp; Heatmaps</a></li>
-        </ul>
-
-        <div class="toc-group-title">System Integrations</div>
-        <ul class="toc-list">
+          <li><a href="#habit-detail-analytics">Habit Detail &amp; Freezes</a></li>
+          <li><a href="#adherence-analytics">Curves &amp; Heatmaps</a></li>
+          </ul>
+        </details>
+        <details class="toc-group" open data-group="system">
+          <summary><span class="toc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg></span><span class="toc-title">System</span><span class="toc-badge">6</span><svg class="toc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+          <ul class="toc-list">
           <li><a href="#notifications-reminders">Notifications &amp; Actions</a></li>
-          <li><a href="#app-widgets">Home Screen AppWidgets</a></li>
+          <li><a href="#app-widgets">Home Screen Widgets</a></li>
           <li><a href="#app-shortcuts">Launcher Shortcuts</a></li>
           <li><a href="#midnight-rollover">Midnight Rollover</a></li>
-          <li><a href="#health-connect-sync">Google Health Connect</a></li>
+          <li><a href="#health-connect-sync">Health Connect</a></li>
           <li><a href="#app-settings">Profile &amp; Appearance</a></li>
-        </ul>
-
-        <div class="toc-group-title">Data &amp; Backups</div>
-        <ul class="toc-list">
-          <li><a href="#data-backup-hub">Data &amp; Backup Hub</a></li>
-          <li><a href="#backup-compression">Plain &amp; Gzip Compression</a></li>
+          </ul>
+        </details>
+        <details class="toc-group" open data-group="data">
+          <summary><span class="toc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg></span><span class="toc-title">Data &amp; backups</span><span class="toc-badge">5</span><svg class="toc-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></summary>
+          <ul class="toc-list">
+          <li><a href="#data-backup-hub">Backup Hub</a></li>
+          <li><a href="#backup-compression">Gzip Compression</a></li>
           <li><a href="#backup-encryption">AES-256 Encryption</a></li>
-          <li><a href="#sync-merge-engine">Deterministic Sync Merge</a></li>
-          <li><a href="#csv-export">CSV Spreadsheet Export</a></li>
-        </ul>
+          <li><a href="#sync-merge-engine">Sync Merge (LWW)</a></li>
+          <li><a href="#csv-export">CSV Export</a></li>
+          </ul>
+        </details>
+        </nav>
+        <div class="toc-foot">
+          <button id="toc-top" class="toc-mini-btn toc-top-btn" type="button">↑ Back to top</button>
+        </div>
       </aside>
 
-      <!-- Main Documentation Content -->
       <main class="guide-content guide-article">
-
-        <!-- Mobile Table of Contents Accordion Card -->
         <div id="mobile-toc-card" class="mobile-toc-card">
           <div id="mobile-toc-header" class="mobile-toc-header">
-            <h4>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="8" y1="6" x2="21" y2="6"></line>
-                <line x1="8" y1="12" x2="21" y2="12"></line>
-                <line x1="8" y1="18" x2="21" y2="18"></line>
-                <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                <line x1="3" y1="18" x2="3.01" y2="18"></line>
-              </svg>
-              <span>Table of Contents</span>
-            </h4>
-            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
+            <h4>☰ &nbsp;Table of Contents</h4>
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </div>
           <div class="mobile-toc-body">
-            <div class="guide-search-box" style="margin-top: 4px;">
-              <span class="guide-search-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-              </span>
-              <input type="text" class="guide-search-input" placeholder="Search documentation...">
+            <div class="guide-search-box" style="margin-top:4px">
+              <span class="guide-search-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span>
+              <input type="text" class="guide-search-input" placeholder="Filter sections…">
+              <button class="toc-clear" type="button" aria-label="Clear filter" hidden>×</button>
             </div>
-
-            <div class="toc-group-title">Getting Started</div>
-            <ul class="toc-list">
-              <li><a href="#architecture">Architecture &amp; Privacy</a></li>
-              <li><a href="#core-tracking">Daily Dashboard &amp; Logging</a></li>
-              <li><a href="#frequency-types">Recurrence Schedules</a></li>
-              <li><a href="#target-types">Target Engines</a></li>
-              <li><a href="#elastic-goals">Elastic Goals &amp; Bad-Day Mode</a></li>
-              <li><a href="#habit-stacking-routines">Habit Stacking Routines</a></li>
-              <li><a href="#abstinence-tracking">Abstinence &amp; Sobriety</a></li>
-              <li><a href="#archived-habits">Archived Habits Management</a></li>
-            </ul>
-
-            <div class="toc-group-title">Reflections &amp; Mindfulness</div>
-            <ul class="toc-list">
-              <li><a href="#urge-surfer">Urge Surfer Box Breathing</a></li>
-              <li><a href="#checkin-reflections">Check-In Reflections</a></li>
-              <li><a href="#energy-mood-tracking">Energy &amp; Mood Logging</a></li>
-              <li><a href="#wellbeing-correlation">Wellbeing Correlation</a></li>
-            </ul>
-            
-            <div class="toc-group-title">Focus &amp; Productivity</div>
-            <ul class="toc-list">
-              <li><a href="#focus-timer-guide">Circular Focus Timer</a></li>
-              <li><a href="#ambient-audio">Ambient Soundscapes</a></li>
-              <li><a href="#dnd-automation">Do Not Disturb Automation</a></li>
-            </ul>
-
-            <div class="toc-group-title">Resilience &amp; Gamification</div>
-            <ul class="toc-list">
-              <li><a href="#habit-shields">Habit Shields &amp; Banking</a></li>
-              <li><a href="#rpg-gamification">XP, Titles &amp; Mastery</a></li>
-              <li><a href="#streak-multipliers">Streak Multipliers</a></li>
-              <li><a href="#achievement-badges">33 Milestone Badges</a></li>
-            </ul>
-
-            <div class="toc-group-title">Analytics &amp; Insights</div>
-            <ul class="toc-list">
-              <li><a href="#week-matrix">7-Day Week Matrix</a></li>
-              <li><a href="#habit-detail-analytics">Habit Detail &amp; Streak Freezes</a></li>
-              <li><a href="#adherence-analytics">Analytics, Curves &amp; Heatmaps</a></li>
-            </ul>
-
-            <div class="toc-group-title">System Integrations</div>
-            <ul class="toc-list">
-              <li><a href="#notifications-reminders">Notifications &amp; Actions</a></li>
-              <li><a href="#app-widgets">Home Screen AppWidgets</a></li>
-              <li><a href="#app-shortcuts">Launcher Shortcuts</a></li>
-              <li><a href="#midnight-rollover">Midnight Rollover</a></li>
-              <li><a href="#app-settings">Profile &amp; Appearance</a></li>
-            </ul>
-
-            <div class="toc-group-title">Data &amp; Backups</div>
-            <ul class="toc-list">
-              <li><a href="#data-backup-hub">Data &amp; Backup Hub</a></li>
-              <li><a href="#backup-compression">Plain &amp; Gzip Compression</a></li>
-              <li><a href="#backup-encryption">AES-256 Encryption</a></li>
-              <li><a href="#sync-merge-engine">Deterministic Sync Merge</a></li>
-              <li><a href="#csv-export">CSV Spreadsheet Export</a></li>
-            </ul>
+            <div id="mobile-toc-groups"></div>
           </div>
         </div>
 
         <div class="guide-header-block">
-          <h1>Phial user guide</h1>
-          <p>
-            Phial tracks daily habits, focus sessions, and wellbeing reflections on your phone. This guide covers local Drift SQLite
-            storage, check-ins, reflections, the circular focus timer, streak shields when you miss, XP and titles from Novice to
-            Grandmaster,
-            badges, analytics heatmaps, reminders, home screen widgets, and midnight rollover.
-          </p>
+          <h1>Start here — the 2-minute daily loop</h1>
+          <p>Open Today → check in (or let Health Connect do it) → optionally focus &amp; reflect → let shields and XP handle the rest. The sections below go deep on every mechanic, with screenshots throughout.</p>
         </div>
 
-        <!-- Section 1: Architecture & Local-First Privacy -->
         <section id="architecture" class="guide-section">
           <h2>1. Architecture &amp; Local-First Privacy</h2>
           <p>
@@ -288,7 +216,6 @@
           </ul>
         </section>
 
-        <!-- Section 2: Core Habit Tracking -->
         <section id="core-tracking" class="guide-section">
           <h2>2. Core Habit Tracking &amp; Daily Dashboard</h2>
           <p>
@@ -376,7 +303,6 @@
           </div>
         </section>
 
-        <!-- Section: Elastic Goals & Bad-Day Mode -->
         <section id="elastic-goals" class="guide-section">
           <h2>Elastic Goals &amp; Bad-Day Mode</h2>
           <p>
@@ -417,7 +343,6 @@
           </div>
         </section>
 
-        <!-- Section: Habit Stacking Routines & Flow Execution -->
         <section id="habit-stacking-routines" class="guide-section">
           <h2>Habit Stacking Routines &amp; Flow Execution</h2>
           <p>
@@ -480,7 +405,6 @@
           </p>
         </section>
 
-        <!-- Section: Abstinence & Sobriety Tracking -->
         <section id="abstinence-tracking" class="guide-section">
           <h2>Abstinence Tracking &amp; Sobriety Mode</h2>
           <p>
@@ -518,7 +442,6 @@
           </div>
         </section>
 
-        <!-- Section: Urge Surfer Mindfulness Tool -->
         <section id="urge-surfer" class="guide-section">
           <h2>Urge Surfer Mindfulness Tool</h2>
           <p>
@@ -542,7 +465,6 @@
           </div>
         </section>
 
-        <!-- Section 3: Check-In Reflections & Mindfulness -->
         <section id="checkin-reflections" class="guide-section">
           <h2>3. Check-In Reflections &amp; Mindfulness</h2>
           <p>
@@ -579,9 +501,8 @@
               </div>
               </div>
               </section>
-              
-              <!-- Section 4: Circular Focus Timer -->
-              <section id="focus-timer-guide" class="guide-section">
+
+        <section id="focus-timer-guide" class="guide-section">
                 <h2>4. Circular Focus Timer, Zen Mode &amp; Audio</h2>
                 <p>
                   The Circular Focus Timer provides an immersive, distraction-free environment for deep work, study, reading,
@@ -626,7 +547,6 @@
             </div>
         </section>
 
-        <!-- Section 5: Habit Shields -->
         <section id="habit-shields" class="guide-section">
           <h2>5. Habit Shields &amp; Streak Protection</h2>
           <p>
@@ -674,7 +594,6 @@
           </div>
         </section>
 
-        <!-- Section 6: XP and titles -->
         <section id="rpg-gamification" class="guide-section">
           <h2>6. XP, Titles &amp; 33 Badges</h2>
           <p>
@@ -816,7 +735,6 @@
           </div>
         </section>
 
-        <!-- Section 7: Analytics & Week Matrix -->
         <section id="week-matrix" class="guide-section">
           <h2>7. Analytics, 7-Day Matrix &amp; Monthly Heatmaps</h2>
           <p>
@@ -902,7 +820,6 @@
           </div>
         </section>
 
-        <!-- Section 8: System Integrations & Settings -->
         <section id="notifications-reminders" class="guide-section">
           <h2>8. System Integrations, Notifications &amp; Settings</h2>
           <p>
@@ -963,7 +880,7 @@
             <li>Evaluates streak risk for yesterday's uncompleted habits.</li>
             <li>Automatically applies available bank shields if Auto-Consume is enabled.</li>
             <li>Recalculates active streaks and clears day caches.</li>
-          <h3 id="health-connect-sync">Google Health Connect Integration</h3>
+</ul>          <h3 id="health-connect-sync">Google Health Connect Integration</h3>
           <p>
             Phial integrates natively with Android's <strong>Google Health Connect</strong> platform to provide automated,
             zero-touch habit check-ins synced from Google Fit, smartwatches, and connected health trackers:
@@ -1022,7 +939,6 @@
           </div>
         </section>
 
-        <!-- Section 10: Data Portability, Secure Backups & Sync Merge -->
         <section id="data-backup-hub" class="guide-section">
           <h2>10. Data Portability, Secure Backups &amp; Sync Merge</h2>
           <p>
@@ -1124,25 +1040,22 @@
             <li><strong>habit_logs.csv:</strong> Individual daily check-in records, numeric progress values, energy levels (1–5), mood tags, micro-notes, and completion timestamps.</li>
           </ul>
         </section>
-
+        <div class="guide-pager">
+          <a href="index.html#showcase"><small>← Back to</small><b>App showcase tour</b></a>
+          <a href="https://github.com/Hari31416/habit-tracker" target="_blank" rel="noopener noreferrer"><small>Next →</small><b>Star it on GitHub</b></a>
+        </div>
       </main>
     </div>
   </div>
 
-  <!-- Footer -->
   <footer class="site-footer">
-    <div class="container">
-      <div style="display: inline-flex; align-items: center; gap: 8px; justify-content: center; margin-bottom: 8px; flex-wrap: wrap;">
-        <img src="assets/img/app_icon.png" alt="Phial" width="20" height="20"
-          style="border-radius: 5px; display: block;">
-        <span><strong>Phial</strong> • Habit tracker, focus &amp; wellbeing. Built with Flutter, Drift SQLite, and Material
-          3.</span>
-      </div>
+    <div class="container footer-grid">
+      <div class="footer-brand"><img src="assets/img/app_icon.png" alt="Phial"><span>Phial · Habits, focus &amp; wellbeing</span></div>
+      <div class="footer-links"><a href="index.html">Home</a><a href="index.html#showcase">Showcase</a><a href="guide.html">User Guide</a><a href="https://github.com/Hari31416/habit-tracker" target="_blank" rel="noopener noreferrer">GitHub</a></div>
+      <div>Built with Flutter · Drift SQLite · Material 3</div>
     </div>
   </footer>
-
   <script src="assets/js/main.js"></script>
   <script src="assets/js/guide.js"></script>
 </body>
-
 </html>

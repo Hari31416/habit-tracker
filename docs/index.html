@@ -1,860 +1,410 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Phial: Habit Tracker &amp; Focus</title>
-  <meta name="description"
-    content="Phial tracks daily habits, focus sessions, and reflections on your phone. Streaks, shields, XP, and wellbeing. Offline. No account.">
+  <meta name="description" content="Phial tracks daily habits, focus sessions, and reflections on your phone. Streaks, shields, XP, and wellbeing. Offline. No account.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="assets/img/app_icon.png">
   <link rel="apple-touch-icon" href="assets/img/app_icon.png">
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
-
 <body>
-
-  <!-- Site Navigation Header -->
   <header class="site-header">
-    <div class="container nav-wrap">
-      <a href="index.html" class="brand">
-        <img src="assets/img/app_icon.png" alt="Phial" class="brand-icon-img">
-        <span>Phial</span>
-      </a>
-
-      <ul class="nav-links">
-        <li><a href="#features">Features</a></li>
-        <li><a href="#showcase">Showcase</a></li>
-        <li><a href="guide.html">User Guide</a></li>
-      </ul>
-
-      <div class="nav-actions">
-        <button id="theme-toggle-btn" class="btn-icon" aria-label="Toggle Dark or Light Mode">
-          <span id="theme-toggle-icon"></span>
-        </button>
-        <a href="guide.html" class="btn btn-secondary">Documentation</a>
-        <a href="https://github.com/Hari31416/habit-tracker/releases/latest" target="_blank" rel="noopener noreferrer"
-          class="btn btn-primary">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-          </svg>
-          Download APK
-        </a>
-        <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Toggle Mobile Navigation Menu">
-          <span id="mobile-menu-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="3" y1="12" x2="21" y2="12"></line>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
-          </span>
-        </button>
+    <div class="container">
+      <div class="header-inner">
+        <div class="nav-wrap">
+          <a href="index.html" class="brand">
+            <img src="assets/img/app_icon.png" alt="Phial" class="brand-icon-img">
+            <span>Phial</span>
+            <small>Offline-first</small>
+          </a>
+          <ul class="nav-links">
+            <li><a href="index.html#features">Features</a></li>
+            <li><a href="index.html#how">How it works</a></li>
+            <li><a href="index.html#showcase">Showcase</a></li>
+            <li><a href="guide.html">User Guide</a></li>
+          </ul>
+          <div class="nav-actions">
+            <button id="theme-toggle-btn" class="btn-icon" aria-label="Toggle Dark or Light Mode"><span id="theme-toggle-icon"></span></button>
+            <a href="guide.html" class="btn btn-secondary">Documentation</a>
+            <a href="https://github.com/Hari31416/habit-tracker/releases/latest" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Download APK
+            </a>
+            <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Toggle Mobile Navigation Menu">
+              <span id="mobile-menu-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></span>
+            </button>
+          </div>
+        </div>
       </div>
-      </div>
-      
-      <!-- Mobile Navigation Drawer -->
       <div id="mobile-nav-drawer" class="mobile-nav-drawer">
         <ul class="mobile-nav-list">
-          <li><a href="#features">Features</a></li>
-          <li><a href="#showcase">Showcase</a></li>
+          <li><a href="index.html#features">Features</a></li>
+          <li><a href="index.html#how">How it works</a></li>
+          <li><a href="index.html#showcase">Showcase</a></li>
           <li><a href="guide.html">User Guide</a></li>
-          <li><a href="https://github.com/Hari31416/habit-tracker" target="_blank" rel="noopener noreferrer">GitHub
-              Repository</a></li>
+          <li><a href="https://github.com/Hari31416/habit-tracker" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
         </ul>
         <div class="mobile-nav-actions">
-          <a href="https://github.com/Hari31416/habit-tracker/releases/latest" target="_blank" rel="noopener noreferrer"
-            class="btn btn-primary">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            Download Latest APK
-          </a>
+          <a href="https://github.com/Hari31416/habit-tracker/releases/latest" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Download Latest APK</a>
+        </div>
       </div>
     </div>
   </header>
 
-  <!-- Hero Section -->
+  <!-- HERO -->
   <section class="hero">
+    <div class="hero-bg"><div class="blob b1"></div><div class="blob b2"></div><div class="grid-overlay"></div></div>
     <div class="container">
       <div class="hero-layout">
         <div>
-          <h1>
-            Master Your Daily Habits.<br>
-            <span class="gradient-text">Focus Deeply. Level Up Daily.</span>
-          </h1>
-
-          <p class="lead">
-            <strong>Phial</strong> is a distraction-free, privacy-first productivity companion. Combine deep focus sessions,
-            flexible habit tracking, streak freeze shields, and RPG mastery into one seamless daily flow.
-          </p>
-
+          <div class="eyebrow"><span class="dot">✦</span> <span><b>100% offline</b> &nbsp;·&nbsp; No account &nbsp;·&nbsp; No ads &nbsp;·&nbsp; No tracking</span></div>
+          <h1>Small habits,<br><span class="gradient-text">compounded daily.</span></h1>
+          <p class="lead"><strong>Phial</strong> is a calm, distraction-free companion for habits, deep focus, and reflections — with streak shields when life happens, elastic goals for low-energy days, and RPG progression that keeps you coming back.</p>
           <div class="hero-actions">
-            <a href="https://github.com/Hari31416/habit-tracker/releases/latest" target="_blank" rel="noopener noreferrer"
-              class="btn btn-primary">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg>
+            <a href="https://github.com/Hari31416/habit-tracker/releases/latest" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
               Download Latest APK
             </a>
-            <a href="guide.html" class="btn btn-secondary">
-              User Guide
-            </a>
+            <a href="#showcase" class="btn btn-secondary">See it in action ↓</a>
           </div>
-
+          <div class="hero-meta"><span>Flutter · Material 3</span><span>Drift SQLite</span><span>Riverpod</span><span>AES-256 backups</span></div>
           <div class="hero-stats-row">
             <div class="hero-stat-item">
-              <div class="stat-num">100%</div>
-              <div class="stat-label">Offline &amp; Private</div>
+              <span class="stat-ico tint-cyan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></span>
+              <div><div class="stat-num">Streak shields</div><div class="stat-label">Freeze a missed day</div></div>
             </div>
             <div class="hero-stat-item">
-              <div class="stat-num">Focus</div>
-              <div class="stat-label">Deep Work Mode</div>
+              <span class="stat-ico tint-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></span>
+              <div><div class="stat-num">Deep focus</div><div class="stat-label">Timer · sound · DND</div></div>
             </div>
             <div class="hero-stat-item">
-              <div class="stat-num">Shields</div>
-              <div class="stat-label">Streak Protection</div>
+              <span class="stat-ico tint-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></span>
+              <div><div class="stat-num">33 badges</div><div class="stat-label">Novice → Grandmaster</div></div>
             </div>
           </div>
         </div>
-
         <div>
-          <div class="device-frame">
-            <img src="assets/img/screen_today.png" alt="Phial daily tracker">
+          <div class="phone-stage">
+            <div class="phone-ring"></div>
+            <div class="float-card fc-streak"><div class="fc-ico" style="background:rgba(239,68,68,.14);color:var(--error)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></div><div><b>12-day streak</b><small>Morning run · ignited 1.25×</small></div></div>
+            <div class="device-frame"><img src="assets/img/screen_today.png" alt="Phial daily tracker"></div>
+            <div class="float-card fc-xp"><div class="fc-ico" style="background:var(--tertiary-container);color:var(--tertiary)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></div><div><b>+65 XP today</b><small>Level 6 · Apprentice</small></div></div>
+            <div class="float-card fc-shield"><div class="fc-ico" style="background:rgba(6,182,212,.15);color:var(--cyan)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div><div><b>2 shields banked</b><small>Next shield in 5 days</small></div></div>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Key Features Grid -->
-  <section id="features" style="padding: clamp(40px, 7vw, 80px) 0;">
+  <div class="marquee-band"><div class="container"><div class="marquee-track" aria-hidden="true">
+    <span>Daily check-ins <i>✦</i></span><span>Focus timer <i>✦</i></span><span>Streak shields <i>✦</i></span><span>Elastic goals <i>✦</i></span><span>Urge surfer <i>✦</i></span><span>Health Connect <i>✦</i></span><span>Analytics <i>✦</i></span><span>33 badges <i>✦</i></span>
+    <span>Daily check-ins <i>✦</i></span><span>Focus timer <i>✦</i></span><span>Streak shields <i>✦</i></span><span>Elastic goals <i>✦</i></span><span>Urge surfer <i>✦</i></span><span>Health Connect <i>✦</i></span><span>Analytics <i>✦</i></span><span>33 badges <i>✦</i></span>
+  </div></div></div>
+
+  <!-- FEATURES -->
+  <section id="features" class="section">
     <div class="container">
       <div class="section-title">
-        <h2>Habits, focus, reflections, and streaks</h2>
-        <p>Daily check-ins, a focus timer, reflection insights, and shields to protect your streaks when you miss a day.</p>
+        <span class="kicker">●&nbsp; Why Phial</span>
+        <h2>Everything you need to stay consistent</h2>
+        <p>Habits, focus, reflections, and streak protection — designed for real life, not perfect weeks.</p>
       </div>
-
       <div class="features-grid">
-        <!-- Feature 1: Habit Stacking & Routines -->
-        <div class="feature-card">
-          <div class="feature-icon primary">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-              stroke-linejoin="round">
-              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-            </svg>
-          </div>
-          <h3>Habit Stacking Routines</h3>
-          <p>Group sequential habits into morning, workday, or evening flows. Guided full-screen player with live timers, cue prompts, and completion XP bonuses.</p>
-          <div class="feature-tag">Sequential Chains • Routine Player</div>
+        <div class="feature-card span-2">
+          <div class="feature-top"><div class="feature-icon primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></div><span class="feature-num">01</span></div>
+          <h3>Habit stacking routines</h3>
+          <p>Chain habits into Morning, Workday, or Evening flows — then run them in a guided full-screen player with live timers, cue prompts (“After X → Next: Y”), and a completion XP bonus. No decision fatigue, just flow.</p>
+          <div class="feature-tag">Sequential chains · Routine player · +bonus XP</div>
         </div>
-
-        <!-- Feature 2: Focus Timer -->
         <div class="feature-card">
-          <div class="feature-icon cyan">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-              stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-          </div>
-          <h3>Circular Focus Timer</h3>
-          <p>Distraction-free countdown timer for deep work with ambient soundscapes. Runs as a foreground
-            service with persistent notification controls and auto-logged history.</p>
-          <div class="feature-tag">Zen Mode • Background Service</div>
+          <div class="feature-top"><div class="feature-icon cyan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div><span class="feature-num">02</span></div>
+          <h3>Circular focus timer</h3>
+          <p>Distraction-free countdown with ambient soundscapes, DND automation, and a foreground service that survives lock-screen and multitasking.</p>
+          <div class="feature-tag">Zen mode · Background service</div>
         </div>
-
-        <!-- Feature 3: Abstinence & Urge Surfer -->
         <div class="feature-card">
-          <div class="feature-icon purple">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-              stroke-linejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-              <circle cx="12" cy="12" r="3"></circle>
-            </svg>
-          </div>
-          <h3>Abstinence &amp; Urge Surfer</h3>
-          <p>Break bad habits with passive clean duration timers, a 2-minute box breathing tool with audio chimes, milestone badges, and compassionate reset logging.</p>
-          <div class="feature-tag">Sobriety Clock • Box Breathing</div>
+          <div class="feature-top"><div class="feature-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><circle cx="12" cy="12" r="3"></circle></svg></div><span class="feature-num">03</span></div>
+          <h3>Abstinence &amp; urge surfer</h3>
+          <p>Break bad habits with a live sobriety clock, milestone badges, compassionate reset logging, and a 2-minute box-breathing tool for cravings.</p>
+          <div class="feature-tag">Sobriety clock · 4-4-4-4 breathing</div>
         </div>
-
-        <!-- Feature 4: Habit Shields -->
         <div class="feature-card">
-          <div class="feature-icon cyan">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-              stroke-linejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-            </svg>
-          </div>
-          <h3>Habit Shields &amp; Grace Days</h3>
-          <p>Protect your streak when life gets busy. Earn 1 shield for every 14 days of
-            consistent completions. Use shields to freeze missed days automatically or manually.</p>
-          <div class="feature-tag">Streak Freeze • 14d Banking</div>
+          <div class="feature-top"><div class="feature-icon cyan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div><span class="feature-num">04</span></div>
+          <h3>Shields &amp; elastic goals</h3>
+          <p>Bank 1 shield per 14 consistent days to freeze misses automatically. On low-energy days, hit your Mini target to save momentum instead of breaking.</p>
+          <div class="feature-tag">Streak freeze · Mini / Base / Elite</div>
         </div>
-
-        <!-- Feature 5: Google Health Connect -->
         <div class="feature-card">
-          <div class="feature-icon emerald">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-              stroke-linejoin="round">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-            </svg>
-          </div>
-          <h3>Google Health Connect</h3>
-          <p>Zero-touch check-ins for 7 physical health metrics. Auto-sync steps, workouts, move minutes, distance, calories, hydration, and sleep from Google Fit and wearables.</p>
-          <div class="feature-tag">Health Connect SDK • 7 Metrics</div>
+          <div class="feature-top"><div class="feature-icon emerald"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg></div><span class="feature-num">05</span></div>
+          <h3>Health Connect auto-sync</h3>
+          <p>Zero-touch check-ins for steps, workouts, move minutes, distance, calories, hydration, and sleep — synced from Google Fit and wearables.</p>
+          <div class="feature-tag">7 metrics · Background workers</div>
         </div>
-
-        <!-- Feature 6: XP and Mastery -->
+        <div class="feature-card span-2">
+          <div class="feature-top"><div class="feature-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></div><span class="feature-num">06</span></div>
+          <h3>XP, titles &amp; 33 badges</h3>
+          <p>Every check-in earns XP on a quadratic curve (Novice → Grandmaster) with streak multipliers up to 2.0×. Unlock milestone badges across streaks, volume, diversity, perfect days, routines, and focus mastery.</p>
+          <div class="feature-tag">Quadratic XP · 2.0× multiplier · 33 badges</div>
+        </div>
         <div class="feature-card">
-          <div class="feature-icon amber">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-              stroke-linejoin="round">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
-              </polygon>
-            </svg>
-          </div>
-          <h3>XP, Titles &amp; Mastery</h3>
-          <p>Gamification designed to keep you motivated: level up from Novice to Grandmaster. Earn XP for every check-in, climb a
-            quadratic curve, and unlock 33 milestone badges.</p>
-          <div class="feature-tag">Quadratic XP • 33 Badges</div>
+          <div class="feature-top"><div class="feature-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></div><span class="feature-num">07</span></div>
+          <h3>Reflections &amp; wellbeing insights</h3>
+          <p>Tune into how habits shape your day. Log energy (1–5), mood tags, and a 120-character note at check-in — then let the correlation engine reveal which routines genuinely lift you up.</p>
+          <div class="feature-tag">Energy · Mood · Correlation</div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- App Showcase Walkthrough -->
-  <section id="showcase"
-    style="padding: clamp(40px, 6vw, 70px) 0; background: var(--surface-elevated); border-top: 1px solid var(--outline); border-bottom: 1px solid var(--outline);">
+  <!-- HOW -->
+  <section id="how" class="section alt">
+    <div class="container">
+      <div class="section-title center">
+        <span class="kicker">●&nbsp; Daily loop</span>
+        <h2>A 2-minute ritual that sticks</h2>
+        <p>Open Phial, check in, and get on with your day. The app handles streaks, math, and motivation.</p>
+      </div>
+      <div class="steps-grid">
+        <div class="step-card" data-step="01"><span class="step-pill">Log</span><h3>Check in in seconds</h3><p>One-tap checkboxes, numeric steppers, timer goals, or automatic Health Connect sync. Pin what matters, archive the rest.</p></div>
+        <div class="step-card" data-step="02"><span class="step-pill">Focus &amp; reflect</span><h3>Work deeply, note briefly</h3><p>Launch the zen timer with ambient sound, then capture energy, mood, and a 120-char note on how the habit felt.</p></div>
+        <div class="step-card" data-step="03"><span class="step-pill">Protect &amp; level up</span><h3>Never lose momentum</h3><p>Shields freeze missed days. Elastic Mini goals save bad days. XP, multipliers, and badges reward the long game.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SHOWCASE -->
+  <section id="showcase" class="section">
+    <div class="container">
+      <div class="section-title center">
+        <span class="kicker">●&nbsp; Tour</span>
+        <h2>Take the app for a spin</h2>
+        <p>Thirteen real screens — from the daily tracker to encrypted backups. Tap a pill to explore.</p>
+      </div>
+      <div class="showcase-shell">
+        <div class="tabs-nav">
+          <button class="tab-btn active" data-tab="tab-today">Daily Tracker</button>
+          <button class="tab-btn" data-tab="tab-routines">Habit Stacking</button>
+          <button class="tab-btn" data-tab="tab-sobriety">Sobriety</button>
+          <button class="tab-btn" data-tab="tab-elastic">Elastic Goals</button>
+          <button class="tab-btn" data-tab="tab-matrix">Week Matrix</button>
+          <button class="tab-btn" data-tab="tab-timer">Focus Timer</button>
+          <button class="tab-btn" data-tab="tab-detail">Habit Detail</button>
+          <button class="tab-btn" data-tab="tab-shields">Shield Bank</button>
+          <button class="tab-btn" data-tab="tab-reflection">Reflections</button>
+          <button class="tab-btn" data-tab="tab-health">Health Sync</button>
+          <button class="tab-btn" data-tab="tab-analytics">Analytics</button>
+          <button class="tab-btn" data-tab="tab-mastery">Mastery</button>
+          <button class="tab-btn" data-tab="tab-backups">Backups</button>
+        </div>
+        <div class="mockup-preview-box">
+          <div id="tab-today" class="tab-pane active">
+            <div class="tab-content-grid wide">
+              <div class="screenshots-pair">
+                <div class="guide-screenshot-wrap"><img src="assets/img/screen_today.png" alt="Daily Tracker Screen"></div>
+                <div class="guide-screenshot-wrap"><img src="assets/img/screen_archived_filter.png" alt="Archived Habits Filter"></div>
+              </div>
+              <div class="tab-details"><h4>Daily tracker &amp; categories</h4><p>Completion ring, date stepper, filter chips with live counts, archived management, and 48dp one-handed check-ins.</p>
+                <ul class="tab-feature-list">
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>Completion ring:</strong> live % + XP earned today.</span></li>
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>Every target:</strong> checkboxes, steppers, Clean badges, custom units.</span></li>
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>Archived chip:</strong> review, restore, or pause with safeguards.</span></li>
+                </ul></div>
+            </div>
+          </div>
+          <div id="tab-routines" class="tab-pane">
+            <div class="tab-content-grid extra-wide">
+              <div class="screenshots-trio">
+                <div class="guide-screenshot-wrap"><img src="assets/img/screen_routines_today.png" alt="Routines on Today"></div>
+                <div class="guide-screenshot-wrap"><img src="assets/img/screen_routine_builder.png" alt="Routine Builder"></div>
+                <div class="guide-screenshot-wrap"><img src="assets/img/screen_routine_player.png" alt="Routine Player"></div>
+              </div>
+              <div class="tab-details"><h4>Habit stacking &amp; flow player</h4><p>Chain habits into sequences and execute them in a guided full-screen player with timers, prompts, and bonus XP.</p>
+                <ul class="tab-feature-list">
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>Reorderable builder:</strong> drag steps, icons, colors, time windows.</span></li>
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>Guided player:</strong> “After X → Next: Y”, countdowns, skip, celebration.</span></li>
+                </ul></div>
+            </div>
+          </div>
+          <div id="tab-sobriety" class="tab-pane">
+            <div class="tab-content-grid extra-wide">
+              <div class="screenshots-trio">
+                <div class="guide-screenshot-wrap"><img src="assets/img/screen_habit_form_negative.png" alt="Abstinence setup"></div>
+                <div class="guide-screenshot-wrap"><img src="assets/img/screen_sobriety_detail.png" alt="Sobriety clock"></div>
+                <div class="guide-screenshot-wrap"><img src="assets/img/screen_urge_surfer.png" alt="Urge surfer"></div>
+              </div>
+              <div class="tab-details"><h4>Abstinence &amp; urge surfer</h4><p>Live clean-time counter, milestone ladder (24h → 1yr), compassionate resets, and 4-4-4-4 box breathing for cravings.</p>
+                <ul class="tab-feature-list">
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>Passive tracking:</strong> clean days accrue automatically.</span></li>
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>Urge surfer:</strong> 2-min breathing with chimes + affirmations.</span></li>
+                </ul></div>
+            </div>
+          </div>
+          <div id="tab-elastic" class="tab-pane">
+            <div class="tab-content-grid wide">
+              <div class="screenshots-pair">
+                <div class="guide-screenshot-wrap"><img src="assets/img/screen_elastic_goals_today.png" alt="Elastic goals today"></div>
+                <div class="guide-screenshot-wrap"><img src="assets/img/screen_elastic_goals_detail.png" alt="Elastic goals detail"></div>
+              </div>
+              <div class="tab-details"><h4>Elastic goals &amp; bad-day mode</h4><p>Mini / Base / Elite tiers (e.g. 5 / 20 / 40 pages) so low-energy days still count. Mini saves your streak (+5 XP).</p>
+                <ul class="tab-feature-list">
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>Mini → Elite:</strong> 5 / 20 / 35 XP, boosted by streak multipliers.</span></li>
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>One-tap bar:</strong> tier selector + live badges on every card.</span></li>
+                </ul></div>
+            </div>
+          </div>
+          <div id="tab-matrix" class="tab-pane">
+            <div class="tab-content-grid">
+              <div class="guide-screenshot-wrap"><img src="assets/img/screen_week_matrix.png" alt="Week Matrix"></div>
+              <div class="tab-details"><h4>7-day adherence matrix</h4><p>ISO Monday–Sunday grid with completions chart. Long-press any cell to freeze or unfreeze a day.</p>
+                <ul class="tab-feature-list">
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>Status dots:</strong> done, shielded, missed, off-day.</span></li>
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>Volume chart:</strong> daily completions at a glance.</span></li>
+                </ul></div>
+            </div>
+          </div>
+          <div id="tab-timer" class="tab-pane">
+            <div class="tab-content-grid">
+              <div class="guide-screenshot-wrap"><img src="assets/img/screen_focus_timer.png" alt="Focus Timer"></div>
+              <div class="tab-details"><h4>Circular focus timer</h4><p>Deep-work countdown with ambient sound, DND automation, notification controls, and auto-logged sessions.</p>
+                <ul class="tab-feature-list">
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>Background service:</strong> keeps counting with screen locked.</span></li>
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>Soundscapes:</strong> Forest, Rain, White Noise, Cafe.</span></li>
+                </ul></div>
+            </div>
+          </div>
+          <div id="tab-detail" class="tab-pane">
+            <div class="tab-content-grid">
+              <div class="guide-screenshot-wrap"><img src="assets/img/screen_habit_detail_shield.png" alt="Habit Detail"></div>
+              <div class="tab-details"><h4>Habit detail &amp; streak freeze</h4><p>Calendar heatmap, freeze banner, 10-dot milestone bar, stats, and embedded focus controls.</p>
+                <ul class="tab-feature-list">
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>Freeze banner:</strong> clear shield status per date.</span></li>
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>Quick focus:</strong> preset chips launch timer instantly.</span></li>
+                </ul></div>
+            </div>
+          </div>
+          <div id="tab-shields" class="tab-pane">
+            <div class="tab-content-grid">
+              <div class="guide-screenshot-wrap"><img src="assets/img/screen_shields.png" alt="Shield Bank"></div>
+              <div class="tab-details"><h4>Shield bank</h4><p>Earn 1 shield per 14 consistent days. Protect yesterday with one tap, or let midnight rollover auto-freeze.</p>
+                <ul class="tab-feature-list">
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>14-day banking:</strong> live progress to next shield.</span></li>
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>3 ways to apply:</strong> auto, detail calendar, matrix long-press.</span></li>
+                </ul></div>
+            </div>
+          </div>
+          <div id="tab-reflection" class="tab-pane">
+            <div class="tab-content-grid">
+              <div class="guide-screenshot-wrap"><img src="assets/img/screen_checkin_reflection.png" alt="Reflection"></div>
+              <div class="tab-details"><h4>Reflections &amp; wellbeing</h4><p>Capture energy (1–5), mood tags, and a 120-char note right after check-in. Saved to history,Skip anytime.</p>
+                <ul class="tab-feature-list">
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>Energy scale:</strong> Low → Peak physical + mental.</span></li>
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>Moods:</strong> Energized, Happy, Calm, Focused, Tired, Stressed.</span></li>
+                </ul></div>
+            </div>
+          </div>
+          <div id="tab-health" class="tab-pane">
+            <div class="tab-content-grid wide">
+              <div class="screenshots-pair">
+                <div class="guide-screenshot-wrap"><img src="assets/img/screen_health_connect_settings.png" alt="Health Connect"></div>
+                <div class="guide-screenshot-wrap"><img src="assets/img/screen_habit_detail_health_sync.png" alt="Health status"></div>
+              </div>
+              <div class="tab-details"><h4>Health Connect auto-sync</h4><p>Link steps, exercise, move minutes, distance, calories, hydration, and sleep. Habits complete themselves.</p>
+                <ul class="tab-feature-list">
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>Zero-touch:</strong> auto-logs values, marks complete at target.</span></li>
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>Reconciliation:</strong> backfills the last 3 days of late-night activity.</span></li>
+                </ul></div>
+            </div>
+          </div>
+          <div id="tab-analytics" class="tab-pane">
+            <div class="tab-content-grid wide">
+              <div class="screenshots-pair">
+                <div class="guide-screenshot-wrap"><img src="assets/img/screen_analytics.png" alt="Analytics"></div>
+                <div class="guide-screenshot-wrap"><img src="assets/img/screen_analytics_correlation.png" alt="Correlation"></div>
+              </div>
+              <div class="tab-details"><h4>Analytics &amp; heatmaps</h4><p>Rolling 7/30-day curves, top-habit rankings, energy correlation (done vs. missed days), and GitHub-style monthly heatmap.</p>
+                <ul class="tab-feature-list">
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>Trend splines:</strong> adherence trajectory over time.</span></li>
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>Wellbeing link:</strong> do habits raise your energy?</span></li>
+                </ul></div>
+            </div>
+          </div>
+          <div id="tab-mastery" class="tab-pane">
+            <div class="tab-content-grid wide">
+              <div class="screenshots-pair">
+                <div class="guide-screenshot-wrap"><img src="assets/img/screen_mastery.png" alt="Mastery"></div>
+                <div class="guide-screenshot-wrap"><img src="assets/img/screen_mastery_specific_achievements.png" alt="Badges"></div>
+              </div>
+              <div class="tab-details"><h4>Mastery &amp; badges</h4><p>Quadratic XP (100 × L²), titles Novice → Grandmaster, streak multipliers to 2.0×, and 33 filterable achievement badges.</p>
+                <ul class="tab-feature-list">
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>Multipliers:</strong> 1.0× → 1.1× → 1.25× → 1.5× → 2.0×.</span></li>
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>Badges:</strong> streaks, volume, diversity, perfection, routines, focus.</span></li>
+                </ul></div>
+            </div>
+          </div>
+          <div id="tab-backups" class="tab-pane">
+            <div class="tab-content-grid wide">
+              <div class="screenshots-pair">
+                <div class="guide-screenshot-wrap"><img src="assets/img/screen_backup_sheet.png" alt="Backup hub"></div>
+                <div class="guide-screenshot-wrap"><img src="assets/img/screen_backup_encrypted_export.png" alt="Encrypted backup"></div>
+              </div>
+              <div class="tab-details"><h4>Backups &amp; sync</h4><p>AES-256 zero-knowledge encryption (100k PBKDF2), Gzip compression, CSV export, and lossless Last-Write-Wins merge.</p>
+                <ul class="tab-feature-list">
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>Encrypted:</strong> .enc.json with random passkeys.</span></li>
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg><span><strong>Portable:</strong> CSV for Sheets / Excel / Python.</span></li>
+                </ul></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRIVACY -->
+  <section class="section alt">
     <div class="container">
       <div class="section-title">
-        <h2>App Showcase</h2>
-        <p>Explore the clean Material 3 interface optimized for one-handed operation and clear visual hierarchy.</p>
+        <span class="kicker">●&nbsp; Private by design</span>
+        <h2>Your data never leaves your pocket</h2>
+        <p>No accounts, no cloud, no telemetry. Just a local Drift SQLite database you fully own.</p>
       </div>
-
-      <div class="tabs-nav">
-        <button class="tab-btn active" data-tab="tab-today">Daily Tracker</button>
-        <button class="tab-btn" data-tab="tab-routines">Habit Stacking</button>
-        <button class="tab-btn" data-tab="tab-sobriety">Abstinence &amp; Sobriety</button>
-        <button class="tab-btn" data-tab="tab-elastic">Elastic Goals</button>
-        <button class="tab-btn" data-tab="tab-matrix">Week Matrix</button>
-        <button class="tab-btn" data-tab="tab-timer">Focus Timer</button>
-        <button class="tab-btn" data-tab="tab-detail">Habit Detail</button>
-        <button class="tab-btn" data-tab="tab-shields">Shield Bank</button>
-        <button class="tab-btn" data-tab="tab-reflection">Reflections</button>
-        <button class="tab-btn" data-tab="tab-health">Health Connect</button>
-        <button class="tab-btn" data-tab="tab-analytics">Analytics</button>
-        <button class="tab-btn" data-tab="tab-mastery">Mastery &amp; Badges</button>
-        <button class="tab-btn" data-tab="tab-backups">Data &amp; Backups</button>
-      </div>
-
-      <div class="mockup-preview-box">
-        <!-- Tab 1: Daily -->
-        <div id="tab-today" class="tab-pane active">
-          <div class="tab-content-grid wide">
-            <div class="screenshots-pair">
-              <div class="guide-screenshot-wrap">
-                <img src="assets/img/screen_today.png" alt="Daily Tracker Screen">
-              </div>
-              <div class="guide-screenshot-wrap">
-                <img src="assets/img/screen_archived_filter.png" alt="Archived Habits Filter on Daily Tracker">
-              </div>
-            </div>
-            <div class="tab-details">
-              <h4>Daily Routine Tracker &amp; Categorization</h4>
-              <p>
-                The central dashboard gives you an immediate overview of daily progress with an interactive circular
-                progress indicator, quick date stepper, category filter chips with live counts, archived habit management, and 48dp tappable check-in targets.
-              </p>
-              <ul class="tab-feature-list">
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Completion Ring:</strong> Live daily percentage (40–80%) and cumulative XP earned (+65 XP).</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Target Support:</strong> Checkboxes, numeric delta steppers (+5, +10), Clean badges for sobriety, and custom goal units.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Archived Filtering:</strong> Dedicated "Archived" category filter chip to review, manage, or restore paused habits with read-only safeguards.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Quick Focus:</strong> One-tap launch directly into deep work timer sessions.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab: Habit Stacking Routines -->
-        <div id="tab-routines" class="tab-pane">
-          <div class="tab-content-grid extra-wide">
-            <div class="screenshots-trio">
-              <div class="guide-screenshot-wrap">
-                <img src="assets/img/screen_routines_today.png" alt="Routines &amp; Stacks on Daily Tracker">
-              </div>
-              <div class="guide-screenshot-wrap">
-                <img src="assets/img/screen_routine_builder.png" alt="Create Habit Stack Builder">
-              </div>
-              <div class="guide-screenshot-wrap">
-                <img src="assets/img/screen_routine_player.png" alt="Full-Screen Routine Player Flow">
-              </div>
-            </div>
-            <div class="tab-details">
-              <h4>Habit Stacking Routines &amp; Flow Execution</h4>
-              <p>
-                Chain atomic habits into automated sequences (Morning Momentum, Evening Wind-Down). Execute your routines with a full-screen guided player featuring live step timers, contextual prompts, and completion XP rewards.
-              </p>
-              <ul class="tab-feature-list">
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Sequential Habits:</strong> Chain habits so completing one naturally cues the next step in flow.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Reorderable Builder:</strong> Drag-and-drop steps, custom icons, color themes, and time windows (Morning, Afternoon, Evening, Anytime).</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Full-Screen Player:</strong> Guided step prompts (&ldquo;After X &rarr; Next: Y&rdquo;), animated countdown/stopwatch timers, skip controls, and celebration screen.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Partial Step Progress:</strong> Step-level satisfaction evaluations for multi-slot boolean, numeric, and timer habits with date targeting.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab: Abstinence & Sobriety -->
-        <div id="tab-sobriety" class="tab-pane">
-          <div class="tab-content-grid extra-wide">
-            <div class="screenshots-trio">
-              <div class="guide-screenshot-wrap">
-                <img src="assets/img/screen_habit_form_negative.png" alt="Create Abstinence &amp; Sobriety Habit">
-              </div>
-              <div class="guide-screenshot-wrap">
-                <img src="assets/img/screen_sobriety_detail.png" alt="Live Sobriety Counter &amp; Reset Clock Dialog">
-              </div>
-              <div class="guide-screenshot-wrap">
-                <img src="assets/img/screen_urge_surfer.png" alt="Urge Surfer Box Breathing Mindfulness Tool">
-              </div>
-            </div>
-            <div class="tab-details">
-              <h4>Abstinence Tracking &amp; Urge Surfer</h4>
-              <p>
-                Break bad habits and track long-term recovery with dedicated sobriety tools. Monitor continuous clean time down to the second, navigate craving spikes with guided box breathing, and earn milestone badges along your journey.
-              </p>
-              <ul class="tab-feature-list">
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Live Sobriety Clock:</strong> Real-time elapsed duration counter tracking Days, Hours, Minutes, and Seconds from your clean start date.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Urge Surfer Tool:</strong> 2-minute 4-4-4-4 box breathing technique with animated visual guide, ambient chime audio cues, and calming craving affirmations.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Milestone Progression:</strong> Track progressive clean time milestones (24h, 3d, 1w, 1mo, 3mo, 6mo, 1yr) with visual progress bars.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Passive Clean Tracking:</strong> Clean days accrue automatically without manual buttons; compassionate reset dialog supports reflection if a slip occurs.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab: Elastic Goals -->
-        <div id="tab-elastic" class="tab-pane">
-          <div class="tab-content-grid wide">
-            <div class="screenshots-pair">
-              <div class="guide-screenshot-wrap">
-                <img src="assets/img/screen_elastic_goals_today.png" alt="Elastic Goals on Daily Tracker">
-              </div>
-              <div class="guide-screenshot-wrap">
-                <img src="assets/img/screen_elastic_goals_detail.png" alt="Elastic Goals on Habit Detail">
-              </div>
-            </div>
-            <div class="tab-details">
-              <h4>Elastic Goals &amp; Bad-Day Mode</h4>
-              <p>
-                Habits shouldn't be all-or-nothing. Elastic Goals introduce a flexible three-tier system (Mini, Base, Elite) so
-                you stay consistent and preserve momentum even on your lowest energy days.
-              </p>
-              <ul class="tab-feature-list">
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Mini Target (Bad-Day Mode):</strong> A low-friction baseline (e.g. 5 pages) that saves your
-                    active streak and awards +5 XP.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Base Target (Standard):</strong> Your daily benchmark goal (e.g. 20 pages) awarding +20
-                    XP.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Elite Target (High Energy):</strong> A stretch milestone (e.g. 40 pages) for peak motivation
-                    days awarding +35 XP.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>One-Tap Check-In:</strong> Direct milestone selector bar on habit cards and detail cards with
-                    live tier badges.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab 2: Week Matrix -->
-        <div id="tab-matrix" class="tab-pane">
-          <div class="tab-content-grid">
-            <div class="guide-screenshot-wrap">
-              <img src="assets/img/screen_week_matrix.png" alt="Week Matrix Screen">
-            </div>
-            <div class="tab-details">
-              <h4>7-Day Adherence Matrix</h4>
-              <p>
-                View full weekly adherence across all active habits on an ISO Monday through Sunday grid. Quickly
-                identify completion patterns, protected shield days, and daily completion volume charts.
-              </p>
-              <ul class="tab-feature-list">
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>7-Day Adherence:</strong> Monday to Sunday consistency grid with clear visual status dots.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Completions Chart:</strong> Daily completion bar graph for routine momentum.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Quick Action:</strong> Long-press any date cell to apply or remove streak shields.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab 3: Timer -->
-        <div id="tab-timer" class="tab-pane">
-          <div class="tab-content-grid">
-            <div class="guide-screenshot-wrap">
-              <img src="assets/img/screen_focus_timer.png" alt="Focus Timer Screen">
-            </div>
-            <div class="tab-details">
-              <h4>Circular Focus Timer</h4>
-              <p>
-                Distraction-free focus sessions integrated directly with habit goals. Features ambient noise playback,
-                Do Not Disturb automation, and a persistent foreground notification service.
-              </p>
-              <ul class="tab-feature-list">
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Background Service:</strong> Uninterrupted countdown when multitasking or screen is locked.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Ambient Sounds:</strong> Forest Birds, Rain, White Noise, and Cafe soundscapes.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Delta Adjustments:</strong> Add/subtract minutes dynamically (+5m, -5m) on the fly.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab 4: Detail -->
-        <div id="tab-detail" class="tab-pane">
-          <div class="tab-content-grid">
-            <div class="guide-screenshot-wrap">
-              <img src="assets/img/screen_habit_detail_shield.png" alt="Habit Detail Screen with Active Shield">
-            </div>
-            <div class="tab-details">
-              <h4>Habit Detail &amp; Streak Freeze</h4>
-              <p>
-                Deep-dive into individual habit performance with interactive calendar heatmaps, streak freeze status banners,
-                10-dot milestone progress indicators, and embedded focus controls.
-                </p>
-              <ul class="tab-feature-list">
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Streak Freeze Banner:</strong> Clear visual confirmation when a day is protected by a shield.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>10-Dot Progress:</strong> Milestone tier indicator showing progress toward routine consistency.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Integrated Focus:</strong> Launch timer sessions directly from habit cards with preset goal chips.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab 5: Shields -->
-        <div id="tab-shields" class="tab-pane">
-          <div class="tab-content-grid">
-            <div class="guide-screenshot-wrap">
-              <img src="assets/img/screen_shields.png" alt="Shield Bank Screen">
-            </div>
-            <div class="tab-details">
-              <h4>Habit Shield Banking</h4>
-              <p>
-                Protect your streaks when unexpected events happen. Bank shields through consistent tracking and freeze missed days
-                without breaking your streak.
-              </p>
-              <ul class="tab-feature-list">
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>14-Day Banking:</strong> Earn 1 shield for every 14 distinct days completed.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Yesterday Protect:</strong> 1-tap protection for missed habits from the previous day.</span>
-                  </li>
-                  <li>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                    <span><strong>Auto-Consume Rollover:</strong> Missed days freeze automatically if shields are available.</span>
-                  </li>
-                  </ul>
-                  </div>
-                  </div>
-                  </div>
-                  
-                  <!-- Tab 6: Reflections -->
-                  <div id="tab-reflection" class="tab-pane">
-                    <div class="tab-content-grid">
-                      <div class="guide-screenshot-wrap">
-                        <img src="assets/img/screen_checkin_reflection.png" alt="Check-In Reflection Screen">
-                      </div>
-                      <div class="tab-details">
-                        <h4>Check-In Reflections &amp; Wellbeing</h4>
-                        <p>
-                          Capture qualitative context when completing habits. Reflect on energy levels and emotional state
-                          to see how habits influence your day.
-                        </p>
-                        <ul class="tab-feature-list">
-                          <li>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                              <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                            <span><strong>Energy Rating:</strong> 5-point physical and mental stamina scale (Low to Peak).</span>
-                          </li>
-                          <li>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                              <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                            <span><strong>Mood Tags:</strong> Tag check-ins with Energized, Happy, Calm, Focused, Tired, or
-                              Stressed.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Micro-Notes:</strong> 120-character brief contextual annotations saved to habit history.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab 7: Health Connect -->
-        <div id="tab-health" class="tab-pane">
-          <div class="tab-content-grid wide">
-            <div class="screenshots-pair">
-              <div class="guide-screenshot-wrap">
-                <img src="assets/img/screen_health_connect_settings.png" alt="Google Health Connect Settings">
-              </div>
-              <div class="guide-screenshot-wrap">
-                <img src="assets/img/screen_habit_detail_health_sync.png" alt="Habit Detail with Health Connect Status">
-              </div>
-            </div>
-            <div class="tab-details">
-              <h4>Google Health Connect Auto-Sync</h4>
-              <p>
-                Seamlessly automate habit check-ins for 7 core physical health metrics synced directly from Google Fit, smartwatches, and fitness trackers.
-              </p>
-              <ul class="tab-feature-list">
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>7 Health Metrics:</strong> Steps, Active Exercise, Move Minutes, Distance, Calories, Hydration, and Sleep.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Zero-Touch Check-Ins:</strong> Automatically logs numeric values and marks habits complete upon reaching target.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Background Reconciliation:</strong> WorkManager workers sync periodically and reconcile late-night activity over the last 3 days.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab 8: Analytics -->
-        <div id="tab-analytics" class="tab-pane">
-          <div class="tab-content-grid wide">
-            <div class="screenshots-pair">
-              <div class="guide-screenshot-wrap">
-                <img src="assets/img/screen_analytics.png" alt="Analytics Overview">
-              </div>
-              <div class="guide-screenshot-wrap">
-                <img src="assets/img/screen_analytics_correlation.png" alt="Wellbeing Correlation and Heatmap">
-              </div>
-            </div>
-            <div class="tab-details">
-              <h4>Multi-Dimensional Analytics</h4>
-              <p>
-                Track long-term habit velocity through rolling adherence curves, completion rates, top habit rankings,
-                and wellbeing correlation insights.
-              </p>
-              <ul class="tab-feature-list">
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Trend Curves:</strong> 7-day and 30-day rolling adherence trajectory spline.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Wellbeing Correlation:</strong> Energy comparison on completed vs. missed days.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Monthly Heatmap:</strong> GitHub-style 4-level density grid showing routine momentum.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab 8: Mastery -->
-        <div id="tab-mastery" class="tab-pane">
-          <div class="tab-content-grid wide">
-            <div class="screenshots-pair">
-              <div class="guide-screenshot-wrap">
-                <img src="assets/img/screen_mastery.png" alt="Mastery and Badges Screen">
-              </div>
-              <div class="guide-screenshot-wrap">
-                <img src="assets/img/screen_mastery_specific_achievements.png" alt="Achievements Showcase">
-              </div>
-            </div>
-            <div class="tab-details">
-              <h4>Mastery &amp; Badges</h4>
-              <p>
-                Earn XP for daily check-ins, unlock titles from Novice to Grandmaster, boost rewards with streak multipliers, and
-                collect 33 milestone achievement badges.
-              </p>
-              <ul class="tab-feature-list">
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Quadratic XP:</strong> Balanced leveling curve that rewards long-term discipline.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Streak Multiplier:</strong> Up to 2.0x XP multiplier for 30+ day streaks.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>33 Milestone Badges:</strong> Filter by Streaks, Volume, Diversity, Perfection, and Routines.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab 9: Backups & Data Portability -->
-        <div id="tab-backups" class="tab-pane">
-          <div class="tab-content-grid wide">
-            <div class="screenshots-pair">
-              <div class="guide-screenshot-wrap">
-                <img src="assets/img/screen_backup_sheet.png" alt="Data and Backup Hub">
-              </div>
-              <div class="guide-screenshot-wrap">
-                <img src="assets/img/screen_backup_encrypted_export.png" alt="AES-256 Encrypted Backup Dialog">
-              </div>
-            </div>
-            <div class="tab-details">
-              <h4>Data Portability &amp; Secure Backups</h4>
-              <p>
-                Take full control of your habit records with zero-knowledge AES-256 encrypted backups, Gzip compression,
-                CSV exports, and deterministic multi-device sync merging.
-              </p>
-              <ul class="tab-feature-list">
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>AES-256 Encryption:</strong> Zero-knowledge client-side encryption with 100,000 PBKDF2 iterations and passkey generation.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Gzip Archive Compression:</strong> Reduces backup file sizes by up to 90% (.json.gz).</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>Deterministic Sync:</strong> Last-Write-Wins (LWW) conflict resolution for lossless multi-device merging.</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span><strong>CSV Export:</strong> Standard RFC 4180 tabular spreadsheets for Excel, Sheets, and Python data pipelines.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
+      <div class="privacy-grid">
+        <div class="privacy-card"><div class="pc-ico tint-cyan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path><path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path><path d="M1.42 9a15.91 15.91 0 0 1 5-2.91"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg></div><h3>Fully offline</h3><p>Timer, streaks, reflections, badges — every feature works in airplane mode. Zero network calls.</p></div>
+        <div class="privacy-card"><div class="pc-ico tint-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div><h3>Encrypted backups</h3><p>AES-256-GCM with 100,000 PBKDF2 iterations. <code>.json.gz</code> archives shrink files ~90%.</p></div>
+        <div class="privacy-card"><div class="pc-ico tint-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"></path><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"></path><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg></div><h3>Zero telemetry</h3><p>No ads, no analytics SDKs, no tracking beacons. Export CSV or merge devices losslessly.</p></div>
       </div>
     </div>
   </section>
 
-  <!-- Ready to Start CTA -->
-  <section style="padding: clamp(40px, 7vw, 80px) 0; text-align: center;">
+  <!-- CTA -->
+  <section class="section">
     <div class="container">
-      <div class="section-title" style="margin-bottom: 24px;">
+      <div class="cta-card">
         <h2>Ready to fill today’s phial?</h2>
-        <p>Read the user guide for how streaks, shields, and focus work, or browse the open-source codebase on GitHub.</p>
-      </div>
-      <div style="display: flex; justify-content: center; gap: clamp(10px, 2vw, 16px); flex-wrap: wrap;">
-        <a href="https://github.com/Hari31416/habit-tracker/releases/latest" target="_blank" rel="noopener noreferrer"
-          class="btn btn-primary">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-          </svg>
-          Download Latest APK
-        </a>
-        <a href="guide.html" class="btn btn-secondary">
-          Read User Guide
-        </a>
-        <a href="https://github.com/Hari31416/habit-tracker" target="_blank" rel="noopener noreferrer"
-          class="btn btn-secondary">
-          GitHub Repository
-        </a>
+        <p>Read the guide to learn streaks, shields, and focus — or grab the APK and log your first habit in under a minute.</p>
+        <div class="cta-row">
+          <a href="https://github.com/Hari31416/habit-tracker/releases/latest" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Download Latest APK
+          </a>
+          <a href="guide.html" class="btn btn-ghost">Read User Guide →</a>
+          <a href="https://github.com/Hari31416/habit-tracker" target="_blank" rel="noopener noreferrer" class="btn btn-ghost">GitHub</a>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- Footer -->
   <footer class="site-footer">
-    <div class="container">
-      <div
-        style="display: inline-flex; align-items: center; gap: 8px; justify-content: center; margin-bottom: 8px; flex-wrap: wrap;">
-        <img src="assets/img/app_icon.png" alt="Phial" width="20" height="20"
-          style="border-radius: 5px; display: block;">
-        <span><strong>Phial</strong> • Habit tracker, focus &amp; wellbeing. Built with Flutter, Drift SQLite, and Material
-          3.</span>
-      </div>
+    <div class="container footer-grid">
+      <div class="footer-brand"><img src="assets/img/app_icon.png" alt="Phial"><span>Phial · Habits, focus &amp; wellbeing</span></div>
+      <div class="footer-links"><a href="#features">Features</a><a href="#showcase">Showcase</a><a href="guide.html">User Guide</a><a href="https://github.com/Hari31416/habit-tracker" target="_blank" rel="noopener noreferrer">GitHub</a></div>
+      <div>Built with Flutter · Drift SQLite · Material 3</div>
     </div>
   </footer>
-
   <script src="assets/js/main.js"></script>
 </body>
-
 </html>
