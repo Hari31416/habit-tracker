@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:cryptography/cryptography.dart';
+import 'package:meta/meta.dart';
 
 class InvalidPasswordOrCorruptedException implements Exception {
   final String message;
@@ -15,6 +16,12 @@ class BackupEncryptionEngine {
   static const int kdfIterations = 100000;
   static const int saltLengthBytes = 16;
   static const int nonceLengthBytes = 12;
+
+  /// Upper bound on decrypted ciphertext to bound memory on crafted files.
+  static const int maxCiphertextBytes = 50 * 1024 * 1024;
+
+  static const String expectedAlgorithm = 'AES-256-GCM';
+  static const String expectedKdf = 'PBKDF2-HMAC-SHA256';
 
   static const String _charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
@@ -56,11 +63,17 @@ class BackupEncryptionEngine {
   static Future<String> encrypt({
     required String plaintextJson,
     required String password,
-    List<int>? customSalt,
-    List<int>? customNonce,
+    @visibleForTesting List<int>? customSalt,
+    @visibleForTesting List<int>? customNonce,
   }) async {
     if (password.isEmpty) {
       throw ArgumentError('Password cannot be empty');
+    }
+    if (customSalt != null && customSalt.length != saltLengthBytes) {
+      throw ArgumentError('customSalt must be $saltLengthBytes bytes');
+    }
+    if (customNonce != null && customNonce.length != nonceLengthBytes) {
+      throw ArgumentError('customNonce must be $nonceLengthBytes bytes');
     }
 
     final salt = customSalt ?? _generateSecureRandomBytes(saltLengthBytes);
@@ -135,6 +148,17 @@ class BackupEncryptionEngine {
       throw const InvalidPasswordOrCorruptedException('Incomplete cryptographic parameters');
     }
 
+    if (cryptoInfo['algorithm'] != expectedAlgorithm ||
+        cryptoInfo['kdf'] != expectedKdf) {
+      throw const InvalidPasswordOrCorruptedException('Unsupported cryptographic parameters');
+    }
+
+    // Pin KDF cost: attacker-controlled iteration counts enable
+    // downgrade (iterations=1) or CPU-DoS (iterations=huge).
+    if (iterations != kdfIterations) {
+      throw const InvalidPasswordOrCorruptedException('Unsupported KDF iterations');
+    }
+
     final Uint8List salt;
     final Uint8List nonce;
     final Uint8List combinedCiphertext;
@@ -148,6 +172,14 @@ class BackupEncryptionEngine {
 
     if (combinedCiphertext.length < 16) {
       throw const InvalidPasswordOrCorruptedException('Ciphertext payload is too short');
+    }
+
+    if (salt.length != saltLengthBytes || nonce.length != nonceLengthBytes) {
+      throw const InvalidPasswordOrCorruptedException('Invalid cryptographic parameters');
+    }
+
+    if (combinedCiphertext.length > maxCiphertextBytes) {
+      throw const InvalidPasswordOrCorruptedException('Ciphertext payload is too large');
     }
 
     // Split MAC tag (last 16 bytes) from ciphertext
