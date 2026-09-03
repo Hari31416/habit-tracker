@@ -119,7 +119,10 @@ void main() {
         cleanSince: now.subtract(const Duration(days: 3)),
       );
       final futureDate = now.add(const Duration(days: 2));
-      expect(StreakCalculator.isHabitCompletedOnDate(habit, [], futureDate), isFalse);
+      expect(
+        StreakCalculator.isHabitCompletedOnDate(habit, [], futureDate, now),
+        isFalse,
+      );
     });
 
     test('Habit.elapsedCleanTime returns duration from cleanSince', () {

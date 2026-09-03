@@ -64,14 +64,18 @@ class StreakCalculator {
     return DateTime(monday.year, monday.month, monday.day);
   }
 
-  static bool isHabitScheduledOnDate(Habit habit, DateTime date) {
+  static bool isHabitScheduledOnDate(
+    Habit habit,
+    DateTime date, [
+    DateTime? referenceDate,
+  ]) {
     if (habit.isNegative) {
       final cleanStart = habit.cleanSince ?? habit.createdAt;
       final cleanStartDate =
           DateTime(cleanStart.year, cleanStart.month, cleanStart.day);
       final evalDate = DateTime(date.year, date.month, date.day);
-      final now = DateTime.now();
-      final todayDate = DateTime(now.year, now.month, now.day);
+      final ref = referenceDate ?? DateTime.now();
+      final todayDate = DateTime(ref.year, ref.month, ref.day);
       if (evalDate.isBefore(cleanStartDate) || evalDate.isAfter(todayDate)) {
         return false;
       }
@@ -162,6 +166,7 @@ class StreakCalculator {
     Habit habit,
     List<HabitLog> logs, [
     DateTime? date,
+    DateTime? referenceDate,
   ]) {
     if (habit.isNegative) {
       if (date != null) {
@@ -169,8 +174,8 @@ class StreakCalculator {
         final cleanStartDate =
             DateTime(cleanStart.year, cleanStart.month, cleanStart.day);
         final evalDate = DateTime(date.year, date.month, date.day);
-        final now = DateTime.now();
-        final todayDate = DateTime(now.year, now.month, now.day);
+        final ref = referenceDate ?? DateTime.now();
+        final todayDate = DateTime(ref.year, ref.month, ref.day);
 
         // Days prior to sobriety start or in the future cannot be clean
         if (evalDate.isBefore(cleanStartDate) || evalDate.isAfter(todayDate)) {
@@ -236,9 +241,10 @@ class StreakCalculator {
     Habit habit,
     List<HabitLog> logs, [
     DateTime? date,
+    DateTime? referenceDate,
   ]) {
     if (habit.isNegative) {
-      return isHabitCompletedOnDate(habit, logs, date);
+      return isHabitCompletedOnDate(habit, logs, date, referenceDate);
     }
 
     if (logs.isEmpty) return false;
